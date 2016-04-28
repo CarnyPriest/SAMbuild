@@ -698,6 +698,6 @@ static NVRAM_HANDLER(se) {
 }
 
 //Stern S.A.M Hardware support
-#ifdef INCLUDE_STERN_SAM
+//#ifdef INCLUDE_STERN_SAM
 #include "sam.c"
-#endif
+//#endif

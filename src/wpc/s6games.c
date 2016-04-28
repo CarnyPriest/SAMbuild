@@ -90,6 +90,16 @@ S67S_SPEECHROMS000x(   "v_ic7.532" ,  CRC(87864071) SHA1(d03c71efc0431f30a07c819
 S6_ROMEND
 CORE_CLONEDEF(blkou,t1,l1,"Blackout (T-1 Ted Estes)",1980,"Williams",s6_mS6S,0)
 
+S6_ROMSTART(blkou,hf,  "gamerom.716", CRC(4b407ae2) SHA1(46a2afcfc2d969c5acae18b57a678265257a6102),
+                       "green1.716",  CRC(2145f8ab) SHA1(ddf63208559a3a08d4e88327c55426b0eed27654),
+                       "green2.716",  CRC(1c978a4a) SHA1(1959184764643d58f1740c54bb74c2aad7d667d2))
+S67S_SOUNDROMS8(       "sound2.716",  CRC(c9103a68) SHA1(cc77af54fdb192f0b334d9d1028210618c3f1d95))
+S67S_SPEECHROMS000x(   "v_ic7.532" ,  CRC(87864071) SHA1(d03c71efc0431f30a07c8194c0614c96fb683710),
+                       "v_ic5.532" ,  CRC(046a96d8) SHA1(879127a88b3640bbb202c64cbf8678869c964177),
+                       "v_ic6.532" ,  CRC(0104e5c4) SHA1(c073cb4bdea189085ae074e9c16872752b6ffba0))
+S6_ROMEND
+CORE_CLONEDEF(blkou,hf,l1,"Pumpkin Carving",1980,"Williams",s6_mS6S,0)
+
 /*--------------------------
 / Gorgar - Sys.6 (Game #496)
 /-------------------------*/
