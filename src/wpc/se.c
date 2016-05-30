@@ -781,6 +781,6 @@ int se_m2sw(int col, int row) { return col*8+(7-row)+1; }
 #endif
 
 //Stern S.A.M Hardware support
-#ifdef INCLUDE_STERN_SAM
+//#ifdef INCLUDE_STERN_SAM
 #include "sam.c"
-#endif
+//#endif

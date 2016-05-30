@@ -1,3 +1,7 @@
+version 2.31
+official rev 3870
+Added Spider-Man Vault Edition (V1.0)
+----------------------
 version 2.30
 official rev 3863
 ----------------------

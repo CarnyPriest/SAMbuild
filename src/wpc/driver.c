@@ -1524,8 +1524,10 @@ DRIVER(sman,210gf)      //S.A.M.: 12/08 Spider-Man - V2.1  (German, French)
 DRIVER(sman,220)        //S.A.M.: ??/0? Spider-Man - V2.2
 DRIVER(sman,230)        //S.A.M.: ??/0? Spider-Man - V2.3
 DRIVER(sman,240)        //S.A.M.: 11/09 Spider-Man - V2.4
-DRIVER(sman,260)		//S.A.M.: 11/10 Spider-Man - V2.6
-DRIVER(sman,261)		//S.A.M.: ??/1? Spider-Man - V2.61
+DRIVER(sman,260)        //S.A.M.: 11/10 Spider-Man - V2.6
+DRIVER(sman,261)        //S.A.M.: ??/1? Spider-Man - V2.61
+DRIVER(smanve,100)      //S.A.M.: 01/16 Spider-Man Vault Edition - V1.0
+DRIVER(smanve,100c)     // pinball browser colorized using extend memory
 DRIVER(wof,100)         //S.A.M.: 11/07 Wheel of Fortune - V1.0
 DRIVER(wof,200)         //S.A.M.: 11/07 Wheel of Fortune - V2.0
 DRIVER(wof,200f)        //S.A.M.: 11/07 Wheel of Fortune - V2.0 (French)

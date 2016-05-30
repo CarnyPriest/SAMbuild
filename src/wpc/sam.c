@@ -2385,3 +2385,16 @@ CORE_CLONEDEF(twd, 153, 105, "The Walking Dead (V1.53)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 153h, 105, "The Walking Dead LE (V1.53)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156, 105, "The Walking Dead (V1.56)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156h, 105, "The Walking Dead LE (V1.56)", 2015, "Stern", sam, 0)
+
+//Spider-Man Vault Edition
+INITGAME(smanve, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_NOMINI);
+
+SAM_ROMLOAD_ACDC1(smanve_100, "smanve_100.bin", CRC(f761fa19) SHA1(259bd6d42e742eaad1b7b50f9b5e4830c81084b0), 0x03F2CA8C)
+SAM_ROMEND
+SAM_ROMLOAD_ACDC1(smanve_100c, "smanve_100c.bin", CRC(f761fa19) SHA1(259bd6d42e742eaad1b7b50f9b5e4830c81084b0), 0x03FFFFF0)
+SAM_ROMEND
+
+SAM_INPUT_PORTS_START(smanve, 1) SAM_INPUT_PORTS_END
+
+CORE_GAMEDEF(smanve, 100, "Spider-Man Vault Edition (V1.0)", 2016, "Stern", sam, 0)
+CORE_CLONEDEF(smanve, 100c, 100 , "Spider-Man Vault Edition (V1.0) (Colored)", 2016, "Stern", sam, 0)
