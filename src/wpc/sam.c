@@ -2203,6 +2203,8 @@ SAM_ROMLOAD_ACDC3(mtl_170, "mtl170.bin", CRC(2bdc4668) SHA1(1c28f4d1e3a2c36a045c
 SAM_ROMEND
 SAM_ROMLOAD_ACDC3(mtl_170h, "mtl170h.bin", CRC(99d42a4e) SHA1(1983a6d1cd5664cf03599b035f520e0c6aa33632), 0x05DDD0BC)
 SAM_ROMEND
+SAM_ROMLOAD_ACDC3(mtl_170c, "mtl170c.bin", CRC(99d42a4e) SHA1(1983a6d1cd5664cf03599b035f520e0c6aa33632), 0x05FFFFF0)
+SAM_ROMEND
 
 SAM_INPUT_PORTS_START(mtl, 1) SAM_INPUT_PORTS_END
 
@@ -2232,6 +2234,7 @@ CORE_CLONEDEF(mtl, 164h, 103, "Metallica Limited Edition (V1.64)", 2015, "Stern"
 CORE_CLONEDEF(mtl, 164c, 103, "Metallica Pro (V1.64) (Colored)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(mtl, 170, 103, "Metallica Pro (V1.7)", 2016, "Stern", sam, 0)
 CORE_CLONEDEF(mtl, 170h, 103, "Metallica Limited Edition (V1.7)", 2016, "Stern", sam, 0)
+CORE_CLONEDEF(mtl, 170c, 103, "Metallica Pro (V1.7) (Colored)", 2016, "Stern", sam, 0)
 
 //Star Trek
 

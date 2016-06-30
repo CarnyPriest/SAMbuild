@@ -1693,6 +1693,7 @@ DRIVER(mtl,164c)		// pinball browser colorized using extend memory
 DRIVER(mtl,164h)        //S.A.M.: 04/15 Metallica Limited Edition - V1.64
 DRIVER(mtl,170)         //S.A.M.: 06/16 Metallica Pro - V1.7
 DRIVER(mtl,170h)        //S.A.M.: 06/16 Metallica Limited Edition - V1.7
+DRIVER(mtl,170c)		// pinball browser colorized using extend memory
 DRIVER(st,120)          //S.A.M.: 09/13 Star Trek Pro - V1.20                    
 DRIVER(st,130)          //S.A.M.: 10/13 Star Trek Pro - V1.30                    
 DRIVER(st,140)          //S.A.M.: 12/13 Star Trek Pro - V1.40          

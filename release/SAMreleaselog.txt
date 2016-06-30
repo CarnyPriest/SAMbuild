@@ -1,3 +1,6 @@
+version 2.35a
+Added slot for Metallica 170 colored DMD mod
+ ----------------------
 version 2.35
 official rev 3892
 Added Metallica 170 Pro and LE 
