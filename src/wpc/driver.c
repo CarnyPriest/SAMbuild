@@ -1528,8 +1528,10 @@ DRIVER(sman,230)        //S.A.M.: 08/09 Spider-Man - V2.3
 DRIVER(sman,240)        //S.A.M.: 11/09 Spider-Man - V2.4
 DRIVER(sman,260)        //S.A.M.: 11/10 Spider-Man - V2.6
 DRIVER(sman,261)        //S.A.M.: ??/1? Spider-Man - V2.61
-DRIVER(smanve,100)      //S.A.M.: 01/16 Spider-Man Vault Edition - V1.0
+DRIVER(smanve,100)      //S.A.M.: 02/16 Spider-Man Vault Edition - V1.0
 DRIVER(smanve,100c)     // pinball browser colorized using extend memory
+DRIVER(smanve,101)      //S.A.M.: 05/16 Spider-Man Vault Edition - V1.01
+DRIVER(smanve,101c)     // pinball browser colorized using extend memory
 DRIVER(wof,100)         //S.A.M.: 11/07 Wheel of Fortune - V1.0
 DRIVER(wof,200)         //S.A.M.: 11/07 Wheel of Fortune - V2.0
 DRIVER(wof,200f)        //S.A.M.: 11/07 Wheel of Fortune - V2.0 (French)
@@ -1689,6 +1691,8 @@ DRIVER(mtl,163h)        //S.A.M.: 09/14 Metallica Limited Edition - V1.63
 DRIVER(mtl,164)         //S.A.M.: 04/15 Metallica Pro - V1.64
 DRIVER(mtl,164c)		// pinball browser colorized using extend memory
 DRIVER(mtl,164h)        //S.A.M.: 04/15 Metallica Limited Edition - V1.64
+DRIVER(mtl,170)         //S.A.M.: 06/16 Metallica Pro - V1.7
+DRIVER(mtl,170h)        //S.A.M.: 06/16 Metallica Limited Edition - V1.7
 DRIVER(st,120)          //S.A.M.: 09/13 Star Trek Pro - V1.20                    
 DRIVER(st,130)          //S.A.M.: 10/13 Star Trek Pro - V1.30                    
 DRIVER(st,140)          //S.A.M.: 12/13 Star Trek Pro - V1.40          

@@ -2199,6 +2199,10 @@ SAM_ROMLOAD_ACDC3(mtl_164h, "mtl164h.bin", CRC(ebbf5845) SHA1(4411279b3e4ea96216
 SAM_ROMEND
 SAM_ROMLOAD_ACDC3(mtl_164c, "mtl164c.bin", CRC(ebbf5845) SHA1(4411279b3e4ea9621638bb81e47dc8753bfc0a05), 0x05FFFFF0)
 SAM_ROMEND
+SAM_ROMLOAD_ACDC3(mtl_170, "mtl170.bin", CRC(2bdc4668) SHA1(1c28f4d1e3a2c36a045cadb00a0aa8494b1d9243), 0x05DDD0BC)
+SAM_ROMEND
+SAM_ROMLOAD_ACDC3(mtl_170h, "mtl170h.bin", CRC(99d42a4e) SHA1(1983a6d1cd5664cf03599b035f520e0c6aa33632), 0x05DDD0BC)
+SAM_ROMEND
 
 SAM_INPUT_PORTS_START(mtl, 1) SAM_INPUT_PORTS_END
 
@@ -2226,6 +2230,8 @@ CORE_CLONEDEF(mtl, 163h, 103, "Metallica Limited Edition (V1.63)", 2014, "Stern"
 CORE_CLONEDEF(mtl, 164, 103, "Metallica Pro (V1.64)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(mtl, 164h, 103, "Metallica Limited Edition (V1.64)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(mtl, 164c, 103, "Metallica Pro (V1.64) (Colored)", 2015, "Stern", sam, 0)
+CORE_CLONEDEF(mtl, 170, 103, "Metallica Pro (V1.7)", 2016, "Stern", sam, 0)
+CORE_CLONEDEF(mtl, 170h, 103, "Metallica Limited Edition (V1.7)", 2016, "Stern", sam, 0)
 
 //Star Trek
 
@@ -2393,8 +2399,14 @@ SAM_ROMLOAD_ACDC1(smanve_100, "smanve_100.bin", CRC(f761fa19) SHA1(259bd6d42e742
 SAM_ROMEND
 SAM_ROMLOAD_ACDC1(smanve_100c, "smanve_100c.bin", CRC(f761fa19) SHA1(259bd6d42e742eaad1b7b50f9b5e4830c81084b0), 0x03FFFFF0)
 SAM_ROMEND
+SAM_ROMLOAD_ACDC1(smanve_101, "smanve_101.bin", CRC(b7a525e8) SHA1(43fd9520225b11ba8ba5f9e8055689a652237983), 0x03F2CA8C)
+SAM_ROMEND
+SAM_ROMLOAD_ACDC1(smanve_101c, "smanve_101c.bin", CRC(f761fa19) SHA1(259bd6d42e742eaad1b7b50f9b5e4830c81084b0), 0x03FFFFF0)
+SAM_ROMEND
 
 SAM_INPUT_PORTS_START(smanve, 1) SAM_INPUT_PORTS_END
 
 CORE_GAMEDEF(smanve, 100, "Spider-Man Vault Edition (V1.0)", 2016, "Stern", sam, 0)
 CORE_CLONEDEF(smanve, 100c, 100 , "Spider-Man Vault Edition (V1.0) (Colored)", 2016, "Stern", sam, 0)
+CORE_CLONEDEF(smanve, 101, 100 , "Spider-Man Vault Edition (V1.01)", 2016, "Stern", sam, 0)
+CORE_CLONEDEF(smanve, 101c, 100 , "Spider-Man Vault Edition (V1.01) (Colored)", 2016, "Stern", sam, 0)
