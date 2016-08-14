@@ -64,7 +64,8 @@ differences between OPL2 and OPL3 shown in datasheets:
 #define PI 3.14159265358979323846
 #endif
 
-
+// old code that had rate not necessarily meet clock/(8*36)
+//#define YMF262_NOT_EXACT_RATE
 
 /* output final shift */
 #if (OPL3_SAMPLE_BITS==16)
@@ -275,7 +276,9 @@ typedef struct {
 	UINT8 type;						/* chip type					*/
 	int clock;						/* master clock  (Hz)			*/
 	int rate;						/* sampling rate (Hz)			*/
+#ifdef YMF262_NOT_EXACT_RATE
 	double freqbase;				/* frequency base				*/
+#endif
 	double TimerBase;				/* Timer base time (==sampling time)*/
 } OPL3;
 
@@ -860,9 +863,7 @@ INLINE void advance(OPL3 *chip)
 
 INLINE signed int op_calc(UINT32 phase, unsigned int env, signed int pm, unsigned int wave_tab)
 {
-	UINT32 p;
-
-	p = (env<<4) + sin_tab[wave_tab + ((((signed int)((phase & ~FREQ_MASK) + (pm<<16))) >> FREQ_SH ) & SIN_MASK) ];
+	UINT32 p = (env<<4) + sin_tab[wave_tab + ((((signed int)((phase & ~FREQ_MASK) + (pm<<16))) >> FREQ_SH ) & SIN_MASK) ];
 
 	if (p >= TL_TAB_LEN)
 		return 0;
@@ -871,9 +872,7 @@ INLINE signed int op_calc(UINT32 phase, unsigned int env, signed int pm, unsigne
 
 INLINE signed int op_calc1(UINT32 phase, unsigned int env, signed int pm, unsigned int wave_tab)
 {
-	UINT32 p;
-
-	p = (env<<4) + sin_tab[wave_tab + ((((signed int)((phase & ~FREQ_MASK) + pm))>>FREQ_SH) & SIN_MASK)];
+	UINT32 p = (env<<4) + sin_tab[wave_tab + ((((signed int)((phase & ~FREQ_MASK) + pm))>>FREQ_SH) & SIN_MASK)];
 
 	if (p >= TL_TAB_LEN)
 		return 0;
@@ -1152,11 +1151,9 @@ static int init_tables(void)
 	signed int n;
 	double o,m;
 
-
 	for (x=0; x<TL_RES_LEN; x++)
 	{
-		m = (1<<16) / pow(2, (x+1) * (ENV_STEP/4.0) / 8.0);
-		m = floor(m);
+		m = floor((1<<16) / pow(2, (x+1) * (ENV_STEP/4.0) / 8.0));
 
 		/* we never reach (1<<16) here due to the (x+1) */
 		/* result fits within 16 bits at maximum */
@@ -1197,12 +1194,9 @@ static int init_tables(void)
 
 		/* we never reach zero here due to ((i*2)+1) */
 
-		if (m>0.0)
-			o = 8*log(1.0/m)/log(2.0);	/* convert to 'decibels' */
-		else
-			o = 8*log(-1.0/m)/log(2.0);	/* convert to 'decibels' */
+		o = 8.0*log(1.0/fabs(m))/log(2.0);	/* convert to 'decibels' */
 
-		o = o / (ENV_STEP/4);
+		o = o / (ENV_STEP/4.0);
 
 		n = (int)(2.0*o);
 		if (n&1)						/* round to nearest */
@@ -1317,11 +1311,12 @@ static void OPL3_initalize(OPL3 *chip)
 {
 	int i;
 
+#ifdef YMF262_NOT_EXACT_RATE
 	/* frequency base */
-	chip->freqbase  = (chip->rate) ? ((double)chip->clock / (8*36)) / chip->rate  : 0;
-#if 0
-	chip->rate = (double)chip->clock / (8*36);
-	chip->freqbase  = 1.0;
+	chip->freqbase = (chip->rate) ? ((double)chip->clock / (8*36)) / chip->rate : 0;
+#else
+	// make sure that rate really matches
+	chip->rate = chip->clock / (8*36);
 #endif
 
 	/* logerror("YMF262: freqbase=%f\n", chip->freqbase); */
@@ -1333,7 +1328,11 @@ static void OPL3_initalize(OPL3 *chip)
 	for( i=0 ; i < 1024 ; i++ )
 	{
 		/* opn phase increment counter = 20bit */
-		chip->fn_tab[i] = (UINT32)( (double)i * 64 * chip->freqbase * (1<<(FREQ_SH-10)) ); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
+#ifdef YMF262_NOT_EXACT_RATE
+		chip->fn_tab[i] = (UINT32)( (double)(i * 64 * (1<<(FREQ_SH-10))) * chip->freqbase ); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
+#else
+		chip->fn_tab[i] = i * 64 * (1<<(FREQ_SH-10)); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
+#endif
 #if 0
 		logerror("YMF262.C: fn_tab[%4i] = %08x (dec=%8i)\n",
 				 i, chip->fn_tab[i]>>6, chip->fn_tab[i]>>6 );
@@ -1360,6 +1359,7 @@ static void OPL3_initalize(OPL3 *chip)
 
 
 	/* Amplitude modulation: 27 output levels (triangle waveform); 1 level takes one of: 192, 256 or 448 samples */
+#ifdef YMF262_NOT_EXACT_RATE
 	/* One entry from LFO_AM_TABLE lasts for 64 samples */
 	chip->lfo_am_inc = (1.0 / 64.0 ) * (1<<LFO_SH) * chip->freqbase;
 
@@ -1372,6 +1372,21 @@ static void OPL3_initalize(OPL3 *chip)
 	chip->noise_f = (1.0 / 1.0) * (1<<FREQ_SH) * chip->freqbase;
 
 	chip->eg_timer_add  = (1<<EG_SH)  * chip->freqbase;
+#else
+	/* One entry from LFO_AM_TABLE lasts for 64 samples */
+	chip->lfo_am_inc = (1 << LFO_SH) / 64;
+
+	/* Vibrato: 8 output levels (triangle waveform); 1 level takes 1024 samples */
+	chip->lfo_pm_inc = (1 << LFO_SH) / 1024;
+
+	/*logerror ("chip->lfo_am_inc = %8x ; chip->lfo_pm_inc = %8x\n", chip->lfo_am_inc, chip->lfo_pm_inc);*/
+
+	/* Noise generator: a step takes 1 sample */
+	chip->noise_f = (1 << FREQ_SH) / 1;
+
+	chip->eg_timer_add = (1 << EG_SH);
+#endif
+
 	chip->eg_timer_overflow = ( 1 ) * (1<<EG_SH);
 	/*logerror("YMF262init eg_timer_add=%8x eg_timer_overflow=%8x\n", chip->eg_timer_add, chip->eg_timer_overflow);*/
 
@@ -1575,7 +1590,7 @@ INLINE void set_ar_dr(OPL3 *chip,int slot,int v)
 	OPL3_CH   *CH   = &chip->P_CH[slot/2];
 	OPL3_SLOT *SLOT = &CH->SLOT[slot&1];
 
-	SLOT->ar = (v>>4)  ? 16 + ((v>>4)  <<2) : 0;
+	SLOT->ar = (v>>4) ? 16 + ((v>>4)  <<2) : 0;
 
 	if ((SLOT->ar + SLOT->ksr) < 16+60) /* verified on real YMF262 - all 15 x rates take "zero" time */
 	{
@@ -1622,7 +1637,6 @@ static void update_channels(OPL3 *chip, OPL3_CH *CH)
 	{	/* we've just switched to normal 2 operator mode */
 
 	}
-
 }
 
 /* write a value v to register r on OPL chip */
@@ -2350,7 +2364,7 @@ static void OPL3ResetChip(OPL3 *chip)
 
 /* Create one of virtual YMF262 */
 /* 'clock' is chip clock in Hz  */
-/* 'rate'  is sampling rate  */
+/* 'rate'  is sampling rate (=clock/(8*36)) */
 static OPL3 *OPL3Create(int type, int clock, int rate)
 {
 	OPL3 *chip;
@@ -2488,8 +2502,9 @@ static int OPL3TimerOver(OPL3 *chip,int c)
 #define MAX_OPL3_CHIPS 2
 
 static OPL3 *YMF262[MAX_OPL3_CHIPS];	/* array of pointers to the YMF262's */
-static int YMF262NumChips = 0;				/* number of chips */
+static int YMF262NumChips = 0;			/* number of chips */
 
+// rate = clock/(8*36)
 int YMF262Init(int num, int clock, int rate)
 {
 	int i;
@@ -2526,6 +2541,7 @@ void YMF262Shutdown(void)
 	}
 	YMF262NumChips = 0;
 }
+
 void YMF262ResetChip(int which)
 {
 	OPL3ResetChip(YMF262[which]);

@@ -44,13 +44,13 @@ static void TimerHandler_262(int c,double period)
 int YMF262_sh_start(const struct MachineSound *msound)
 {
 	int i,chip;
-	int rate = Machine->sample_rate;
+	int rate;// = Machine->sample_rate;
 
 	intf_262 = msound->sound_interface;
 	if( intf_262->num > MAX_262 ) return 1;
 
-	if (options.use_filter)
-		rate = intf_262->baseclock/288;
+	//if (options.use_filter)
+		rate = intf_262->baseclock/(8*36);
 
 	/* Timer state clear */
 	memset(Timer_262,0,sizeof(Timer_262));
@@ -139,4 +139,3 @@ WRITE_HANDLER( YMF262_data_B_1_w ) {
 }
 
 #endif
-
