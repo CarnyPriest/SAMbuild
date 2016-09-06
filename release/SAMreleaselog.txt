@@ -1,3 +1,7 @@
+version 2.38
+official rev 3943
+sam.c Fix LE Solenoid Aux board support [DJRobX]
+ ----------------------
 version 2.37
 official rev 3909
  ----------------------
