@@ -508,7 +508,17 @@ LABEL_6:
 				return;
 			case 6:
 				sam_bank[4]++;
-				if ( sam_bank[4] == 1 && bank >= 0)
+				
+				// 9/5/2016 - Modified by djrobx
+				// 
+				// Removing sam_bank[4] check as it causes us to miss the aux board solenoid event.
+				// Adding check for gameSpecific1 == 0.    This same event seems to be used for other
+				// purposes (probably different hardware connected to same port on SAM board), 
+				// so we want to ensure we only modify the solenoids if the others aren't set. 
+				//
+				// if ( sam_bank[4] == 1 && bank >= 0)
+				
+				if ( core_gameData->hw.gameSpecific1 == 0 && bank >= 0)
 				{
 					samlocals.solenoids2 &= 0xFFFFF00F;
 					for(ii = 0; ii <= 7; ii++)
