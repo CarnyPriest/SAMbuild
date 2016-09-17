@@ -57,6 +57,11 @@ extern int activecpu;
 #define LOG_AT91 0					//Turn on/off logging of all AT91 debugging info
 #define LOG_TOSCREEN 0				//Send Log data to screen, otherwise will go to log file
 
+#if (defined(_DEBUG) && defined(LOG_TOSCREEN))
+// For console debug window output
+#include<Windows.h>
+#endif
+
 //Flags for specific Logging
 #define LOG_TIMERS 0				//Turn on/off logging of Timer Info
 #define LOG_TIMER_STAT_READ 0		//Turn on/off logging of Timer Status Read
@@ -71,6 +76,7 @@ extern int activecpu;
 #define LOG_AIC_IVW 0				//Turn on/off logging of AIC - Interrupt Vector Write Command
 #define LOG_AIC_EOI 0				//Turn on/off logging of AIC - End of Interrupt Command
 #define LOG_AIC_VECTOR_READ 0		//Turn on/off logging of AIC - Vector Address Read
+#define LOG_USART1_DATA_OUT 0
 
 //Flags for Testing
 #define INT_BLOCK_FIQ   0			//Turn on/off blocking of specified Interrupt (Leave OFF for non-test situation)
@@ -86,6 +92,15 @@ INLINE void at91_cpu_write8( int addr, data8_t data );
 INLINE data32_t at91_cpu_read32( int addr );
 INLINE data16_t at91_cpu_read16( int addr );
 INLINE data8_t at91_cpu_read8( int addr );
+
+void (*at91_transmit_serial)(data8_t *data, int size) = NULL;
+void sam_serial_hack();
+
+void at91_set_transmit_serial(void (*fp)(data8_t *data, int size))
+{
+	at91_transmit_serial = fp;
+}
+
 #if !USE_MAME_TIMERS
 INLINE BeforeOpCodeHook(void);
 INLINE AfterOpCodeHook(void);
@@ -194,6 +209,13 @@ static AT91_REGS at91;
 static AT91_REGS_RS at91rs;
 int at91_ICount;
 
+// TODO: These belong in a struct, so they can be re-used for USART2 
+data32_t USART1_US_IMR = 0;
+data32_t USART1_US_CSR = 0x02;
+data32_t USART1_US_TPR = 0;
+data32_t USART1_US_TCR = 0;
+data32_t USART1_US_RPR = 0;
+
 /* include the arm7 core */
 #include "../arm7/arm7core.c"
 
@@ -201,7 +223,31 @@ int at91_ICount;
 
 #if LOG_AT91
 #if LOG_TOSCREEN
-#define LOG(x) printf x
+
+#ifdef _DEBUG
+
+void DebuggerLog ( const char * format, ... )
+{
+  char buffer[256];
+  wchar_t  ws[256]; 
+
+  va_list args;
+  va_start (args, format);
+  vsnprintf (buffer,256,format, args); 
+  // Surely there's a more direct way lol
+  swprintf(ws, 256, L"%hs", buffer); 
+//  OutputDebugStringW(ws);
+  va_end (args);
+}
+
+#define LOG(x) DebuggerLog x
+
+#else
+
+#define LOG(x) logerror x
+
+#endif
+
 #else
 #define LOG(x) logerror x
 #endif
@@ -463,8 +509,71 @@ INLINE void internal_write (int addr, data32_t data)
 		//USART1
 		case 0xcc:
 			LOG(("%08x: AT91-USART1 WRITE: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
-			break;
+			switch((addr & 0xff) / 4)
+			{
+			case 0x02: // Interrupt Enable
+				// Code has turned interrupts on which is to say
+				// it wants to be notified when transmission is complete. 
+				// So now's a good time to simulate that event if we have
+				// something to write.
 
+				if (USART1_US_TCR > 0 && (data & 0x10) == 0x10)
+				{
+					int i;
+
+#if (LOG_USART1_DATA_OUT && _DEBUG)
+					{
+						wchar_t tmp1[20];
+
+						OutputDebugStringW(L"DO: ");
+
+						for(i=0;i<USART1_US_TCR;i++)
+						{
+							data8_t b = cpu_readmem32ledw(USART1_US_TPR+i);
+							swprintf(tmp1, _countof(tmp1), L"%02X", b);
+							OutputDebugStringW(tmp1);
+						}
+						OutputDebugStringW(L"\n");
+					}
+#endif 
+					if (at91_transmit_serial)
+					{
+						// TODO: There ought to be a way to get to the memory pointer and just pass it. 
+
+						data8_t *pData = (data8_t *)malloc(sizeof(data8_t) * USART1_US_TCR);
+						for(i=0;i<USART1_US_TCR;i++)
+						{
+							pData[i] = cpu_readmem32ledw(USART1_US_TPR+i);
+						}
+						at91_transmit_serial(pData, USART1_US_TCR);
+						free(pData);
+					}
+					// Raise interrupt flag TX complete
+					USART1_US_IMR = 0x10;    
+					// Channel status TX complete + TX Ready
+					USART1_US_CSR = 0x12;
+					// Move pointer forward
+					USART1_US_TPR += USART1_US_TCR;
+					// Clear counter
+					USART1_US_TCR = 0x0;
+					// Fire AIC IRQ for USART1.
+					at91_set_irq_line(3, 1);
+				}			
+				break;
+			case 0x03:
+				USART1_US_IMR = 0x0;
+				break;
+			case 0x0c:
+				USART1_US_RPR = data; // Receive pointer:
+				break;
+				case 0x0e:  // Transmit pointer
+			    USART1_US_TPR = data;
+				break;
+		     	case 0x0f:  // Transmit counter
+				USART1_US_TCR = data;
+				break;
+			}			
+			break;
 		//USART2
 		case 0xd0:
 			LOG(("%08x: AT91-USART2 WRITE: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
@@ -898,12 +1007,44 @@ INLINE data32_t internal_read (int addr)
 
 		//USART1
 		case 0xcc:
-			LOG(("%08x: AT91-USART1 READ: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
+			//LOG(("%08x: AT91-USART1 READ: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
+		
+			switch((addr & 0xff) / 4)
+			{
+			case 0x0c: // Receive pointer
+				data = USART1_US_RPR;
+				/* HACK ALERT - Not even going to bother doing this cleanly.  See funciton in sam.c for explanation. */
+				sam_serial_hack();
+				LOG(("%08x: AT91-USART1 READ: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
+				break;
+			case 0x0e:  // Transmit pointer
+				LOG(("%08x: AT91-USART1 READ: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
+				data = USART1_US_TPR;
+				break;
+			case 0x0f:  // Transmit counter
+				LOG(("%08x: AT91-USART1 READ: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
+				data = USART1_US_TCR;
+				break;
+			case 0x05:  // Channel status 
+				data = USART1_US_CSR;
+				LOG(("%08x: AT91-USART1 READ: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
+			//	USART1_US_CSR|=0x02;
+				break;
+			case 0x04:
+				data = USART1_US_IMR;
+				LOG(("%08x: AT91-USART1 READ: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
+			
+				//break;
+			default:
+				LOG(("%08x: AT91-USART1 READ: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
+				break;
+			}
 			break;
+	
 
 		//USART2
 		case 0xd0:
-			LOG(("%08x: AT91-USART2 READ: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
+			//LOG(("%08x: AT91-USART2 READ: %s (%08x) = %08x\n",activecpu_get_pc(),GetUARTOffset(addr),addr,data));
 			break;
 
 		//TC - Timer Counter
@@ -1059,9 +1200,10 @@ INLINE data32_t internal_read (int addr)
 			switch(offset3)
 			{
 				//IRQ Based on current IRQ source 0-31, returns value of Source Vector
-				case 0x100:
-					logit = LOG_AIC_VECTOR_READ;
+				case 0x100:					
 					data = at91.aic_vectors[at91.aic_irqstatus];
+					// Clear irq status after address is read, so the "USART clobber check hack" works correctly.  
+					at91.aic_irqstatus = 0; 
 					break;
 
 				//FIQ - Has it's own register address
@@ -1387,7 +1529,12 @@ void at91_set_irq_line(int irqline, int state)
 	}
 
 	//store current irq
-	at91.aic_irqstatus = irqline;
+	
+	// HACK: COM interrupts are getting clobbered by timer interrupts. This is probably what is meant in by AIC improvements being needed.
+	// Don't allow IRQ status to be changed if it's a USART interrupt.  One USART IRQ loss is catastrophic,
+	// the TX event is never received, and no further output will occur. 
+	if (at91.aic_irqstatus != 3)
+		at91.aic_irqstatus = irqline;
 
 	//for debugging only - so I can put a breakpoint when an int is started (and avoid when it clears)
 	#ifdef MAME_DEBUG

@@ -5,6 +5,8 @@
 #include "cpu/at91/at91.h"
 #include "sndbrd.h"
 
+wchar_t tmp[81];
+#include <Windows.h>
 // Defines
 #define SAM_DISPLAYSMOOTH 4
 
@@ -34,6 +36,7 @@ struct {
 	int vblankCount;
 	UINT32 solenoids;
 	UINT32 solenoids2;
+	UINT32 custsol;
 	int diagnosticLed;
 	int col;
 	int zc;
@@ -50,13 +53,23 @@ struct {
 	char minidata[226];
 } samlocals;
 
+static int sam_getSol(int solNo);
+
 static data32_t *sam_reset_ram;
 static data32_t *sam_page0_ram;
+static data32_t *sam_hack_ram;
 static data32_t *sam_cpu;
 
-static int sam_bank[47];
-
+static int sam_bank[56];
 static int sam_stream = 0;
+
+#define SAM_LEDS_PER_STRING 65
+#define SAM_LEDS_MAX_STRINGS 4
+#define SAM_LEDS_MAX SAM_LEDS_PER_STRING * SAM_LEDS_MAX_STRINGS
+
+data8_t sam_ext_leds[SAM_LEDS_MAX];
+data8_t sam_prev_ch1 = 0, sam_prev_ch2 = 0;
+int sam_led_col = 0, sam_led_row = -1;
 
 //SAM Input Ports
 #define SAM_COMPORTS \
@@ -128,6 +141,13 @@ static int sam_stream = 0;
 
 #define SAM_INPUT_PORTS_END INPUT_PORTS_END
 #define SAM_COMINPORT       CORE_COREINPORT
+
+static void sam_transmit_serial(data8_t *data, int size);
+
+static int sam_getSol(int solNo)
+{
+	return (samlocals.custsol & ( 1 << (solNo-CORE_FIRSTCUSTSOL))) > 0;
+}
 
 //Sound Interface
 const struct sndbrdIntf samIntf = {
@@ -384,12 +404,12 @@ static int sam_led(UINT32 bank)
 
 static int led[] =
 	{ 5, 8, 7, 6, 9, 1, 2, 3, 4, 0, 10, 11, 12, 13};
-static char byte_105E0AF8;
-static int dword_105E0B00;
-static int dword_105E0B04;
-static char byte_105E0AF9;
+static char lastbank11;
+static int minidmdx;
+static int minidmdy;
+static char lastbank6;
 static int dword_105E0AFC;
-static int dword_105E0AF4;
+static int led_target;
 
 static WRITE32_HANDLER(sambank_w)
 {
@@ -508,115 +528,135 @@ LABEL_6:
 				return;
 			case 6:
 				sam_bank[4]++;
-				
+	/*			if (bank!=lastbank6)
+				{
+				  swprintf(tmp, _countof(tmp), L"%d %d\r\n", bank, sam_bank[4]);
+				  OutputDebugStringW(tmp);
+				} */
 				// 9/5/2016 - Modified by djrobx
 				// 
-				// Removing sam_bank[4] check as it causes us to miss the aux board solenoid event.
+				// Removing sam_bank[4] check as it causes us to miss the aux board solenoid event (because the one we want is at 2!).
 				// Adding check for gameSpecific1 == 0.    This same event seems to be used for other
 				// purposes (probably different hardware connected to same port on SAM board), 
 				// so we want to ensure we only modify the solenoids if the others aren't set. 
 				//
 				// if ( sam_bank[4] == 1 && bank >= 0)
-				
-				if ( core_gameData->hw.gameSpecific1 == 0 && bank >= 0)
+				if ( core_gameData->hw.gameSpecific1 == 0 )
 				{
-					samlocals.solenoids2 &= 0xFFFFF00F;
-					for(ii = 0; ii <= 7; ii++)
+					switch(sam_bank[4])
 					{
-						if ( bank & (1<<ii) )
-							sam_bank[38 + ii] = 0x19;
-						if( sam_bank[38 + ii] > 0)
+					case 2:
+						samlocals.custsol &= 0xFFFFFF00;
+						for(ii = 0; ii <= 7; ii++)
 						{
-							sam_bank[38 + ii]--;
-							samlocals.solenoids2 |= ((sam_bank[38 + ii] > 0) << (4 + ii));
+							if ( bank & (1<<ii) )
+								sam_bank[38 + ii] = 0x19;
+							if( sam_bank[38 + ii] > 0)
+							{
+								sam_bank[38 + ii]--;
+								samlocals.custsol |= ((sam_bank[38 + ii] > 0) << (ii));
+							}
 						}
+						break;
+					case 3:
+						samlocals.custsol &= 0xFFFF00FF;
+						for(ii = 0; ii <= 7; ii++)
+						{
+							if ( bank & (1<<ii) )
+								sam_bank[47 + ii] = 0x19;
+							if( sam_bank[47 + ii] > 0)
+							{
+								sam_bank[47 + ii]--;
+								samlocals.custsol |= ((sam_bank[47 + ii] > 0) << (8 + ii));
+							}
+						}					
+						break;
 					}
-					//samlocals.solenoids2 |= (bank << 4);
 				}
 				if ( core_gameData->hw.gameSpecific1 & 1 )
 				{
-					if ( dword_105E0B00 == 1 )
+					if ( minidmdx == 1 )
 					{
-						dword_105E0B04 = led[sam_led(bank & 0x7F | ((byte_105E0AF9 & 0x7F) << 7))];
+						minidmdy = led[sam_led(bank & 0x7F | ((lastbank6 & 0x7F) << 7))];
 					}
 					else
 					{
-						if ( dword_105E0B00 > 1 )
-							samlocals.minidata[16 * dword_105E0B04 + dword_105E0B00] = bank & 0x7F;
-						if ( dword_105E0B00 >= 17 )
+						if ( minidmdx > 1 )
+							samlocals.minidata[16 * minidmdy + minidmdx] = bank & 0x7F;
+						if ( minidmdx >= 17 )
 						{
 LABEL_157:
-							if ( (~byte_105E0AF9 & bank) >= 0x80)
+							if ( (~lastbank6 & bank) >= 0x80)
 							{
-								byte_105E0AF9 = bank;
-								dword_105E0B00 = 0;
+								lastbank6 = bank;
+								minidmdx = 0;
 								return;
 							}
 							goto LABEL_176;
 						}
 					}
-					dword_105E0B00++;
+					minidmdx++;
 					goto LABEL_157;
 				}
 				if ( core_gameData->hw.gameSpecific1 & 2 )
 				{
 					int test;
-					test = bank & ~byte_105E0AF9;
+					test = bank & ~lastbank6;
 					if (!((test < 0x80) && (test >= 0)))
 					{
-						dword_105E0B00 = 0;
-						byte_105E0AF9 = bank;
-						dword_105E0B04 = sam_led(bank & 3);
+						minidmdx = 0;
+						lastbank6 = bank;
+						minidmdy = sam_led(bank & 3);
 						return;
 					}
-					if ( dword_105E0B00 < 3 )
+					if ( minidmdx < 3 )
 					{
-			            coreGlobals.tmpLampMatrix[dword_105E0B04 + dword_105E0B00 + 2 * dword_105E0B04 + 10] = bank & 0x7F;
-						byte_105E0AF9 = bank;
-			            coreGlobals.lampMatrix[dword_105E0B04 + dword_105E0B00 + 2 * dword_105E0B04 + 10] = bank & 0x7F;
-						dword_105E0B00++;
+			            coreGlobals.tmpLampMatrix[minidmdy + minidmdx + 2 * minidmdy + 10] = bank & 0x7F;
+						lastbank6 = bank;
+			            coreGlobals.lampMatrix[minidmdy + minidmdx + 2 * minidmdy + 10] = bank & 0x7F;
+						minidmdx++;
 			            return;
 					}
 				}
 				if ( core_gameData->hw.gameSpecific1 & 4 )
 				{
 					int test;
-					test = bank & ~byte_105E0AF9;
+					test = bank & ~lastbank6;
 					if ( (test < 0x80) && (test >= 0) )
 					{
-						dword_105E0B00++;
+						minidmdx++;
 					}
 					else
 					{
 						dword_105E0AFC = dword_105E0AFC == 0;
-						dword_105E0B00 = 0;
+						minidmdx = 0;
 					}
 					if ( dword_105E0AFC )
 					{
-						if ( dword_105E0B00 == 1 )
+						if ( minidmdx == 1 )
 						{
-							byte_105E0AF9 = bank;
-							dword_105E0B04 = sam_led(bank & 0x1F);
+							lastbank6 = bank;
+							minidmdy = sam_led(bank & 0x1F);
 							return;
 						}
-						if ( dword_105E0B00 > 1 && dword_105E0B00 < 7 )
+						if ( minidmdx > 1 && minidmdx < 7 )
 						{
-							byte_105E0AF9 = bank;
-							samlocals.minidata[16 * dword_105E0B04 + dword_105E0B00] = bank & 0x7F;
+							lastbank6 = bank;
+							samlocals.minidata[16 * minidmdy + minidmdx] = bank & 0x7F;
 							return;
 						}
 					}
 					else
 					{
-						if ( dword_105E0B00 < 6 )
+						if ( minidmdx < 6 )
 						{
-							coreGlobals.tmpLampMatrix[dword_105E0B00 + 10] = bank & 0x7F;
-							coreGlobals.lampMatrix[dword_105E0B00 + 10] = bank & 0x7F;
+							coreGlobals.tmpLampMatrix[minidmdx + 10] = bank & 0x7F;
+							coreGlobals.lampMatrix[minidmdx + 10] = bank & 0x7F;
 						}
 					}
 				}
 LABEL_176:
-				byte_105E0AF9 = bank;
+				lastbank6 = bank;
 				break;
 			case 8:
 				sam_bank[0] = 0;
@@ -627,40 +667,40 @@ LABEL_176:
 				sam_bank[5] = 0;
 				sam_bank[46]++;
 				if ( sam_bank[46] == 2 )
-					dword_105E0AF4 = sam_led(bank);
+					led_target = sam_led(bank);
 				return;
 			case 10:
 				sam_bank[46] = 0;
 				sam_bank[5]++;
 				if ( sam_bank[5] == 1 )
-					coreGlobals.tmpLampMatrix[dword_105E0AF4] = core_revbyte(bank);
+					coreGlobals.tmpLampMatrix[led_target] = core_revbyte(bank);
 				return;
 			case 11:
 				if ( core_gameData->hw.gameSpecific1 & SAM_MINIDMD3 )
 				{
-					if ( (bank & ~byte_105E0AF8) & 8 )
+					if ( (bank & ~lastbank11) & 8 )
 						dword_105E0AFC = 0;
-					else if ( (bank & ~byte_105E0AF8) & 0x10 )
+					else if ( (bank & ~lastbank11) & 0x10 )
 						dword_105E0AFC = 1;
 				}
 				if ( core_gameData->hw.gameSpecific1 & SAM_NOMINI3 && ~bank & 0x08 )
-					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(byte_105E0AF9);
+					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(lastbank6);
 				if ( core_gameData->hw.gameSpecific1 & SAM_NOMINI4 && ~bank & 0x10 )
-					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(byte_105E0AF9);
+					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(lastbank6);
 				if ( core_gameData->hw.gameSpecific1 & SAM_NOMINI5 )
 				{
 					if ( ~bank & 0x08 )
-						coreGlobals.lampMatrix[8] = coreGlobals.tmpLampMatrix[8] = core_revbyte(byte_105E0AF9);
+						coreGlobals.lampMatrix[8] = coreGlobals.tmpLampMatrix[8] = core_revbyte(lastbank6);
 					if ( ~bank & 0x10 )
-						coreGlobals.lampMatrix[9] = coreGlobals.tmpLampMatrix[9] = core_revbyte(byte_105E0AF9);
+						coreGlobals.lampMatrix[9] = coreGlobals.tmpLampMatrix[9] = core_revbyte(lastbank6);
 					if ( ~bank & 0x20 )
-						coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(byte_105E0AF9);
+						coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(lastbank6);
 					if ( ~bank & 0x40 )
 						logerror("Test");
 				}
-		        if ( (~bank & 0x40) && (byte_105E0AF9 & 3) )
+		        if ( (~bank & 0x40) && (lastbank6 & 3) )
 					logerror("error");
-				byte_105E0AF8 = bank;
+				lastbank11 = bank;
 				return;
 			 default:
 				logerror("error");
@@ -730,7 +770,7 @@ static WRITE32_HANDLER(samcpu_w)
 static MEMORY_WRITE32_START(sam_writemem)
 	{ 0x00000000, 0x000FFFFF, MWA32_RAM, &sam_page0_ram},  // Boot RAM
 	{ 0x00300000, 0x003FFFFF, MWA32_RAM, &sam_reset_ram},  // Swapped RAM
-	{ 0x01000000, 0x0107FFFF, MWA32_RAM },
+	{ 0x01000000, 0x0107FFFF, MWA32_RAM, &sam_hack_ram },  // For Mustang hack
 	{ 0x01080000, 0x0109EFFF, MWA32_RAM },
 	{ 0x0109F000, 0x010FFFFF, samxilinx_w },
 	{ 0x01100000, 0x01FFFFFF, samdmdram_w },
@@ -803,6 +843,8 @@ PORT_END
 //Machine
 static MACHINE_INIT(sam) {
 	at91_set_ram_pointers(sam_reset_ram, sam_page0_ram);
+	at91_set_transmit_serial(sam_transmit_serial);
+	memset(sam_ext_leds, 0, SAM_LEDS_MAX * sizeof(data8_t));
 }
 
 static MACHINE_RESET(sam) {
@@ -827,6 +869,62 @@ static SWITCH_UPDATE(sam) {
 	}
 }
 
+/* The serial LED boards seem to receive a 3 byte header (85 + address, 41, 80), then a 65 byte long array of bytes that represent the LEDs. */
+
+
+
+static void sam_transmit_serial(data8_t *data, int size)
+{
+	int i;
+
+	while (size > 0)
+	{
+		if (sam_led_row == -1)
+		{
+			/* We are looking for the header.   Is this a character 0x80 and the previous 0x41? */ 
+
+			if ((*data) == 0x80 && sam_prev_ch1 == 0x41)
+			{
+				sam_led_col = 0;
+				sam_led_row = sam_prev_ch2 - 0x85;
+				if (sam_led_row > SAM_LEDS_MAX_STRINGS) 
+					sam_led_row = -1;
+			}
+			sam_prev_ch2 = sam_prev_ch1;
+			sam_prev_ch1 = *data;
+			data++;
+			size--;
+		} 
+		else 
+		{
+			int count = size > (SAM_LEDS_PER_STRING-sam_led_col) ? SAM_LEDS_PER_STRING-sam_led_col : size;
+			for(i=sam_led_col;i<count;i++)
+			{
+				sam_ext_leds[(sam_led_row * SAM_LEDS_PER_STRING) + sam_led_col++]=*(data++);
+			}
+			size -= count;
+			if (sam_led_col > SAM_LEDS_PER_STRING)
+			{
+				sam_prev_ch1 = 0;
+				sam_led_row = -1;
+			}
+		}
+	}
+}
+
+
+void sam_serial_hack()
+{
+	/* This hack is for Mustang LE (I may need to add others!? ... but Star Trek LE is ok).  The game does not 
+	   transmit data for a really long time until this memory location changes from 0x62 to anything else.  Force the issue to get things moving. 
+	   
+	   TODO: Check ROM CRC so this only activates for the right ROM to avoid possible unexpected consequences, however unlikely that might be.  */
+
+	if ((sam_hack_ram[0x61728 / 4] & 0xff) == 0x62)
+		sam_hack_ram[0x61728 / 4] &= 0xffffff00;
+	
+}
+
 static INTERRUPT_GEN(sam_vblank) {
 	samlocals.vblankCount += 1;
 	memcpy(coreGlobals.lampMatrix, coreGlobals.tmpLampMatrix, 40);
@@ -834,6 +932,7 @@ static INTERRUPT_GEN(sam_vblank) {
 	    coreGlobals.diagnosticLed = samlocals.diagnosticLed;
 		samlocals.diagnosticLed = 0;
 	}
+	memcpy(coreGlobals.RGBlamps, sam_ext_leds, SAM_LEDS_MAX * sizeof(data8_t));
 	coreGlobals.solenoids = samlocals.solenoids;
 	coreGlobals.solenoids2 = samlocals.solenoids2;
 	core_updateSw(TRUE);
@@ -887,7 +986,7 @@ MACHINE_DRIVER_END
 
 #define INITGAME(name, gen, disp, lampcol, hw) \
 	static core_tGameData name##GameData = { \
-		gen, disp, {FLIP_SW(FLIP_L) | FLIP_SOL(FLIP_L), 0, lampcol, 0, 0, 0, hw}}; \
+		gen, disp, {FLIP_SW(FLIP_L) | FLIP_SOL(FLIP_L), 0, lampcol, 16, 0, 0, hw,0, sam_getSol}}; \
 	static void init_##name(void) { core_gameData = &name##GameData; }
 
 //Memory Regions
@@ -2310,7 +2409,7 @@ CORE_CLONEDEF(st, 161h, 120, "Star Trek Limited Edition (V1.61)", 2015, "Stern",
 
 //Mustang
 
-INITGAME(mt, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_NOMINI);
+INITGAME(mt, GEN_SAM, sam_dmd128x32, SAM_8COL,0);
 
 SAM_ROMLOAD(mt_120, "mt_120.bin", CRC(be7437ac) SHA1(5db10d7f48091093c33d522a663f13f262c08c3e), 0x037DA5EC)													
 SAM_ROMEND

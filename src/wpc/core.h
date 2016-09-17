@@ -300,6 +300,7 @@ extern void video_update_core_dmd(struct mame_bitmap *bitmap, const struct recta
 #define CORE_CUSTSWCOL     CORE_STDSWCOLS  /* first custom (game specific) switch column */
 #define CORE_MAXLAMPCOL     42   /* lamp column (0-7=std lamp matrix 8- custom) */
 #define CORE_CUSTLAMPCOL   CORE_STDLAMPCOLS  /* first custom lamp column */
+#define CORE_MAXRGBLAMPS     260      //!! ??
 #define CORE_MAXPORTS        8   /* Maximum input ports */
 #define CORE_MAXGI           5   /* Maximum GI strings */
 #define CORE_MAXNVRAM        131118 /* Maximum number of NVRAM bytes, only used for get_ChangedNVRAM so far */
@@ -382,6 +383,7 @@ typedef struct {
   UINT8  swMatrix[CORE_MAXSWCOL];
   UINT8  invSw[CORE_MAXSWCOL];   /* Active low switches */
   UINT8  lampMatrix[CORE_MAXLAMPCOL], tmpLampMatrix[CORE_MAXLAMPCOL];
+  UINT8  RGBlamps[CORE_MAXRGBLAMPS];
   core_tSeg segments;     /* segments data from driver */
   UINT16 drawSeg[CORE_SEGCOUNT]; /* segments drawn */
   UINT32 solenoids;       /* on power driver bord */
