@@ -1,3 +1,10 @@
+version 2.38a
+official rev 3948
+S.A.M. 
+reconcile release dates for rom versions with Stern readmes
+match rom version numbers in descriptions with rom boot screens
+add comments in driver.c for missing roms documented in Stern readmes
+ ----------------------
 version 2.38
 official rev 3943
 sam.c Fix LE Solenoid Aux board support [DJRobX]
