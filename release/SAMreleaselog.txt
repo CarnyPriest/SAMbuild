@@ -1,3 +1,15 @@
+version 2.38b
+official rev 3960
+S.A.M. 
+reconcile set names with official driver.c
+added Iron Man (V1.83)
+
+** WARNING FOR PLAYERS !! **
+there are set name changes that will require changing Const cGameName in VP table scripts:
+Iron Man & Iron Man Vault Edition
+X-Men
+The Avengers
+ ----------------------
 version 2.38a
 official rev 3948
 S.A.M. 
