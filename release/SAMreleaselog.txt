@@ -1,3 +1,8 @@
+version 2.38c
+official rev 3961
+S.A.M. 
+update missing set information from official MAME sam.cpp driver source
+ ----------------------
 version 2.38b
 official rev 3960
 S.A.M. 

@@ -1435,7 +1435,11 @@ DRIVER(wpt,140gf)       //S.A.M.: 01/08 World Poker Tour - V14.0 (German, French
 DRIVER(wpt,140i)        //S.A.M.: 01/08 World Poker Tour - V14.0 (Italian)
 DRIVER(wpt,140l)        //S.A.M.: 01/08 World Poker Tour - V14.0 (Spanish)
 DRIVERNV(scarn9nj)      //S.A.M.: ??/06 Simpsons Kooky Carnival (Redemption) - V0.90 New Jersey
+//DRIVERNV(scarn100)      //S.A.M.: ??/06 Simpsons Kooky Carnival (Redemption) - V1.00
+//DRIVERNV(scarn101)      //S.A.M.: 04/06 Simpsons Kooky Carnival (Redemption) - V1.01
+//DRIVERNV(scarn102)      //S.A.M.: 04/06 Simpsons Kooky Carnival (Redemption) - V1.02
 DRIVERNV(scarn103)      //S.A.M.: 04/06 Simpsons Kooky Carnival (Redemption) - V1.03
+//DRIVERNV(scarn104)      //S.A.M.: 05/06 Simpsons Kooky Carnival (Redemption) - V1.04
 DRIVERNV(scarn105)      //S.A.M.: 08/06 Simpsons Kooky Carnival (Redemption) - V1.05
 DRIVERNV(scarn200)      //S.A.M.: 02/08 Simpsons Kooky Carnival (Redemption) - V2.0
 //DRIVER(potc,103as)      //S.A.M.: 07/06 Pirates of the Caribbean - V1.03 (English, Spanish)
