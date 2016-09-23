@@ -9,7 +9,6 @@ wchar_t tmp[81];
 #include <Windows.h>
 // Defines
 #define SAM_DISPLAYSMOOTH 4
-
 #define SAM_CPUFREQ	55000000
 #define SAM_IRQFREQ 4040
 #define WAVE_OUT_RATE 24242
@@ -63,13 +62,13 @@ static data32_t *sam_cpu;
 static int sam_bank[56];
 static int sam_stream = 0;
 
-#define SAM_LEDS_PER_STRING 65
 #define SAM_LEDS_MAX_STRINGS 4
-#define SAM_LEDS_MAX SAM_LEDS_PER_STRING * SAM_LEDS_MAX_STRINGS
+#define SAM_LEDS_MAX 65 * SAM_LEDS_MAX_STRINGS
 
 data8_t sam_ext_leds[SAM_LEDS_MAX];
 data8_t sam_prev_ch1 = 0, sam_prev_ch2 = 0;
 int sam_led_col = 0, sam_led_row = -1;
+int sam_leds_per_string;
 
 //SAM Input Ports
 #define SAM_COMPORTS \
@@ -142,7 +141,7 @@ int sam_led_col = 0, sam_led_row = -1;
 #define SAM_INPUT_PORTS_END INPUT_PORTS_END
 #define SAM_COMINPORT       CORE_COREINPORT
 
-static void sam_transmit_serial(data8_t *data, int size);
+static void sam_transmit_serial(int usartno, data8_t *data, int size);
 
 static int sam_getSol(int solNo)
 {
@@ -203,6 +202,8 @@ static READ32_HANDLER(samswitch_r)
 	int ii; // esi@1
 	int v7; // esi@6
 
+	
+
 	data = 0;
 	v5 = 0;
 	ii = 0;
@@ -240,7 +241,8 @@ LABEL_6:
 		}
 	}
 	if ( v7 == 0x80000 )
-		data = samlocals.bank;
+		data = samlocals.bank | 0x10;  // 0x10  (bits 4-7, mask 0x70) is hardware rev. 
+
 	return data << 8 * v5;
 }
 
@@ -869,11 +871,12 @@ static SWITCH_UPDATE(sam) {
 	}
 }
 
-/* The serial LED boards seem to receive a 3 byte header (85 + address, 41, 80), then a 65 byte long array of bytes that represent the LEDs. */
+// The serial LED boards seem to receive a 3 byte header (85 + address, 41, 80), 
+// then a 65 byte long array of bytes that represent the LEDs. 
+// Walking Dead seems to use a different format, two strings (83, 88 but with only 0x23 leds). 
 
 
-
-static void sam_transmit_serial(data8_t *data, int size)
+static void sam_transmit_serial(int usartno, data8_t *data, int size)
 {
 	int i;
 
@@ -881,29 +884,44 @@ static void sam_transmit_serial(data8_t *data, int size)
 	{
 		if (sam_led_row == -1)
 		{
-			/* We are looking for the header.   Is this a character 0x80 and the previous 0x41? */ 
-
+			// ooking for the header.
+			// Mustang or Star Trek
 			if ((*data) == 0x80 && sam_prev_ch1 == 0x41)
 			{
+				sam_leds_per_string = sam_prev_ch1;
 				sam_led_col = 0;
 				sam_led_row = sam_prev_ch2 - 0x85;
 				if (sam_led_row > SAM_LEDS_MAX_STRINGS) 
 					sam_led_row = -1;
 			}
+
+			// Walking Dead LE
+			if ((*data) == 0x80 && sam_prev_ch1 == 0x23 && (sam_prev_ch2 == 0x83 || sam_prev_ch2 == 0x88))
+			{
+				sam_leds_per_string = sam_prev_ch1;
+				sam_led_col = 0;
+				sam_led_row = (sam_prev_ch2 == 0x83) ? 0 : 1;
+			}	
+			// AC/DC or Metallica 
+			if ((*data) == 0x00 && sam_prev_ch1 == 0x80)
+			{
+				sam_leds_per_string = 56;
+				sam_led_col = 0;
+				sam_led_row = 0;
+			}	
 			sam_prev_ch2 = sam_prev_ch1;
-			sam_prev_ch1 = *data;
-			data++;
+			sam_prev_ch1 = *(data++);
 			size--;
 		} 
 		else 
 		{
-			int count = size > (SAM_LEDS_PER_STRING-sam_led_col) ? SAM_LEDS_PER_STRING-sam_led_col : size;
-			for(i=sam_led_col;i<count;i++)
+			int count = size > (sam_leds_per_string-sam_led_col) ? sam_leds_per_string-sam_led_col : size;
+			for(i=0;i<count;i++)
 			{
-				sam_ext_leds[(sam_led_row * SAM_LEDS_PER_STRING) + sam_led_col++]=*(data++);
+				sam_ext_leds[(sam_led_row * sam_leds_per_string) + sam_led_col++]=*(data++);
 			}
 			size -= count;
-			if (sam_led_col > SAM_LEDS_PER_STRING)
+			if (sam_led_col >= sam_leds_per_string)
 			{
 				sam_prev_ch1 = 0;
 				sam_led_row = -1;
@@ -949,17 +967,17 @@ static void sam_timer(int data)
 
 static INTERRUPT_GEN(sam_irq)
 {  
-	cpu_set_irq_line(SAM_CPU, 0, PULSE_LINE);
+	cpu_set_irq_line(SAM_CPU, 1, PULSE_LINE);
 }
 
 static MACHINE_DRIVER_START(sam)
     MDRV_IMPORT_FROM(PinMAME)
     MDRV_SWITCH_UPDATE(sam)
-    MDRV_CPU_ADD(AT91, 55000000)
+    MDRV_CPU_ADD(AT91, SAM_CPUFREQ)
     MDRV_CPU_MEMORY(sam_readmem, sam_writemem)
     MDRV_CPU_PORTS(sam_readport, sam_writeport)
     MDRV_CPU_VBLANK_INT(sam_vblank, 1)
-    MDRV_CPU_PERIODIC_INT(sam_irq, 4040)
+    MDRV_CPU_PERIODIC_INT(sam_irq, SAM_IRQFREQ)
     MDRV_CORE_INIT_RESET_STOP(sam, sam, NULL)
     MDRV_DIPS(8)
     MDRV_NVRAM_HANDLER(sam)
@@ -975,7 +993,7 @@ static MACHINE_DRIVER_START(sam_fast)
     MDRV_CPU_MEMORY(sam_readmem, sam_writemem)
     MDRV_CPU_PORTS(sam_readport, sam_writeport)
     MDRV_CPU_VBLANK_INT(sam_vblank, 1)
-    MDRV_CPU_PERIODIC_INT(sam_irq, 4039)
+    MDRV_CPU_PERIODIC_INT(sam_irq, SAM_IRQFREQ)
     MDRV_CORE_INIT_RESET_STOP(sam, sam, NULL)
     MDRV_DIPS(8)
     MDRV_NVRAM_HANDLER(sam)
