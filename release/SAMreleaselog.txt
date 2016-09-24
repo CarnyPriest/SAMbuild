@@ -1,3 +1,8 @@
+version 2.38d
+official rev 3970
+S.A.M. 
+correct file length for trn_1741h - there are no "official" soundtrack remixes or DMD colored rom sets - Set to ignore CRC
+ ----------------------
 version 2.38c
 official rev 3961
 S.A.M. 
