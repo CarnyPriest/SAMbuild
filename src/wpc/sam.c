@@ -8,10 +8,24 @@
 wchar_t tmp[81];
 #include <Windows.h>
 // Defines
+
+#define SAM_USE_JIT
 #define SAM_DISPLAYSMOOTH 4
-#define SAM_CPUFREQ	55000000
-#define SAM_IRQFREQ 4040
-#define WAVE_OUT_RATE 24242
+#define SAM_CPUFREQ	    40000000
+//#define SAM_CPUFREQ	55000000
+
+#ifdef SAM_USE_JIT
+// We need the MAME scheduler to check for IRQ events more frequently than the FIQ if JIT is in use
+// JIT does not relinqish CPU until the next timer event.  This causes input problems.    Checking
+// IRQs more frequently is a good use of the higher performing code anyhow. 
+#define SAM_OVERSAMPLING 8 
+#define SAM_IRQFREQ 4008 * SAM_OVERSAMPLING
+#else
+#define SAM_IRQFREQ 4008
+#endif
+
+#define WAVE_OUT_RATE 24000
+#define SAM_TIMER 120
 #define BUFFSIZE 262144
 
 #define SAM_CPU	0
@@ -846,6 +860,13 @@ PORT_END
 static MACHINE_INIT(sam) {
 	at91_set_ram_pointers(sam_reset_ram, sam_page0_ram);
 	at91_set_transmit_serial(sam_transmit_serial);
+#ifdef SAM_USE_JIT
+	at91_init_jit(0,0x1080000);
+#endif
+	//at91_init_jit(0,0x12794);  // address on FG where reducing loop length was required
+	//at91_init_jit(0, 0x3278c); // Determined need for IRQ check here - was looping waiting for one.
+	//at91_init_jit(0, 0x1456c);// buggy opcode (TODO: Emulated)
+	//at91_init_jit(0,0x97fc);  // buggy opcode (Fixed)
 	memset(sam_ext_leds, 0, SAM_LEDS_MAX * sizeof(data8_t));
 }
 
@@ -966,8 +987,19 @@ static void sam_timer(int data)
 }
 
 static INTERRUPT_GEN(sam_irq)
-{  
+{
+#ifdef SAM_USE_JIT
+	static int count = 0;
+
+	count++;
+	if (count==SAM_OVERSAMPLING)
+	{
+		cpu_set_irq_line(SAM_CPU, 1, PULSE_LINE);
+		count=0;
+	}
+#else
 	cpu_set_irq_line(SAM_CPU, 1, PULSE_LINE);
+#endif
 }
 
 static MACHINE_DRIVER_START(sam)
@@ -981,11 +1013,12 @@ static MACHINE_DRIVER_START(sam)
     MDRV_CORE_INIT_RESET_STOP(sam, sam, NULL)
     MDRV_DIPS(8)
     MDRV_NVRAM_HANDLER(sam)
-    MDRV_TIMER_ADD(sam_timer, 146) // was 145
+    MDRV_TIMER_ADD(sam_timer, SAM_TIMER) // was 145
     MDRV_SOUND_ADD(CUSTOM, samCustInt)
     MDRV_DIAGNOSTIC_LEDH(2)
 MACHINE_DRIVER_END
 
+/* Not needed 
 static MACHINE_DRIVER_START(sam_fast)
     MDRV_IMPORT_FROM(PinMAME)
     MDRV_SWITCH_UPDATE(sam)
@@ -1001,6 +1034,7 @@ static MACHINE_DRIVER_START(sam_fast)
     MDRV_SOUND_ADD(CUSTOM, samCustInt)
     MDRV_DIAGNOSTIC_LEDH(2)
 MACHINE_DRIVER_END
+*/
 
 #define INITGAME(name, gen, disp, lampcol, hw) \
 	static core_tGameData name##GameData = { \
@@ -1795,26 +1829,26 @@ SAM_ROMEND
 
 SAM_INPUT_PORTS_START(ij4, 1) SAM_INPUT_PORTS_END
 
-CORE_GAMEDEF(ij4, 113, "Indiana Jones (V1.13)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 113f, 113, "Indiana Jones (V1.13) (French)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 113g, 113, "Indiana Jones (V1.13) (German)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 113i, 113, "Indiana Jones (V1.13) (Italian)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 113l, 113, "Indiana Jones (V1.13) (Spanish)", 2008, "Stern", sam_fast, 0)
+CORE_GAMEDEF(ij4, 113, "Indiana Jones (V1.13)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 113f, 113, "Indiana Jones (V1.13) (French)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 113g, 113, "Indiana Jones (V1.13) (German)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 113i, 113, "Indiana Jones (V1.13) (Italian)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 113l, 113, "Indiana Jones (V1.13) (Spanish)", 2008, "Stern", sam, 0)
 
-CORE_CLONEDEF(ij4, 114, 113, "Indiana Jones (V1.14)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 114f, 113, "Indiana Jones (V1.14) (French)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 114g, 113, "Indiana Jones (V1.14) (German)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 114i, 113, "Indiana Jones (V1.14) (Italian)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 114l, 113, "Indiana Jones (V1.14) (Spanish)", 2008, "Stern", sam_fast, 0)
+CORE_CLONEDEF(ij4, 114, 113, "Indiana Jones (V1.14)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 114f, 113, "Indiana Jones (V1.14) (French)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 114g, 113, "Indiana Jones (V1.14) (German)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 114i, 113, "Indiana Jones (V1.14) (Italian)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 114l, 113, "Indiana Jones (V1.14) (Spanish)", 2008, "Stern", sam, 0)
 
-CORE_CLONEDEF(ij4, 116, 113, "Indiana Jones (V1.16)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 116f, 113, "Indiana Jones (V1.16) (French)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 116g, 113, "Indiana Jones (V1.16) (German)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 116i, 113, "Indiana Jones (V1.16) (Italian)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 116l, 113, "Indiana Jones (V1.16) (Spanish)", 2008, "Stern", sam_fast, 0)
+CORE_CLONEDEF(ij4, 116, 113, "Indiana Jones (V1.16)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 116f, 113, "Indiana Jones (V1.16) (French)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 116g, 113, "Indiana Jones (V1.16) (German)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 116i, 113, "Indiana Jones (V1.16) (Italian)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 116l, 113, "Indiana Jones (V1.16) (Spanish)", 2008, "Stern", sam, 0)
 
-CORE_CLONEDEF(ij4, 210, 113, "Indiana Jones (V2.1)", 2009, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 210f, 113, "Indiana Jones (V2.1) (French)", 2009, "Stern", sam_fast, 0)
+CORE_CLONEDEF(ij4, 210, 113, "Indiana Jones (V2.1)", 2009, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 210f, 113, "Indiana Jones (V2.1) (French)", 2009, "Stern", sam, 0)
 
 //Batman: Dark Knight - good - complete
 INITGAME(bdk, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_NOMINI3);
@@ -1870,13 +1904,13 @@ SAM_ROMEND
 
 SAM_INPUT_PORTS_START(csi, 1) SAM_INPUT_PORTS_END
 
-CORE_GAMEDEF(csi, 102, "C.S.I. (V1.02)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 103, 102, "C.S.I. (V1.03)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 104, 102, "C.S.I. (V1.04)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 200, 102, "C.S.I. (V2.0)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 210, 102, "C.S.I. (V2.1)", 2009, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 230, 102, "C.S.I. (V2.3)", 2009, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 240, 102, "C.S.I. (V2.4)", 2009, "Stern", sam_fast, 0)
+CORE_GAMEDEF(csi, 102, "C.S.I. (V1.02)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 103, 102, "C.S.I. (V1.03)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 104, 102, "C.S.I. (V1.04)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 200, 102, "C.S.I. (V2.0)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 210, 102, "C.S.I. (V2.1)", 2009, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 230, 102, "C.S.I. (V2.3)", 2009, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 240, 102, "C.S.I. (V2.4)", 2009, "Stern", sam, 0)
 
 //24 - ?? seems ok
 INITGAME(twenty4, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_NOMINI);
