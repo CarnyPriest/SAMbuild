@@ -1385,8 +1385,6 @@ SAM_ROMLOAD(potc_600as, "potc600as.bin", CRC(5d5e1aaa) SHA1(9c7a416ae6587a86c8d2
 SAM_ROMEND
 SAM_ROMLOAD(potc_600gf, "potc600gf.bin", CRC(44eb2610) SHA1(ec1e1f7f2cd135942531e0e3f540afadb5d2f527), 0x01B67104)
 SAM_ROMEND
-SAM_ROMLOAD(potc_600af_c, "potc600af_c.bin", CRC(3911bce4) SHA1(3f666c5caf995a61c826f4e1d2393e150d8e3ee8), 0x01AD2B40)
-SAM_ROMEND
 
 SAM_INPUT_PORTS_START(potc, 1) SAM_INPUT_PORTS_END
 
@@ -1419,7 +1417,6 @@ CORE_CLONEDEF(potc, 600af, 110af, "Pirates of the Caribbean (V6.0) (English, Fre
 CORE_CLONEDEF(potc, 600ai, 110af, "Pirates of the Caribbean (V6.0) (English, Italian)", 2008, "Stern", sam, 0)
 CORE_CLONEDEF(potc, 600as, 110af, "Pirates of the Caribbean (V6.0) (English, Spanish)", 2008, "Stern", sam, 0)
 CORE_CLONEDEF(potc, 600gf, 110af, "Pirates of the Caribbean (V6.0) (German, French)", 2008, "Stern", sam, 0)
-CORE_CLONEDEF(potc, 600af_c, 110af, "Pirates of the Caribbean (V6.0) (Colored)", 2008, "Stern", sam, 0)
 
 //Spider-Man - good - complete
 INITGAME(sman, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_NOMINI);
@@ -1867,11 +1864,7 @@ SAM_ROMLOAD(trn_174, "trn174.bin", CRC(20e44481) SHA1(88e6e75efb640a7978f4003f0d
 SAM_ROMEND
 SAM_ROMLOAD(trn_17402, "trn17402.bin", CRC(94a5946c) SHA1(5026e33a8bb00c83caf06891727b8439d1274fbb), 0x01F79E70)
 SAM_ROMEND
-SAM_ROMLOAD(trn_1741, "trn1741.bin", CRC(527c4cf9) SHA1(c5a206f6656c03f612e4e6ee7a0def71ae7cce0f), 0x01f79e70)
-SAM_ROMEND
 SAM_ROMLOAD(trn_174h, "trn174h.bin", CRC(a45224bf) SHA1(40e36764af332175f653e8ddc2a8bb77891c1230), 0x01F93B84)
-SAM_ROMEND
-SAM_ROMLOAD(trn_1741h, "trn1741h.bin", CRC(527c4cf9) SHA1(c5a206f6656c03f612e4e6ee7a0def71ae7cce0f), 0x01F93B84)
 SAM_ROMEND
 
 SAM_INPUT_PORTS_START(trn, 1) SAM_INPUT_PORTS_END
@@ -1881,9 +1874,7 @@ CORE_CLONEDEF(trn, 170, 160, "Tron: Legacy Pro (V1.7)", 2011, "Stern", sam, 0)
 CORE_CLONEDEF(trn, 140h, 160, "Tron: Legacy Limited Edition (V1.4)", 2011, "Stern", sam, 0)
 CORE_CLONEDEF(trn, 174, 160, "Tron: Legacy Pro (V1.74)", 2013, "Stern", sam, 0)
 CORE_CLONEDEF(trn, 17402, 160, "Tron: Legacy Pro (V1.7402)", 2013, "Stern", sam, 0)
-CORE_CLONEDEF(trn, 1741, 160, "Tron: Legacy Pro Remix (V1.7402)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(trn, 174h, 160, "Tron: Legacy Limited Edition (V1.74)", 2013, "Stern", sam, 0)
-CORE_CLONEDEF(trn, 1741h, 160, "Tron: Legacy Limited Remix (V1.7402)", 2014, "Stern", sam, 0)
 
 //Transformers - ?? seems ok
 INITGAME(tf, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_NOMINI4);
@@ -2358,8 +2349,6 @@ SAM_ROMLOAD_ACDC3(twd_111h, "twd_111h.bin", CRC(873feba1) SHA1(3b3a76c09d3955055
 SAM_ROMEND
 SAM_ROMLOAD_ACDC3(twd_119, "twd_119.bin", CRC(5fb5529e) SHA1(cdc3def52fd00219894327520122b905fd75ad1f), 0x0579167C)													
 SAM_ROMEND
-SAM_ROMLOAD_ACDC3(twd_1191, "twd_1191.bin", CRC(f43a3f74) SHA1(b87f31ce1af8bd045d87b2c0d465e50c43138200), 0x0579167c)
-SAM_ROMEND
 SAM_ROMLOAD_ACDC3(twd_119h, "twd_119h.bin", CRC(529089e0) SHA1(bcc5b3f6f549212dfdc36eece220af6913a22f78), 0x0579167C)													
 SAM_ROMEND
 SAM_ROMLOAD_ACDC3(twd_124, "twd_124.bin", CRC(9f30b0a9) SHA1(60f689717f9060260ef4ae32b11c3ca6e66004dc), 0x059DD02C)
@@ -2393,7 +2382,6 @@ CORE_GAMEDEF(twd, 105, "The Walking Dead (V1.05)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 111, 105 , "The Walking Dead (V1.11)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 111h, 105 , "The Walking Dead LE (V1.11)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 119, 105 , "The Walking Dead (V1.19)", 2014, "Stern", sam, 0)
-CORE_CLONEDEF(twd, 1191, 105 , "The Walking Dead Custom (V1.19)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 119h, 105 , "The Walking Dead LE (V1.19)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 124, 105, "The Walking Dead (V1.24)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 124h, 105, "The Walking Dead LE (V1.24)", 2015, "Stern", sam, 0)

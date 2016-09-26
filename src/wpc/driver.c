@@ -143,14 +143,12 @@ DRIVERNV(voltanc )      //BY35      10/08 Voltan Escapes Cosmic Doom (7-digit Re
 DRIVERNV(voltand )      //BY35      10/08 Voltan Escapes Cosmic Doom (/10 Free Play)
 DRIVERNV(startrek)      //BY35-745: 01/78 Star Trek
 DRIVERNV(startreb)      //BY35      05/05 Star Trek (7-digit conversion)
-DRIVERNV(ratfink)       //BY35      24/15 Clone of Star Trek (7-digit conversion)
 DRIVERNV(startrec)      //BY35      10/08 Star Trek (7-digit Rev3 Free Play)
 DRIVERNV(startred)      //BY35      10/08 Star Trek (/10 Free Play)
                         //??        02/78 Skateball (Prototype)
 DRIVERNV(kiss    )      //BY35-746: 04/78 Kiss
 DRIVERNV(kissb   )      //BY35      05/05 Kiss (7-digit conversion)
 DRIVERNV(kissc   )      //BY35      10/08 Kiss (7-digit Rev3 Free Play)
-DRIVERNV(missworld)
 DRIVERNV(kissd   )      //BY35      10/08 Kiss (/10 Free Play)
 DRIVERNV(kissp   )      //BY35      ??/?? Kiss (prototype)
 DRIVERNV(kissp2  )      //BY35      ??/?? Kiss (prototype v.2)
@@ -160,7 +158,6 @@ DRIVERNV(slbmania)      //BY35-786: 06/78 Silverball Mania
 DRIVERNV(slbmanib)      //BY35      11/02 Silverball Mania (7-digit conversion)
 DRIVERNV(hglbtrtr)      //BY35-750: 08/78 Harlem Globetrotters On Tour
 DRIVERNV(hglbtrtb)      //BY35      11/02 Harlem Globetrotters On Tour (7-digit conversion)
-DRIVERNV(penthouse)     //BY35      clone of hglbtrtb, Penthouse Pinball Dreams 2008
 DRIVERNV(dollyptn)      //BY35-777: 10/78 Dolly Parton
 DRIVERNV(dollyptb)      //BY35      11/02 Dolly Parton (7-digit conversion)
 DRIVERNV(paragon )      //BY35-748: 12/78 Paragon
@@ -1481,7 +1478,6 @@ DRIVER(potc,600af)      //S.A.M.: 01/08 Pirates of the Caribbean - V6.0  (Englis
 DRIVER(potc,600ai)      //S.A.M.: 01/08 Pirates of the Caribbean - V6.0  (English, Italian)
 DRIVER(potc,600as)      //S.A.M.: 01/08 Pirates of the Caribbean - V6.0  (English, Spanish)
 DRIVER(potc,600gf)      //S.A.M.: 01/08 Pirates of the Caribbean - V6.0  (German, French)
-DRIVER(potc,600af_c)      //S.A.M.: 01/08 Pirates of the Caribbean - V6.0  (Colored)
 //DRIVER(fg,100a)         //S.A.M.: 02/07 Family Guy - V1.00
 //DRIVER(fg,101a)         //S.A.M.: 02/07 Family Guy - V1.01
 //DRIVER(fg,200a)         //S.A.M.: 02/07 Family Guy - V2.00  (English)
@@ -1549,8 +1545,6 @@ DRIVER(sman,240)        //S.A.M.: 11/09 Spider-Man - V2.4
 //DRIVER(sman,250)        //S.A.M.: ??/?? Spider-Man - V2.5
 DRIVER(sman,260)        //S.A.M.: 11/10 Spider-Man - V2.6
 DRIVER(sman,261)        //S.A.M.: 05/14 Spider-Man - V2.61
-//DRIVER(sman,261x)       //S.A.M.: ??/1? Spider-Man - V2.61x (hacked 2.60 plunger lane music)
-//DRIVER(sman,262x)       //S.A.M.: ??/1? Spider-Man - V2.62x (hacked 2.60 music)
 DRIVER(wof,100)         //S.A.M.: 11/07 Wheel of Fortune - V1.0
 DRIVER(wof,200)         //S.A.M.: 11/07 Wheel of Fortune - V2.0
 DRIVER(wof,200f)        //S.A.M.: 11/07 Wheel of Fortune - V2.0 (French)
@@ -1618,7 +1612,6 @@ DRIVER(bdk,202)         //S.A.M.: 08/08 Batman - The Dark Knight - V2.2
 DRIVER(bdk,240)         //S.A.M.: 11/09 Batman - The Dark Knight - V2.4  (scarecrow sometimes 2 balls, sometimes 3 balls)
 DRIVER(bdk,290)         //S.A.M.: 05/10 Batman - The Dark Knight - V2.9  (with 3 ball scarecrow multiball)
 DRIVER(bdk,294)         //S.A.M.: 05/10 Batman - The Dark Knight - V2.94 (back to 2 ball scarecrow multiball)
-//DRIVER(bdk,294e)        //S.A.M.: 05/10 Batman - The Dark Knight - V2.94 (back to 2 ball scarecrow multiball), hacked music
 //DRIVER(bdk,300)         //S.A.M.: ??/1? Batman - The Dark Knight - V3.00 Home Edition/Costco
 //DRIVER(csi,100)         //S.A.M.: 11/08 C.S.I. - V1.00
 //DRIVER(csi,101)         //S.A.M.: 11/08 C.S.I. - V1.01
@@ -1700,8 +1693,6 @@ DRIVER(trn,170)         //S.A.M.: 11/11 TRON: Legacy - V1.7
 DRIVER(trn,174)         //S.A.M.: 02/13 TRON: Legacy - V1.74
 DRIVER(trn,174h)        //S.A.M.: 11/13 TRON: Legacy Limited Edition - V1.74
 DRIVER(trn,17402)       //S.A.M.: 02/13 TRON: Legacy - V1.7402 (New CPU)
-DRIVER(trn,1741)      //S.A.M.: 09/14 TRON: Legacy - V1.741 (hacked 1.74 music)
-DRIVER(trn,1741h)     //S.A.M.: 09/14 TRON: Legacy Limited Edition - V1.741 (hacked 1.74 music)
 //DRIVER(tf,088h)         //S.A.M.: ??/11 Transformers - V0.88 Limited Edition
 //DRIVER(tf,100)          //S.A.M.: 10/11 Transformers - V1.0
 //DRIVER(tf,100h)         //S.A.M.: 11/11 Transformers - V1.0 Limited Edition
@@ -1822,8 +1813,6 @@ DRIVER(st,160h)         //S.A.M.: 03/15 Star Trek Limited Edition - V1.6
 DRIVER(st,161)          //S.A.M.: 03/15 Star Trek Pro - V1.61
 DRIVER(st,161h)         //S.A.M.: 03/15 Star Trek Limited Edition - V1.61
 DRIVER(st,161c)			// pinball browser colorized using extend memory
-//DRIVER(st,162)          // (hacked 1.61 music)
-//DRIVER(st,163)          // (hacked 1.61 music)
 //DRIVER(mt,100)          //S.A.M.: 03/14 Mustang - V1.0
 //DRIVER(mt,101)          //S.A.M.: 03/14 Mustang - V1.01
 //DRIVER(mt,102)          //S.A.M.: 03/14 Mustang - V1.02
@@ -1852,7 +1841,6 @@ DRIVER(twd,111)         //S.A.M.: 10/14 Walking Dead, The - V1.11
 DRIVER(twd,111h)        //S.A.M.: 10/14 Walking Dead, The - V1.11 Limited Edition
 DRIVER(twd,119)         //S.A.M.: 11/14 Walking Dead, The - V1.19
 DRIVER(twd,119h)        //S.A.M.: 11/14 Walking Dead, The - V1.19 Limited Edition
-DRIVER(twd,1191)        //S.A.M.: 11/14 Walking Dead, The - V1.191 (hacked 1.91 music)
 DRIVER(twd,124)         //S.A.M.: 05/15 Walking Dead, The - V1.24
 DRIVER(twd,124h)        //S.A.M.: 05/15 Walking Dead, The - V1.24 Limited Edition
 DRIVER(twd,125)         //S.A.M.: 05/15 Walking Dead, The - V1.25
@@ -1869,6 +1857,7 @@ DRIVER(smanve,100)      //S.A.M.: 02/16 Spider-Man - Vault Edition V1.0
 DRIVER(smanve,100c)     // pinball browser colorized using extend memory
 DRIVER(smanve,101)      //S.A.M.: 05/16 Spider-Man - Vault Edition V1.01
 DRIVER(smanve,101c)     // pinball browser colorized using extend memory
+//#endif
 
 // ---------------
 // TABART GAMES
@@ -2005,7 +1994,6 @@ DRIVER(omni,l1)         //          04/80 W Omni (Shuffle)
 DRIVER(blkou,l1)        //S6-495:   06/80 W Blackout
 DRIVER(blkou,f1)        //          06/80 W Blackout, French speech
 DRIVER(blkou,t1)        //                  Blackout /10 Scoring Ted Estes
-DRIVER(blkou,hf)        //                  Pumpkin Carving
 DRIVER(scrpn,l1)        //S6-494:   07/80 W Scorpion
 DRIVER(scrpn,t1)        //                  Scorpion /10 Scoring Ted Estes
 DRIVER(algar,l1)        //S6-499:   09/80 W Algar

@@ -1,3 +1,30 @@
+version 2.38e
+official rev 3974
+S.A.M. 
+Delete duplicated sets that are defined under different file names:
+
+by35games.c
+missworld (kissc)
+penthouse (hglbtrtb)
+ratfink (startreb)
+
+s6games.c
+blkou_hf (blkou_l1)
+
+If needed, the table script can be modified to use the officially supported set and write to an alternate vram
+
+Delete remixes
+
+sam.c
+potc_600af_c
+trn_1741
+trn_1741h
+twd_1191
+
+there are no "official" soundtrack remixes or DMD colored rom sets - Patch the code and then set to ignore CRC to load
+
+Stern color DMD patched code that require a larger file size than the official code remain as they will not load at all otherwise 
+ ----------------------
 version 2.38d
 official rev 3970
 S.A.M. 
