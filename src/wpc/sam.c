@@ -1707,9 +1707,9 @@ SAM_ROMLOAD(bdk_160, "bdk160.bin", CRC(5554ea47) SHA1(0ece4779ad9a3d6c8428306774
 SAM_ROMEND
 SAM_ROMLOAD(bdk_200, "bdk200.bin", CRC(07b716a9) SHA1(4cde06308bb967435c7c1bf078a2cda36088e3ec), 0x01B04378)
 SAM_ROMEND
-SAM_ROMLOAD(bdk_201, "bdk201.bin", CRC(ac84fef1) SHA1(bde3250f3d95a12a5f3b74ac9d11ba0bd331e9cd), 0x01B96D94)
+SAM_ROMLOAD(bdk_210, "bdk210.bin", CRC(ac84fef1) SHA1(bde3250f3d95a12a5f3b74ac9d11ba0bd331e9cd), 0x01B96D94)
 SAM_ROMEND
-SAM_ROMLOAD(bdk_202, "bdk202.bin", CRC(6e415ce7) SHA1(30a3938817da20ccb87c7e878cdd8a13ada097ab), 0x01b96d94)
+SAM_ROMLOAD(bdk_220, "bdk220.bin", CRC(6e415ce7) SHA1(30a3938817da20ccb87c7e878cdd8a13ada097ab), 0x01b96d94)
 SAM_ROMEND
 SAM_ROMLOAD(bdk_240, "bdk240.bin", CRC(6cf8c983) SHA1(75f9c6d2b799e92563a6d89cd2a6b17815635e25), 0x01b96d94)
 SAM_ROMEND
@@ -1724,8 +1724,8 @@ CORE_GAMEDEF(bdk, 130, "Batman: Dark Knight (V1.3)", 2008, "Stern", sam, 0)
 CORE_CLONEDEF(bdk, 150, 130, "Batman: Dark Knight (V1.5)", 2008, "Stern", sam, 0)
 CORE_CLONEDEF(bdk, 160, 130, "Batman: Dark Knight (V1.6)", 2008, "Stern", sam, 0)
 CORE_CLONEDEF(bdk, 200, 130, "Batman: Dark Knight (V2.0)", 2008, "Stern", sam, 0)
-CORE_CLONEDEF(bdk, 201, 130, "Batman: Dark Knight (V2.1)", 2008, "Stern", sam, 0)
-CORE_CLONEDEF(bdk, 202, 130, "Batman: Dark Knight (V2.2)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(bdk, 210, 130, "Batman: Dark Knight (V2.1)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(bdk, 220, 130, "Batman: Dark Knight (V2.2)", 2008, "Stern", sam, 0)
 CORE_CLONEDEF(bdk, 240, 130, "Batman: Dark Knight (V2.4)", 2009, "Stern", sam, 0)
 CORE_CLONEDEF(bdk, 290, 130, "Batman: Dark Knight (V2.9)", 2010, "Stern", sam, 0)
 CORE_CLONEDEF(bdk, 294, 130, "Batman: Dark Knight (V2.94)", 2010, "Stern", sam, 0)

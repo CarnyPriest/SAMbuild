@@ -1,3 +1,8 @@
+version 2.38f
+official rev 3979
+S.A.M. 
+Restore duplicated sets that are defined under different file names - they have separate DOF configs
+ ----------------------
 version 2.38e
 official rev 3974
 S.A.M. 

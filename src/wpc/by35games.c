@@ -403,6 +403,14 @@ BY35_ROMEND
 #define input_ports_startred input_ports_by35
 CORE_CLONEDEFNV(startred,startrek, "Star Trek (/10 Free Play)",2008,"Bally / Oliver",by35_mBY35_50S,0)
 
+INITGAME(ratfink,GEN_BY35,dispBy7,FLIP_SW(FLIP_L),0,SNDBRD_BY50,0)
+BY35_ROMSTARTx00(ratfink,"star2732.u2", CRC(34dd99c3) SHA1(86dd5b46873c1910311504bdbfcd340317109be6),
+                          "3032d7.bin",  CRC(c0fc5342) SHA1(0511162ac54e1c630c7460cec7311bc928baf656))
+BY50_SOUNDROM(            "729-18_3.123",CRC(7b6b7d45) SHA1(22f791bac0baab71754b2f6c00c217a342c92df5))
+BY35_ROMEND
+#define input_ports_ratfink input_ports_by35
+CORE_CLONEDEFNV(ratfink,startrek, "RatFink Clone of Startreb(7-digit conversion)",2005,"Bally / Oliver",by35_mBY35_50S,0)
+
 /*--------------------------------
 / Paragon
 /-------------------------------*/
@@ -459,6 +467,14 @@ BY35_ROMEND
 #define input_ports_hglbtrtb input_ports_hglbtrtr
 CORE_CLONEDEFNV(hglbtrtb,hglbtrtr,"Harlem Globetrotters (7-digit conversion)",2002,"Bally / Oliver",by35_mBY35_50S,0)
 
+INITGAME(penthouse,GEN_BY35,dispBy7,FLIP_SW(FLIP_L),0,SNDBRD_BY50,0)
+BY35_ROMSTARTx00(penthouse,"harl2732.u2", CRC(f70a2981) SHA1(dd3e6448efa0dff49ed84c1f586d3b817598fa31),
+                          "720-3532.u6b",CRC(b5e6a3d5) SHA1(fa1593eeed449dbac87965e613b501108a015eb2))
+BY50_SOUNDROM(            "729-51_3.123",CRC(6e7d3e8b) SHA1(7a93d82a05213ffa6eacfa318051414f872a701d))
+BY35_ROMEND
+#define input_ports_penthouse input_ports_hglbtrtr
+CORE_CLONEDEFNV(penthouse,hglbtrtr,"Penthouse - clone of hglbtrtb",2002,"Bally / Oliver",by35_mBY35_50S,0)
+
 /*--------------------------------
 / Dolly Parton
 /-------------------------------*/
@@ -514,6 +530,14 @@ BY50_SOUNDROM(            "729-18_3.123",CRC(7b6b7d45) SHA1(22f791bac0baab71754b
 BY35_ROMEND
 #define input_ports_kissd input_ports_by35
 CORE_CLONEDEFNV(kissd,kiss,"Kiss (/10 Free Play)",2008,"Bally / Oliver",by35_mBY35_50S,0)
+
+INITGAME(missworld,GEN_BY35,dispBy7,FLIP_SW(FLIP_L),0,SNDBRD_BY50,0)
+BY35_ROMSTARTx00(missworld,   "kiss2732.u2", CRC(716adcfd) SHA1(048e3142cfa307ea4552e6af3812b0d7301b62ad),
+                          "strekc.u6",  CRC(0ee0d6ac) SHA1(1c71d2ade69d433780a2becc5480b2b3e7ddb0e0))
+BY50_SOUNDROM(            "729-18_3.123",CRC(7b6b7d45) SHA1(22f791bac0baab71754b2f6c00c217a342c92df5))
+BY35_ROMEND
+#define input_ports_missworld input_ports_by35
+CORE_CLONEDEFNV(missworld,kiss,"Miss World(7-digit Rev3 Free Play)",2008,"Bally / Oliver",by35_mBY35_50S,0)
 
 /* -------------------------------------*/
 /* All games below use Sound Module -51 */

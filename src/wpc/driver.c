@@ -143,12 +143,14 @@ DRIVERNV(voltanc )      //BY35      10/08 Voltan Escapes Cosmic Doom (7-digit Re
 DRIVERNV(voltand )      //BY35      10/08 Voltan Escapes Cosmic Doom (/10 Free Play)
 DRIVERNV(startrek)      //BY35-745: 01/78 Star Trek
 DRIVERNV(startreb)      //BY35      05/05 Star Trek (7-digit conversion)
+DRIVERNV(ratfink)       //BY35      24/15 Clone of Star Trek (7-digit conversion)
 DRIVERNV(startrec)      //BY35      10/08 Star Trek (7-digit Rev3 Free Play)
 DRIVERNV(startred)      //BY35      10/08 Star Trek (/10 Free Play)
                         //??        02/78 Skateball (Prototype)
 DRIVERNV(kiss    )      //BY35-746: 04/78 Kiss
 DRIVERNV(kissb   )      //BY35      05/05 Kiss (7-digit conversion)
 DRIVERNV(kissc   )      //BY35      10/08 Kiss (7-digit Rev3 Free Play)
+DRIVERNV(missworld)
 DRIVERNV(kissd   )      //BY35      10/08 Kiss (/10 Free Play)
 DRIVERNV(kissp   )      //BY35      ??/?? Kiss (prototype)
 DRIVERNV(kissp2  )      //BY35      ??/?? Kiss (prototype v.2)
@@ -158,6 +160,7 @@ DRIVERNV(slbmania)      //BY35-786: 06/78 Silverball Mania
 DRIVERNV(slbmanib)      //BY35      11/02 Silverball Mania (7-digit conversion)
 DRIVERNV(hglbtrtr)      //BY35-750: 08/78 Harlem Globetrotters On Tour
 DRIVERNV(hglbtrtb)      //BY35      11/02 Harlem Globetrotters On Tour (7-digit conversion)
+DRIVERNV(penthouse)     //BY35      clone of hglbtrtb, Penthouse Pinball Dreams 2008
 DRIVERNV(dollyptn)      //BY35-777: 10/78 Dolly Parton
 DRIVERNV(dollyptb)      //BY35      11/02 Dolly Parton (7-digit conversion)
 DRIVERNV(paragon )      //BY35-748: 12/78 Paragon
@@ -1606,8 +1609,8 @@ DRIVER(bdk,130)         //S.A.M.: 07/08 Batman - The Dark Knight - V1.3
 DRIVER(bdk,150)         //S.A.M.: 07/08 Batman - The Dark Knight - V1.5
 DRIVER(bdk,160)         //S.A.M.: 07/08 Batman - The Dark Knight - V1.6
 DRIVER(bdk,200)         //S.A.M.: 08/08 Batman - The Dark Knight - V2.0
-DRIVER(bdk,201)         //S.A.M.: 08/08 Batman - The Dark Knight - V2.1
-DRIVER(bdk,202)         //S.A.M.: 08/08 Batman - The Dark Knight - V2.2
+DRIVER(bdk,210)         //S.A.M.: 08/08 Batman - The Dark Knight - V2.1
+DRIVER(bdk,220)         //S.A.M.: 08/08 Batman - The Dark Knight - V2.2
 //DRIVER(bdk,230)         //S.A.M.: 10/08 Batman - The Dark Knight - V2.3
 DRIVER(bdk,240)         //S.A.M.: 11/09 Batman - The Dark Knight - V2.4  (scarecrow sometimes 2 balls, sometimes 3 balls)
 DRIVER(bdk,290)         //S.A.M.: 05/10 Batman - The Dark Knight - V2.9  (with 3 ball scarecrow multiball)
@@ -1994,6 +1997,7 @@ DRIVER(omni,l1)         //          04/80 W Omni (Shuffle)
 DRIVER(blkou,l1)        //S6-495:   06/80 W Blackout
 DRIVER(blkou,f1)        //          06/80 W Blackout, French speech
 DRIVER(blkou,t1)        //                  Blackout /10 Scoring Ted Estes
+DRIVER(blkou,hf)        //                  Pumpkin Carving
 DRIVER(scrpn,l1)        //S6-494:   07/80 W Scorpion
 DRIVER(scrpn,t1)        //                  Scorpion /10 Scoring Ted Estes
 DRIVER(algar,l1)        //S6-499:   09/80 W Algar
