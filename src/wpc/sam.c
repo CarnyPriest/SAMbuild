@@ -4,13 +4,27 @@
 #include "vpintf.h"
 #include "cpu/at91/at91.h"
 #include "sndbrd.h"
-
+wchar_t tmp[81];
+#include <Windows.h>
 // Defines
-#define SAM_DISPLAYSMOOTH 4
 
-#define SAM_CPUFREQ	55000000
-#define SAM_IRQFREQ 4040
-#define WAVE_OUT_RATE 24242
+#define SAM_USE_JIT
+#define SAM_DISPLAYSMOOTH 4
+#define SAM_CPUFREQ	    40000000
+
+#ifdef SAM_USE_JIT
+// We need the MAME scheduler to check for IRQ events more frequently than the FIQ if JIT is in use
+// JIT does not relinqish CPU until the next timer event.  This causes input problems.    Checking
+// IRQs more frequently is a good use of the higher performing code anyhow. 
+#define SAM_OVERSAMPLING 8 
+#define SAM_IRQFREQ 4008 * SAM_OVERSAMPLING
+
+#else
+#define SAM_IRQFREQ 4008
+#endif
+
+#define WAVE_OUT_RATE 24000
+#define SAM_TIMER 120
 #define BUFFSIZE 262144
 
 #define SAM_CPU	0
@@ -34,6 +48,7 @@ struct {
 	int vblankCount;
 	UINT32 solenoids;
 	UINT32 solenoids2;
+	UINT32 custsol;
 	int diagnosticLed;
 	int col;
 	int zc;
@@ -50,13 +65,24 @@ struct {
 	char minidata[226];
 } samlocals;
 
+static int sam_getSol(int solNo);
+
 static data32_t *sam_reset_ram;
 static data32_t *sam_page0_ram;
 static data32_t *sam_cpu;
 
-static int sam_bank[47];
-
+static int sam_bank[56];
 static int sam_stream = 0;
+
+#define SAM_LEDS_MAX_STRINGS 4
+#define SAM_LEDS_MAX 65 * SAM_LEDS_MAX_STRINGS
+
+data8_t sam_ext_leds[SAM_LEDS_MAX];
+data8_t sam_prev_ch1 = 0, sam_prev_ch2 = 0;
+int sam_led_col = 0, sam_led_row = -1;
+int sam_leds_per_string;
+
+extern int at91_block_timers;
 
 //SAM Input Ports
 #define SAM_COMPORTS \
@@ -129,6 +155,14 @@ static int sam_stream = 0;
 #define SAM_INPUT_PORTS_END INPUT_PORTS_END
 #define SAM_COMINPORT       CORE_COREINPORT
 
+static void sam_LED_hack(int usartno);
+static void sam_transmit_serial(int usartno, data8_t *data, int size);
+
+static int sam_getSol(int solNo)
+{
+	return (samlocals.custsol & ( 1 << (solNo-CORE_FIRSTCUSTSOL))) > 0;
+}
+
 //Sound Interface
 const struct sndbrdIntf samIntf = {
 	"SAM1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, SNDBRD_NODATASYNC
@@ -183,6 +217,8 @@ static READ32_HANDLER(samswitch_r)
 	int ii; // esi@1
 	int v7; // esi@6
 
+	
+
 	data = 0;
 	v5 = 0;
 	ii = 0;
@@ -220,20 +256,45 @@ LABEL_6:
 		}
 	}
 	if ( v7 == 0x80000 )
-		data = samlocals.bank;
+		data = samlocals.bank | 0x10;  // 0x10  (bits 4-7, mask 0x70) is hardware rev. 
+
 	return data << 8 * v5;
 }
+
+static int avg = 0, samecount=0, lastzc = 0;
+static int totshifts =0; 
 
 static READ32_HANDLER(samxilinx_r)
 {
 	data32_t data = 0;
 	if(~mem_mask == 0xFF00)
+	{	
+		if (lastzc != samlocals.zc)
+		{
+			 wchar_t buffer[256];
+			 avg += samecount;
+			 totshifts++;
+			 swprintf(buffer, 256, L"ZCC %d, %f\n", samecount, (float)avg / (float)totshifts);
+			// OutputDebugStringW(buffer);
+			 samecount = 0;
+			 lastzc = samlocals.zc;
+		}
+		else
+		{
+			samecount++;
+		}
+
+		/*
+static READ32_HANDLER(samxilinx_r)
+{
+	data32_t data = 0; 
+	if(~mem_mask == 0xFF00)*/
 		// was ((6 | zc) << 2) | u1...   bits:   0 1 1 zc u1 u1
 		//                     works     bits:   0 0 0 zc u1 u1
 		//                                                u1 = solenoids have power - 1-32
 		//                                                   u1 = power switch
 		data = (( 7 << 3 ) | (samlocals.zc << 2) | (samlocals.powerswitch != 0 ? 3 : 0)) << 8;
-	else
+	} else
 		return data;
 	return data;
 }
@@ -384,12 +445,12 @@ static int sam_led(UINT32 bank)
 
 static int led[] =
 	{ 5, 8, 7, 6, 9, 1, 2, 3, 4, 0, 10, 11, 12, 13};
-static char byte_105E0AF8;
-static int dword_105E0B00;
-static int dword_105E0B04;
-static char byte_105E0AF9;
+static char lastbank11;
+static int minidmdx;
+static int minidmdy;
+static char lastbank6;
 static int dword_105E0AFC;
-static int dword_105E0AF4;
+static int led_target;
 
 static WRITE32_HANDLER(sambank_w)
 {
@@ -508,115 +569,135 @@ LABEL_6:
 				return;
 			case 6:
 				sam_bank[4]++;
-				
+	/*			if (bank!=lastbank6)
+				{
+				  swprintf(tmp, _countof(tmp), L"%d %d\r\n", bank, sam_bank[4]);
+				  OutputDebugStringW(tmp);
+				} */
 				// 9/5/2016 - Modified by djrobx
 				// 
-				// Removing sam_bank[4] check as it causes us to miss the aux board solenoid event.
+				// Removing sam_bank[4] check as it causes us to miss the aux board solenoid event (because the one we want is at 2!).
 				// Adding check for gameSpecific1 == 0.    This same event seems to be used for other
 				// purposes (probably different hardware connected to same port on SAM board), 
 				// so we want to ensure we only modify the solenoids if the others aren't set. 
 				//
 				// if ( sam_bank[4] == 1 && bank >= 0)
-				
-				if ( core_gameData->hw.gameSpecific1 == 0 && bank >= 0)
+				if ( core_gameData->hw.gameSpecific1 == 0 )
 				{
-					samlocals.solenoids2 &= 0xFFFFF00F;
-					for(ii = 0; ii <= 7; ii++)
+					switch(sam_bank[4])
 					{
-						if ( bank & (1<<ii) )
-							sam_bank[38 + ii] = 0x19;
-						if( sam_bank[38 + ii] > 0)
+					case 2:
+						samlocals.custsol &= 0xFFFFFF00;
+						for(ii = 0; ii <= 7; ii++)
 						{
-							sam_bank[38 + ii]--;
-							samlocals.solenoids2 |= ((sam_bank[38 + ii] > 0) << (4 + ii));
+							if ( bank & (1<<ii) )
+								sam_bank[38 + ii] = 0x19;
+							if( sam_bank[38 + ii] > 0)
+							{
+								sam_bank[38 + ii]--;
+								samlocals.custsol |= ((sam_bank[38 + ii] > 0) << (ii));
+							}
 						}
+						break;
+					case 3:
+						samlocals.custsol &= 0xFFFF00FF;
+						for(ii = 0; ii <= 7; ii++)
+						{
+							if ( bank & (1<<ii) )
+								sam_bank[47 + ii] = 0x19;
+							if( sam_bank[47 + ii] > 0)
+							{
+								sam_bank[47 + ii]--;
+								samlocals.custsol |= ((sam_bank[47 + ii] > 0) << (8 + ii));
+							}
+						}					
+						break;
 					}
-					//samlocals.solenoids2 |= (bank << 4);
 				}
 				if ( core_gameData->hw.gameSpecific1 & 1 )
 				{
-					if ( dword_105E0B00 == 1 )
+					if ( minidmdx == 1 )
 					{
-						dword_105E0B04 = led[sam_led(bank & 0x7F | ((byte_105E0AF9 & 0x7F) << 7))];
+						minidmdy = led[sam_led(bank & 0x7F | ((lastbank6 & 0x7F) << 7))];
 					}
 					else
 					{
-						if ( dword_105E0B00 > 1 )
-							samlocals.minidata[16 * dword_105E0B04 + dword_105E0B00] = bank & 0x7F;
-						if ( dword_105E0B00 >= 17 )
+						if ( minidmdx > 1 )
+							samlocals.minidata[16 * minidmdy + minidmdx] = bank & 0x7F;
+						if ( minidmdx >= 17 )
 						{
 LABEL_157:
-							if ( (~byte_105E0AF9 & bank) >= 0x80)
+							if ( (~lastbank6 & bank) >= 0x80)
 							{
-								byte_105E0AF9 = bank;
-								dword_105E0B00 = 0;
+								lastbank6 = bank;
+								minidmdx = 0;
 								return;
 							}
 							goto LABEL_176;
 						}
 					}
-					dword_105E0B00++;
+					minidmdx++;
 					goto LABEL_157;
 				}
 				if ( core_gameData->hw.gameSpecific1 & 2 )
 				{
 					int test;
-					test = bank & ~byte_105E0AF9;
+					test = bank & ~lastbank6;
 					if (!((test < 0x80) && (test >= 0)))
 					{
-						dword_105E0B00 = 0;
-						byte_105E0AF9 = bank;
-						dword_105E0B04 = sam_led(bank & 3);
+						minidmdx = 0;
+						lastbank6 = bank;
+						minidmdy = sam_led(bank & 3);
 						return;
 					}
-					if ( dword_105E0B00 < 3 )
+					if ( minidmdx < 3 )
 					{
-			            coreGlobals.tmpLampMatrix[dword_105E0B04 + dword_105E0B00 + 2 * dword_105E0B04 + 10] = bank & 0x7F;
-						byte_105E0AF9 = bank;
-			            coreGlobals.lampMatrix[dword_105E0B04 + dword_105E0B00 + 2 * dword_105E0B04 + 10] = bank & 0x7F;
-						dword_105E0B00++;
+			            coreGlobals.tmpLampMatrix[minidmdy + minidmdx + 2 * minidmdy + 10] = bank & 0x7F;
+						lastbank6 = bank;
+			            coreGlobals.lampMatrix[minidmdy + minidmdx + 2 * minidmdy + 10] = bank & 0x7F;
+						minidmdx++;
 			            return;
 					}
 				}
 				if ( core_gameData->hw.gameSpecific1 & 4 )
 				{
 					int test;
-					test = bank & ~byte_105E0AF9;
+					test = bank & ~lastbank6;
 					if ( (test < 0x80) && (test >= 0) )
 					{
-						dword_105E0B00++;
+						minidmdx++;
 					}
 					else
 					{
 						dword_105E0AFC = dword_105E0AFC == 0;
-						dword_105E0B00 = 0;
+						minidmdx = 0;
 					}
 					if ( dword_105E0AFC )
 					{
-						if ( dword_105E0B00 == 1 )
+						if ( minidmdx == 1 )
 						{
-							byte_105E0AF9 = bank;
-							dword_105E0B04 = sam_led(bank & 0x1F);
+							lastbank6 = bank;
+							minidmdy = sam_led(bank & 0x1F);
 							return;
 						}
-						if ( dword_105E0B00 > 1 && dword_105E0B00 < 7 )
+						if ( minidmdx > 1 && minidmdx < 7 )
 						{
-							byte_105E0AF9 = bank;
-							samlocals.minidata[16 * dword_105E0B04 + dword_105E0B00] = bank & 0x7F;
+							lastbank6 = bank;
+							samlocals.minidata[16 * minidmdy + minidmdx] = bank & 0x7F;
 							return;
 						}
 					}
 					else
 					{
-						if ( dword_105E0B00 < 6 )
+						if ( minidmdx < 6 )
 						{
-							coreGlobals.tmpLampMatrix[dword_105E0B00 + 10] = bank & 0x7F;
-							coreGlobals.lampMatrix[dword_105E0B00 + 10] = bank & 0x7F;
+							coreGlobals.tmpLampMatrix[minidmdx + 10] = bank & 0x7F;
+							coreGlobals.lampMatrix[minidmdx + 10] = bank & 0x7F;
 						}
 					}
 				}
 LABEL_176:
-				byte_105E0AF9 = bank;
+				lastbank6 = bank;
 				break;
 			case 8:
 				sam_bank[0] = 0;
@@ -627,40 +708,40 @@ LABEL_176:
 				sam_bank[5] = 0;
 				sam_bank[46]++;
 				if ( sam_bank[46] == 2 )
-					dword_105E0AF4 = sam_led(bank);
+					led_target = sam_led(bank);
 				return;
 			case 10:
 				sam_bank[46] = 0;
 				sam_bank[5]++;
 				if ( sam_bank[5] == 1 )
-					coreGlobals.tmpLampMatrix[dword_105E0AF4] = core_revbyte(bank);
+					coreGlobals.tmpLampMatrix[led_target] = core_revbyte(bank);
 				return;
 			case 11:
 				if ( core_gameData->hw.gameSpecific1 & SAM_MINIDMD3 )
 				{
-					if ( (bank & ~byte_105E0AF8) & 8 )
+					if ( (bank & ~lastbank11) & 8 )
 						dword_105E0AFC = 0;
-					else if ( (bank & ~byte_105E0AF8) & 0x10 )
+					else if ( (bank & ~lastbank11) & 0x10 )
 						dword_105E0AFC = 1;
 				}
 				if ( core_gameData->hw.gameSpecific1 & SAM_NOMINI3 && ~bank & 0x08 )
-					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(byte_105E0AF9);
+					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(lastbank6);
 				if ( core_gameData->hw.gameSpecific1 & SAM_NOMINI4 && ~bank & 0x10 )
-					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(byte_105E0AF9);
+					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(lastbank6);
 				if ( core_gameData->hw.gameSpecific1 & SAM_NOMINI5 )
 				{
 					if ( ~bank & 0x08 )
-						coreGlobals.lampMatrix[8] = coreGlobals.tmpLampMatrix[8] = core_revbyte(byte_105E0AF9);
+						coreGlobals.lampMatrix[8] = coreGlobals.tmpLampMatrix[8] = core_revbyte(lastbank6);
 					if ( ~bank & 0x10 )
-						coreGlobals.lampMatrix[9] = coreGlobals.tmpLampMatrix[9] = core_revbyte(byte_105E0AF9);
+						coreGlobals.lampMatrix[9] = coreGlobals.tmpLampMatrix[9] = core_revbyte(lastbank6);
 					if ( ~bank & 0x20 )
-						coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(byte_105E0AF9);
+						coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(lastbank6);
 					if ( ~bank & 0x40 )
 						logerror("Test");
 				}
-		        if ( (~bank & 0x40) && (byte_105E0AF9 & 3) )
+		        if ( (~bank & 0x40) && (lastbank6 & 3) )
 					logerror("error");
-				byte_105E0AF8 = bank;
+				lastbank11 = bank;
 				return;
 			 default:
 				logerror("error");
@@ -730,8 +811,7 @@ static WRITE32_HANDLER(samcpu_w)
 static MEMORY_WRITE32_START(sam_writemem)
 	{ 0x00000000, 0x000FFFFF, MWA32_RAM, &sam_page0_ram},  // Boot RAM
 	{ 0x00300000, 0x003FFFFF, MWA32_RAM, &sam_reset_ram},  // Swapped RAM
-	{ 0x01000000, 0x0107FFFF, MWA32_RAM },
-	{ 0x01080000, 0x0109EFFF, MWA32_RAM },
+	{ 0x01000000, 0x0109EFFF, MWA32_RAM },
 	{ 0x0109F000, 0x010FFFFF, samxilinx_w },
 	{ 0x01100000, 0x01FFFFFF, samdmdram_w },
 	{ 0x02100000, 0x0211FFFF, MWA32_RAM, &sam_cpu },
@@ -803,6 +883,21 @@ PORT_END
 //Machine
 static MACHINE_INIT(sam) {
 	at91_set_ram_pointers(sam_reset_ram, sam_page0_ram);
+	at91_set_transmit_serial(sam_transmit_serial);
+	at91_set_serial_receive_ready(sam_LED_hack);
+#ifdef SAM_USE_JIT
+	if (options.at91jit)
+	{
+		at91_init_jit(0,(options.at91jit > 1) ? options.at91jit : 0x1080000);
+	}
+#endif
+	//at91_init_jit(0,0x12794);  // address on FG where reducing loop length was required
+	//at91_init_jit(0, 0x3278c); // Determined need for IRQ check here - was looping waiting for one.
+	//at91_init_jit(0, 0x1456c);// buggy opcode (TODO: Emulated)
+	//at91_init_jit(0,0x97fc);  // buggy opcode (Fixed)
+	memset(sam_ext_leds, 0, SAM_LEDS_MAX * sizeof(data8_t));
+	if (_strnicmp(Machine->gamedrv->name,"csi_",4)==0 || _strnicmp(Machine->gamedrv->name,"ij4_",4)==0)
+		at91_block_timers = 1;
 }
 
 static MACHINE_RESET(sam) {
@@ -827,13 +922,107 @@ static SWITCH_UPDATE(sam) {
 	}
 }
 
+
+int at91_receive_serial(int usartno, data8_t *buf, int size);
+
+static void sam_LED_hack(int usartno)
+{
+	static int hasrunhack =0;
+	const char *gn;
+
+	if (hasrunhack)
+		return;
+
+	hasrunhack = 1;
+	gn = Machine->gamedrv->name;
+
+	// Several LE games do not transmit data for a really long time.  These are ROM hacks that force the issue to get things moving.  
+	
+	if (stricmp(gn, "mt_145h")==0)
+	{
+		cpu_writemem32ledw(0x1061728, 0x00);
+	}
+	else if (stricmp(gn, "mt_145")==0)
+	{
+		cpu_writemem32ledw_dword(0x1eb0, 0xe1a00000);
+	}
+	else //if (stricmp(gn, "twd_156h")==0)  // The default implementation is to blast some data at it.  This seems to work for Walking Dead and at least speeds up others. 
+	{
+		data8_t buf[256];
+		memset(buf, 0xff, sizeof(buf)-1);
+		buf[255]=0;
+		at91_receive_serial(0,buf, 255);
+	}
+}
+
+// The serial LED boards seem to receive a 3 byte header (85 + address, 41, 80), 
+// then a 65 byte long array of bytes that represent the LEDs. 
+// Walking Dead seems to use a different format, two strings (83, 88 but with only 0x23 leds). 
+
+
+static void sam_transmit_serial(int usartno, data8_t *data, int size)
+{
+	int i;
+
+	while (size > 0)
+	{
+		if (sam_led_row == -1)
+		{
+			// ooking for the header.
+			// Mustang or Star Trek
+			if ((*data) == 0x80 && sam_prev_ch1 == 0x41)
+			{
+				sam_leds_per_string = sam_prev_ch1;
+				sam_led_col = 0;
+				sam_led_row = sam_prev_ch2 - 0x85;
+				if (sam_led_row > SAM_LEDS_MAX_STRINGS) 
+					sam_led_row = -1;
+			}
+
+			// Walking Dead LE
+			if ((*data) == 0x80 && sam_prev_ch1 == 0x23 && (sam_prev_ch2 == 0x83 || sam_prev_ch2 == 0x88))
+			{
+				sam_leds_per_string = sam_prev_ch1;
+				sam_led_col = 0;
+				sam_led_row = (sam_prev_ch2 == 0x83) ? 0 : 1;
+			}	
+			// AC/DC or Metallica 
+			if ((*data) == 0x00 && sam_prev_ch1 == 0x80)
+			{
+				sam_leds_per_string = 56;
+				sam_led_col = 0;
+				sam_led_row = 0;
+			}	
+			sam_prev_ch2 = sam_prev_ch1;
+			sam_prev_ch1 = *(data++);
+			size--;
+		} 
+		else 
+		{
+			int count = size > (sam_leds_per_string-sam_led_col) ? sam_leds_per_string-sam_led_col : size;
+			for(i=0;i<count;i++)
+			{
+				sam_ext_leds[(sam_led_row * sam_leds_per_string) + sam_led_col++]=*(data++);
+			}
+			size -= count;
+			if (sam_led_col >= sam_leds_per_string)
+			{
+				sam_prev_ch1 = 0;
+				sam_led_row = -1;
+			}
+		}
+	}
+}
+
 static INTERRUPT_GEN(sam_vblank) {
 	samlocals.vblankCount += 1;
+	
 	memcpy(coreGlobals.lampMatrix, coreGlobals.tmpLampMatrix, 40);
 	if ((samlocals.vblankCount % SAM_DISPLAYSMOOTH) == 0) {
 	    coreGlobals.diagnosticLed = samlocals.diagnosticLed;
 		samlocals.diagnosticLed = 0;
 	}
+	memcpy(coreGlobals.RGBlamps, sam_ext_leds, SAM_LEDS_MAX * sizeof(data8_t));
 	coreGlobals.solenoids = samlocals.solenoids;
 	coreGlobals.solenoids2 = samlocals.solenoids2;
 	core_updateSw(TRUE);
@@ -843,32 +1032,46 @@ static NVRAM_HANDLER(sam) {
 	core_nvram(file, read_or_write, sam_cpu, 0x20000, 0xff);
 }
 
+void at91_clear_timer();
+
 static void sam_timer(int data)
 {
 	samlocals.zc = (samlocals.zc == 0);
 }
 
 static INTERRUPT_GEN(sam_irq)
-{  
-	cpu_set_irq_line(SAM_CPU, 0, PULSE_LINE);
+{
+#ifdef SAM_USE_JIT
+	static int count = 0;
+
+	count++;
+	if (count==SAM_OVERSAMPLING)
+	{
+		cpu_set_irq_line(SAM_CPU, 1, PULSE_LINE);
+		count=0;
+	}
+#else
+	cpu_set_irq_line(SAM_CPU, 1, PULSE_LINE);
+#endif
 }
 
 static MACHINE_DRIVER_START(sam)
     MDRV_IMPORT_FROM(PinMAME)
     MDRV_SWITCH_UPDATE(sam)
-    MDRV_CPU_ADD(AT91, 55000000)
+    MDRV_CPU_ADD(AT91, SAM_CPUFREQ)
     MDRV_CPU_MEMORY(sam_readmem, sam_writemem)
     MDRV_CPU_PORTS(sam_readport, sam_writeport)
     MDRV_CPU_VBLANK_INT(sam_vblank, 1)
-    MDRV_CPU_PERIODIC_INT(sam_irq, 4040)
+    MDRV_CPU_PERIODIC_INT(sam_irq, SAM_IRQFREQ)
     MDRV_CORE_INIT_RESET_STOP(sam, sam, NULL)
     MDRV_DIPS(8)
     MDRV_NVRAM_HANDLER(sam)
-    MDRV_TIMER_ADD(sam_timer, 146) // was 145
+    MDRV_TIMER_ADD(sam_timer, SAM_TIMER) // was 145
     MDRV_SOUND_ADD(CUSTOM, samCustInt)
     MDRV_DIAGNOSTIC_LEDH(2)
 MACHINE_DRIVER_END
 
+/* Not needed 
 static MACHINE_DRIVER_START(sam_fast)
     MDRV_IMPORT_FROM(PinMAME)
     MDRV_SWITCH_UPDATE(sam)
@@ -876,7 +1079,7 @@ static MACHINE_DRIVER_START(sam_fast)
     MDRV_CPU_MEMORY(sam_readmem, sam_writemem)
     MDRV_CPU_PORTS(sam_readport, sam_writeport)
     MDRV_CPU_VBLANK_INT(sam_vblank, 1)
-    MDRV_CPU_PERIODIC_INT(sam_irq, 4039)
+    MDRV_CPU_PERIODIC_INT(sam_irq, SAM_IRQFREQ)
     MDRV_CORE_INIT_RESET_STOP(sam, sam, NULL)
     MDRV_DIPS(8)
     MDRV_NVRAM_HANDLER(sam)
@@ -884,10 +1087,11 @@ static MACHINE_DRIVER_START(sam_fast)
     MDRV_SOUND_ADD(CUSTOM, samCustInt)
     MDRV_DIAGNOSTIC_LEDH(2)
 MACHINE_DRIVER_END
+*/
 
 #define INITGAME(name, gen, disp, lampcol, hw) \
 	static core_tGameData name##GameData = { \
-		gen, disp, {FLIP_SW(FLIP_L) | FLIP_SOL(FLIP_L), 0, lampcol, 0, 0, 0, hw}}; \
+		gen, disp, {FLIP_SW(FLIP_L) | FLIP_SOL(FLIP_L), 0, lampcol, 16, 0, 0, hw,0, sam_getSol}}; \
 	static void init_##name(void) { core_gameData = &name##GameData; }
 
 //Memory Regions
@@ -1675,26 +1879,26 @@ SAM_ROMEND
 
 SAM_INPUT_PORTS_START(ij4, 1) SAM_INPUT_PORTS_END
 
-CORE_GAMEDEF(ij4, 113, "Indiana Jones (V1.13)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 113f, 113, "Indiana Jones (V1.13) (French)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 113g, 113, "Indiana Jones (V1.13) (German)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 113i, 113, "Indiana Jones (V1.13) (Italian)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 113l, 113, "Indiana Jones (V1.13) (Spanish)", 2008, "Stern", sam_fast, 0)
+CORE_GAMEDEF(ij4, 113, "Indiana Jones (V1.13)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 113f, 113, "Indiana Jones (V1.13) (French)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 113g, 113, "Indiana Jones (V1.13) (German)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 113i, 113, "Indiana Jones (V1.13) (Italian)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 113l, 113, "Indiana Jones (V1.13) (Spanish)", 2008, "Stern", sam, 0)
 
-CORE_CLONEDEF(ij4, 114, 113, "Indiana Jones (V1.14)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 114f, 113, "Indiana Jones (V1.14) (French)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 114g, 113, "Indiana Jones (V1.14) (German)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 114i, 113, "Indiana Jones (V1.14) (Italian)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 114l, 113, "Indiana Jones (V1.14) (Spanish)", 2008, "Stern", sam_fast, 0)
+CORE_CLONEDEF(ij4, 114, 113, "Indiana Jones (V1.14)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 114f, 113, "Indiana Jones (V1.14) (French)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 114g, 113, "Indiana Jones (V1.14) (German)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 114i, 113, "Indiana Jones (V1.14) (Italian)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 114l, 113, "Indiana Jones (V1.14) (Spanish)", 2008, "Stern", sam, 0)
 
-CORE_CLONEDEF(ij4, 116, 113, "Indiana Jones (V1.16)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 116f, 113, "Indiana Jones (V1.16) (French)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 116g, 113, "Indiana Jones (V1.16) (German)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 116i, 113, "Indiana Jones (V1.16) (Italian)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 116l, 113, "Indiana Jones (V1.16) (Spanish)", 2008, "Stern", sam_fast, 0)
+CORE_CLONEDEF(ij4, 116, 113, "Indiana Jones (V1.16)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 116f, 113, "Indiana Jones (V1.16) (French)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 116g, 113, "Indiana Jones (V1.16) (German)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 116i, 113, "Indiana Jones (V1.16) (Italian)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 116l, 113, "Indiana Jones (V1.16) (Spanish)", 2008, "Stern", sam, 0)
 
-CORE_CLONEDEF(ij4, 210, 113, "Indiana Jones (V2.1)", 2009, "Stern", sam_fast, 0)
-CORE_CLONEDEF(ij4, 210f, 113, "Indiana Jones (V2.1) (French)", 2009, "Stern", sam_fast, 0)
+CORE_CLONEDEF(ij4, 210, 113, "Indiana Jones (V2.1)", 2009, "Stern", sam, 0)
+CORE_CLONEDEF(ij4, 210f, 113, "Indiana Jones (V2.1) (French)", 2009, "Stern", sam, 0)
 
 //Batman: Dark Knight - good - complete
 INITGAME(bdk, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_NOMINI3);
@@ -1750,13 +1954,13 @@ SAM_ROMEND
 
 SAM_INPUT_PORTS_START(csi, 1) SAM_INPUT_PORTS_END
 
-CORE_GAMEDEF(csi, 102, "C.S.I. (V1.02)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 103, 102, "C.S.I. (V1.03)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 104, 102, "C.S.I. (V1.04)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 200, 102, "C.S.I. (V2.0)", 2008, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 210, 102, "C.S.I. (V2.1)", 2009, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 230, 102, "C.S.I. (V2.3)", 2009, "Stern", sam_fast, 0)
-CORE_CLONEDEF(csi, 240, 102, "C.S.I. (V2.4)", 2009, "Stern", sam_fast, 0)
+CORE_GAMEDEF(csi, 102, "C.S.I. (V1.02)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 103, 102, "C.S.I. (V1.03)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 104, 102, "C.S.I. (V1.04)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 200, 102, "C.S.I. (V2.0)", 2008, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 210, 102, "C.S.I. (V2.1)", 2009, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 230, 102, "C.S.I. (V2.3)", 2009, "Stern", sam, 0)
+CORE_CLONEDEF(csi, 240, 102, "C.S.I. (V2.4)", 2009, "Stern", sam, 0)
 
 //24 - ?? seems ok
 INITGAME(twenty4, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_NOMINI);
@@ -2304,7 +2508,7 @@ CORE_CLONEDEF(st, 161h, 120, "Star Trek Limited Edition (V1.61)", 2015, "Stern",
 
 //Mustang
 
-INITGAME(mt, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_NOMINI);
+INITGAME(mt, GEN_SAM, sam_dmd128x32, SAM_8COL,0);
 
 SAM_ROMLOAD(mt_120, "mt_120.bin", CRC(be7437ac) SHA1(5db10d7f48091093c33d522a663f13f262c08c3e), 0x037DA5EC)													
 SAM_ROMEND

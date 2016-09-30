@@ -99,7 +99,7 @@ static void HandleSMulLong( data32_t insn);
 INLINE void HandleBranch( data32_t insn);		//pretty short, so inline should be ok
 static void HandleMemSingle( data32_t insn);
 static void HandleMemBlock( data32_t insn);
-INLINE data32_t decodeShift( data32_t insn, data32_t *pCarry);
+static data32_t decodeShift( data32_t insn, data32_t *pCarry);
 INLINE void SwitchMode( int );
 static void arm7_check_irq_state(void);
 
@@ -313,7 +313,7 @@ INLINE void SwitchMode (int cpsr_mode_val)
    ROR >32   = Same result as ROR n-32 until amount in range of 1-32 then follow rules
 */
 
-INLINE data32_t decodeShift( data32_t insn, data32_t *pCarry)
+static inline data32_t decodeShift( data32_t insn, data32_t *pCarry)
 {
 	data32_t k	= (insn & INSN_OP2_SHIFT) >> INSN_OP2_SHIFT_SHIFT;	//Bits 11-7
 	data32_t rm	= GET_REGISTER( insn & INSN_OP2_RM );
@@ -727,7 +727,7 @@ static void arm7_check_irq_state(void)
 
 	//FIRQ
 	if (ARM7.pendingFiq && (cpsr & F_MASK)==0) {
-		ARM7.pendingFiq = 0;
+		//ARM7.pendingFiq = 0;
 		SwitchMode(eARM7_MODE_FIQ);				/* Set FIQ mode so PC is saved to correct R14 bank */
 		SET_REGISTER( 14, pc - 4 + 4);			/* save PC to R14 */
 		SET_REGISTER( SPSR, cpsr );				/* Save current CPSR */
@@ -739,7 +739,7 @@ static void arm7_check_irq_state(void)
 
 	//IRQ
 	if (ARM7.pendingIrq && (cpsr & I_MASK)==0) {
-		ARM7.pendingIrq = 0;
+		//ARM7.pendingIrq = 0;
 		SwitchMode(eARM7_MODE_IRQ);				/* Set IRQ mode so PC is saved to correct R14 bank */
 		SET_REGISTER( 14, pc - 4 + 4);			/* save PC to R14 */
 		SET_REGISTER( SPSR, cpsr );				/* Save current CPSR */
@@ -806,11 +806,11 @@ static void arm7_core_set_irq_line(int irqline, int state)
 	switch (irqline) {
 
 	case ARM7_IRQ_LINE: /* IRQ */
-		ARM7.pendingIrq |= (state & 1);
+		ARM7.pendingIrq = (state & 1);
 		break;
 
 	case ARM7_FIRQ_LINE: /* FIRQ */
-		ARM7.pendingFiq |= (state & 1);
+		ARM7.pendingFiq = (state & 1);
 		break;
 
 	case ARM7_ABORT_EXCEPTION:
@@ -830,8 +830,7 @@ static void arm7_core_set_irq_line(int irqline, int state)
 	// This function is likely to be called by downstream hardware simulations, possibly in the middle of a 
 	// READ or WRITE request.  What we can do though is ensure MAME will check soon.   
 
-	ARM7_ICOUNT = 0;
-	//ARM7_CHECKIRQ;
+	ARM7_CHECKIRQ;
 }
 
 /***************************************************************************

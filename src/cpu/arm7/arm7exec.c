@@ -45,6 +45,7 @@ extern unsigned at91_get_reg(int regnum);
 .. though there's still room for improvement. */
 {
 	data32_t pc;
+	static data32_t pc_prev2 = 0, pc_prev1=0;
 	data32_t insn;
 
 	RESET_ICOUNT
@@ -64,16 +65,21 @@ extern unsigned at91_get_reg(int regnum);
 
 			// Debug test triggers
 
-			//if (pc == 0x9c60)
-			//	pc = 0x9c60;
+			if (pc == 0x25b5c)
+			{
+				//debug_key_pressed=1;
+				pc = 0x25b5c;
+			}
 
 			// Helpful to backtrace a crash :)
-
-			//pc_prev2 = pc_prev1;
-			//pc_prev1 = pc;
-
+		
+			
+		
 		JIT_FETCH(ARM7.jit, pc);
-		insn = cpu_readop32(pc);
+ 		insn = cpu_readop32(pc);
+
+		pc_prev2 = pc_prev1;
+		pc_prev1 = pc;
 
 		/* process condition codes for this instruction */
 		switch (insn >> INSN_COND_SHIFT)
@@ -269,7 +275,7 @@ extern unsigned at91_get_reg(int regnum);
 			/* Undefined */
 			default:
 				ARM7.pendingSwi = 1;
-
+				
 				ARM7_ICOUNT -= 1;				//undefined takes 4 cycles (page 77)
 				LOG(("%08x:  Undefined instruction\n",pc-4));
 				L_Next:
@@ -364,4 +370,3 @@ jit_go_native:
 
 #endif /* JIT_ENABLED */
 }
-

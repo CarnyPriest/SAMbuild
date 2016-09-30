@@ -72,7 +72,12 @@ extern int activecpu;
 #define LOG_AIC_IVW 0				//Turn on/off logging of AIC - Interrupt Vector Write Command
 #define LOG_AIC_EOI 0				//Turn on/off logging of AIC - End of Interrupt Command
 #define LOG_AIC_VECTOR_READ 0		//Turn on/off logging of AIC - Vector Address Read
-#define LOG_USART1_DATA_OUT 0
+#define LOG_USART1_DATA_OUT 1
+
+#if (defined(_DEBUG) && (defined(LOG_TOSCREEN) || defined(LOG_USART1_DATA_OUT)))
+// For console debug window output
+#include<Windows.h>
+#endif
 
 //Flags for Testing
 #define INT_BLOCK_FIQ   0			//Turn on/off blocking of specified Interrupt (Leave OFF for non-test situation)
@@ -90,13 +95,16 @@ INLINE data16_t at91_cpu_read16( int addr );
 INLINE data8_t at91_cpu_read8( int addr );
 void at91_fire_irq(int irqline);
 void (*at91_transmit_serial)(int usartno, data8_t *data, int size) = NULL;
-#ifdef INCLUDE_STERN_SAM
- void sam_serial_hack();
-#endif
+void (*at91_serial_receive_ready)(int usartno) = NULL;
 
 void at91_set_transmit_serial(void (*fp)(int usartno, data8_t *data, int size))
 {
 	at91_transmit_serial = fp;
+}
+
+void at91_set_serial_receive_ready(void (*fp)(int usartno))
+{
+	at91_serial_receive_ready = fp;
 }
 
 #if !USE_MAME_TIMERS
@@ -152,7 +160,7 @@ static void timer_trigger_event(int timer_num);
 #define TC_OVRFL_IRQ_ENABLED(x)		(at91.tc_clock[(x)].tc_irq_mask & 1)
 #define TC_WAVEMODE(x)				(at91.tc_clock[(x)].tc_chan_mode & 0x8000)		//bit 15 of Channel Mode = 1 for Wave Mode
 #define TC_RC_TRIGGER(x)			(at91.tc_clock[(x)].tc_chan_mode & 0x4000)		//bit 14 of Channel Mode = 1 for RC Compare Trigger
-#define AT91_USART_IRQ(x)			(2+(1-x))
+#define AT91_USART_IRQ(x)           2+(1-x)
 /* Private Data */
 
 typedef struct
@@ -181,7 +189,7 @@ typedef struct
 	data32_t aic_irqmask;						//holds the irq enabled mask for each interrupt 0-31 (0 = disabled, 1 = enabled) - 1 bit per interrupt.
 	data32_t aic_irqstatus;						//holds the status of the current interrupt # - 0-31 are valid #
 	data32_t aic_irqpending;					//holds the status of any pending interupts
-	data32_t aic_spurious;						//Spurious interrupt vector
+	data32_t aic_spurious;                      //Spurious interrupt vector
 	data32_t pio_enabled_status;				//holds status of each pio pin, 1 bit per pin. (0 = peripheral control, 1 = PIO control)
 	data32_t pio_output_status;					//holds output status of each pio pin, 1 bit per pin. (0 = Input Pin, 1 = Output Pin)
 	data32_t pio_output_data_status;			//holds output data status of each pio pin, 1 bit per pin. (0 = Pin Value is programmed as 0, 1 = Pin is programmed 1) - Only if pin is under PIO control and set as an output pin.
@@ -197,6 +205,7 @@ typedef struct
 typedef struct
 {
 	int cpu_freq;								//CPU Clock Frequency (as specified by the Machine Driver)
+	int cpunum;									//CPU num
 	data32_t *page0_ram_ptr;					//holder for the pointer set by the driver to ram @ page 0.
 	data32_t *reset_ram_ptr;					//holder for the pointer set by the driver to ram swap location.
 	data32_t page0[0x100000];					//Hold copy of original boot rom data @ page 0.
@@ -209,6 +218,8 @@ static AT91_REGS at91;
 static AT91_REGS_RS at91rs;
 int at91_ICount;
 int at91_priority_map[31];
+int at91_irqstack[31];
+int at91_irqstackpos = 0;
 
 #define AT91_RECEIVE_BUFFER_SIZE 512
 
@@ -249,11 +260,31 @@ static AT91_REGS_USART at91usart[2] = {{ 0, US_TXRDY | US_TXEMPTY | US_ENDTX,0,0
 #undef LOG
 
 #if LOG_AT91
+
 #if LOG_TOSCREEN
-#define LOG(x) printf x
+
+void DebuggerLog ( const char * format, ... )
+{
+  char buffer[256];
+  wchar_t  ws[256]; 
+
+  va_list args;
+  va_start (args, format);
+  vsnprintf (buffer,256,format, args); 
+  // Surely there's a more direct way lol
+  swprintf(ws, 256, L"%hs", buffer); 
+  OutputDebugStringW(ws);
+  va_end (args);
+}
+
+#define LOG(x) DebuggerLog x
+
 #else
+
 #define LOG(x) logerror x
+
 #endif
+
 #else
 #define LOG(x)
 #endif
@@ -407,6 +438,11 @@ mame_timer* at91_serial_timer=NULL;
 
 static void serial_timer_event(int timer_num);
 
+void at91_irqcheck()
+{
+	arm7_check_irq_state();
+}
+
 void at91_pending_serial(int usartno)
 {
 	// We can't process serial output immediately, the code will get confused and loop.
@@ -428,6 +464,22 @@ static void serial_timer_event(int timer_num)
 	{
 		if (at91usart[usartno].US_TCR > 0 && (at91usart[usartno].US_CSR & US_ENDTX) == 0 )
 		{
+#if (LOG_USART1_DATA_OUT && _DEBUG)
+			{
+				wchar_t tmp1[20];
+
+				swprintf(tmp1, _countof(tmp1), L"DO%d: ", usartno);
+				OutputDebugStringW(tmp1);
+
+				for (i = 0; i < at91usart[usartno].US_TCR; i++)
+				{
+					data8_t b = cpu_readmem32ledw(at91usart[usartno].US_TPR + i);
+					swprintf(tmp1, _countof(tmp1), L"%02X", b);
+					OutputDebugStringW(tmp1);
+				}
+				OutputDebugStringW(L"\n");
+			}
+#endif 
 			if (at91_transmit_serial)
 			{
 				// TODO: There ought to be a way to get to the memory pointer and just pass it. 
@@ -456,6 +508,16 @@ static void serial_timer_event(int timer_num)
 			}
 		} else if (at91usart[usartno].US_TPR == 0 && (at91usart[usartno].US_CSR & US_TXEMPTY) == 0 )
 			{
+#if (LOG_USART1_DATA_OUT && _DEBUG)
+				wchar_t tmp1[20];
+
+				if ((data8_t)at91usart[usartno].US_THR == 0x80)
+					OutputDebugStringW(L"\n");
+				swprintf(tmp1, _countof(tmp1), L"%c", (data8_t)at91usart[usartno].US_THR);
+
+				//				swprintf(tmp1, _countof(tmp1), L"%02X", (data8_t)at91usart[usartno].US_THR);
+				OutputDebugStringW(tmp1);
+#endif			
 				if (at91_transmit_serial)
 				{
 					at91_transmit_serial(usartno, (data8_t*)&(at91usart[usartno].US_THR), 1);
@@ -468,7 +530,28 @@ static void serial_timer_event(int timer_num)
 				{
 					at91_fire_irq(AT91_USART_IRQ(usartno));
 				} 
+			} 
+		if (at91usart[usartno].at91_rbuf_tail != at91usart[usartno].at91_rbuf_head)
+		{
+			if (at91usart[usartno].US_RPR !=0 && at91usart[usartno].US_RCR > 0 )
+			{
+				int i;
+				for (i=0;i<0x40;i++ && at91usart[usartno].US_RCR > 0)
+				{
+					cpu_writemem32ledw(at91usart[usartno].US_RPR++, 0x29);
+					at91usart[usartno].US_RPR++;
+					at91usart[usartno].US_RCR--;
+
+				}
+				//at91usart[usartno].US_RPR += 5;
+				//at91usart[usartno].US_RCR -= 5;
+/*				cpu_writemem32ledw(at91usart[usartno].US_RPR++, at91usart[usartno].at91_receivebuf[at91usart[usartno].at91_rbuf_tail]);
+				if (at91usart[usartno].at91_rbuf_tail == AT91_RECEIVE_BUFFER_SIZE-1)
+					at91usart[usartno].at91_rbuf_tail = 0;
+				at91usart[usartno].US_RCR--; */
+				at91usart[usartno].US_CSR |= US_ENDRX;
 			}
+		}
 	}
 }
 
@@ -510,25 +593,8 @@ void at91_usart_read(int usartno, int addr, data32_t *pData)
 	switch ((addr & 0xff) / 4)
 	{
 	case 0x0c: // Receive pointer
-		if (usartno == 0)
-		{
-			static int hasrunhack =0;
-
-			if (!hasrunhack)
-			{
-				hasrunhack=1;
-				*pData = at91usart[usartno].US_RPR;
-				/* HACK ALERT - Not even going to bother doing this cleanly.  See funciton in sam.c for explanation. */
-#ifdef INCLUDE_STERN_SAM
-				sam_serial_hack();
-#endif
-				// Fire IRQ.
-				//this hack below gets some implementations to set up a receive buffer.
-				//at91usart[usartno].US_CSR |= US_ENDRX;
-				//at91.aic_irqstatus = AT91_USART_IRQ(usartno);
-				//at91_receive_serial(1,(data8_t *)"zc ver\r", 7);
-			}
-		}
+		if (at91_serial_receive_ready)
+			at91_serial_receive_ready(usartno);
 		*pData = at91usart[usartno].US_RPR;
 		break;
 	case 0x0d:  // Receive counter:
@@ -1159,15 +1225,26 @@ INLINE void internal_write (int addr, data32_t data)
 				case 0x124:
 					CLEAR_BITS(at91.aic_irqmask,data);
 					break;
+				// AIC Interrupt Clear
+				case 0x128:
+					CLEAR_BITS(at91.aic_irqpending,data);
+					break;
+				case 0x12C:
+					SET_BITS(at91.aic_irqpending,data);
+					break;
 
 				//End of Interrupt
 				case 0x130:
 					logit = LOG_AIC_EOI;
-					at91.aic_irqstatus = 0;
-					if (at91.aic_irqpending > 1)
+					at91.aic_irqstatus = at91_irqstack[--at91_irqstackpos];
+					if (at91_irqstackpos < 0)
 					{
-						arm7_core_set_irq_line(ARM7_IRQ_LINE, 1);
-						//arm7_core_set_irq_line(ARM7_IRQ_LINE, 0);
+						// should never happen if ROM code is working.
+						at91_irqstackpos = 0;
+					}
+					if (at91.aic_irqpending > 1 && at91.aic_irqstatus == 0)
+					{
+						ARM7.pendingIrq = 1;
 					}
 					break;
 				case 0x134:
@@ -1239,12 +1316,12 @@ INLINE data32_t internal_read (int addr)
 
 					//Counter Value
 					case 0x10:
-
+					
 						#if USE_MAME_TIMERS
 						LOG(("Timer TC%d - Reading Counter Value not supported with MAME TIMERS!\n",timer_num));
 						data = at91.tc_clock[timer_num].tc_counter;// ARM7_ICOUNT;
-						#else
-						data = at91.tc_clock[timer_num].tc_counter;
+#else
+							data = at91.tc_clock[timer_num].tc_counter;
 						#endif
 
 						break;
@@ -1372,13 +1449,19 @@ INLINE data32_t internal_read (int addr)
 			switch(offset3)
 			{
 				//IRQ Based on current IRQ source 0-31, returns value of Source Vector
-				case 0x100:  // IVR
+				case 0x100:  // IVR		
 					// Find the highest ranked vector that's set in irqpending
-
+				
 					for (i = 0; i < 31; i++)
 					{
 						if (at91.aic_irqpending & (1 << at91_priority_map[i]))
 						{
+							at91_irqstack[at91_irqstackpos++] = at91.aic_irqstatus;
+							if (at91_irqstackpos >= 32)
+							{
+								// something's wrong if we get here.
+								at91_irqstackpos = 31;
+							}
 							at91.aic_irqstatus = at91_priority_map[i];
 							data = at91.aic_vectors[at91_priority_map[i]];
 							at91.aic_irqpending &= ~(1 << at91_priority_map[i]);
@@ -1387,12 +1470,15 @@ INLINE data32_t internal_read (int addr)
 					}
 					if (i==31) 
 						data = at91.aic_spurious;
+     				ARM7.pendingIrq = 0;
+//					arm7_core_set_irq_line(ARM7_IRQ_LINE, 0);
 					break;
 
 				//FIQ - Has it's own register address
 				case 0x104:
 					logit = LOG_AIC_VECTOR_READ;
 					data = at91.aic_vectors[0];
+					ARM7.pendingFiq = 0;
 					break;
 
 				//Interrupt Status
@@ -1711,20 +1797,34 @@ void at91_fire_irq(int irqline)
 	}
 
 	if(irqline == AT91_FIQ_IRQ)
-		irqline = ARM7_FIRQ_LINE;		//if it's our FIQ, make it ARM7 FIRQ
+	{
+		cpu_set_irq_line(at91rs.cpunum, ARM7_FIRQ_LINE, PULSE_LINE);
+	}
 	else
 	{
 		at91.aic_irqpending |= (1 << irqline);
-		irqline = ARM7_IRQ_LINE;		//Anything else is an ARM7 IRQ.
-	}
+		if (at91.aic_irqstatus > 0)
+		{
+			// We only want to assert if this IRQ is higher in priority than what's currently being processed.
+			int i;
 
-	arm7_core_set_irq_line(irqline, 1);
-//	arm7_core_set_irq_line(irqline, 0);  // Doesn't seem to be needed?
+			for (i = 0; i < 31; i++)
+			{
+						if (at91_priority_map[i] == at91.aic_irqstatus)
+							break;
+						if (at91_priority_map[i] == irqline)
+						{
+							ARM7.pendingIrq = 1;
+							break;
+						}
+			}
+		} else
+			ARM7.pendingIrq = 1;
+	}
 }
 
 void at91_set_irq_line(int irqline, int state)
 {
-
 	arm7_core_set_irq_line(irqline,state);
 }
 
@@ -1874,26 +1974,29 @@ void at91_init(void)
 
 	//Store the cpu clock frequency (is there any easier way to get this?)
 	at91rs.cpu_freq = Machine->drv->cpu[activecpu].cpu_clock;
+	at91rs.cpunum = activecpu;
 	at91_build_priority_map();
 	return;
 }
 
 #if USE_MAME_TIMERS
 
-
+// Certain programs have problems with the deferred timer interrupts, while most others
+// work better. Expose a setting.
+int at91_block_timers = 0;
 
 static void timer_trigger_event(int timer_num)
-{
+{	
 	//reset counter and flag status
 	at91.tc_clock[timer_num].tc_counter = 0;
 	at91.tc_clock[timer_num].tc_status |= 0x10;
 
 	//generate an interrupt?
-
-	if(TC_RC_IRQ_ENABLED(timer_num))
+	if(TC_RC_IRQ_ENABLED(timer_num) /* &&  */) 
 	{
-		at91_fire_irq(AT91_TC0_IRQ+timer_num);
-	}
+		if (!at91_block_timers || (GET_CPSR & I_MASK) ==0)
+			at91_fire_irq(AT91_TC0_IRQ+timer_num);	
+	} 
 }
 #else
 INLINE BeforeOpCodeHook(void)

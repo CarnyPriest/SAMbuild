@@ -426,7 +426,7 @@ static void gen_mem(struct jit_ctl *jit, int rd, int ld, int siz, int sx, int ad
 				emit(MOV, Rn(rd+1), EAX);
 				emit(POP, EAX);
 			}
-			/*else if (siz == 32)
+		/*	else if (siz == 32)
 			{
 				// 32-bit operand
 				// Nothing to do, this was being generated twice.
@@ -1923,7 +1923,7 @@ static int xlat(struct jit_ctl *jit, data32_t pc)
 		{ 
 			addr = 0x12790;
 		}*/
-
+		
 		// if we've strayed outside the JIT-able range, stop here
 		if (addr < jit->minAddr || addr >= jit->maxAddr)
 		{
