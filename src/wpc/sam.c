@@ -2579,6 +2579,8 @@ SAM_ROMLOAD_ACDC3(twd_156, "twd_156.bin", CRC(4bd62b0f) SHA1(b1d5e7d96f45fb3e076
 SAM_ROMEND
 SAM_ROMLOAD_ACDC3(twd_156h, "twd_156h.bin", CRC(4594a287) SHA1(1e1a3b94bacf54a0c20cfa978db1284008c0e0a1), 0x05C80448)
 SAM_ROMEND
+SAM_ROMLOAD_ACDC3(twd_156c, "twd_156c.bin", CRC(DC6699CF) SHA1(93f0759243c815f55c2e52db8dfc3b3faa94a28d), 0x05C80448)
+SAM_ROMEND
 
 SAM_INPUT_PORTS_START(twd, 1) SAM_INPUT_PORTS_END
 
@@ -2599,6 +2601,7 @@ CORE_CLONEDEF(twd, 153, 105, "The Walking Dead (V1.53)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 153h, 105, "The Walking Dead LE (V1.53)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156, 105, "The Walking Dead (V1.56)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156h, 105, "The Walking Dead LE (V1.56)", 2015, "Stern", sam, 0)
+CORE_CLONEDEF(twd, 156c, 105, "The Walking Dead LE Color (V1.56)", 2015, "Stern", sam, 0)
 
 //Spider-Man Vault Edition
 INITGAME(smanve, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_NOMINI);
