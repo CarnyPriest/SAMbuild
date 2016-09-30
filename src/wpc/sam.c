@@ -4,7 +4,6 @@
 #include "vpintf.h"
 #include "cpu/at91/at91.h"
 #include "sndbrd.h"
-
 wchar_t tmp[81];
 #include <Windows.h>
 // Defines
@@ -12,7 +11,6 @@ wchar_t tmp[81];
 #define SAM_USE_JIT
 #define SAM_DISPLAYSMOOTH 4
 #define SAM_CPUFREQ	    40000000
-//#define SAM_CPUFREQ	55000000
 
 #ifdef SAM_USE_JIT
 // We need the MAME scheduler to check for IRQ events more frequently than the FIQ if JIT is in use
@@ -20,6 +18,7 @@ wchar_t tmp[81];
 // IRQs more frequently is a good use of the higher performing code anyhow. 
 #define SAM_OVERSAMPLING 8 
 #define SAM_IRQFREQ 4008 * SAM_OVERSAMPLING
+
 #else
 #define SAM_IRQFREQ 4008
 #endif
@@ -70,7 +69,6 @@ static int sam_getSol(int solNo);
 
 static data32_t *sam_reset_ram;
 static data32_t *sam_page0_ram;
-static data32_t *sam_hack_ram;
 static data32_t *sam_cpu;
 
 static int sam_bank[56];
@@ -83,6 +81,8 @@ data8_t sam_ext_leds[SAM_LEDS_MAX];
 data8_t sam_prev_ch1 = 0, sam_prev_ch2 = 0;
 int sam_led_col = 0, sam_led_row = -1;
 int sam_leds_per_string;
+
+extern int at91_block_timers;
 
 //SAM Input Ports
 #define SAM_COMPORTS \
@@ -155,6 +155,7 @@ int sam_leds_per_string;
 #define SAM_INPUT_PORTS_END INPUT_PORTS_END
 #define SAM_COMINPORT       CORE_COREINPORT
 
+static void sam_LED_hack(int usartno);
 static void sam_transmit_serial(int usartno, data8_t *data, int size);
 
 static int sam_getSol(int solNo)
@@ -260,16 +261,40 @@ LABEL_6:
 	return data << 8 * v5;
 }
 
+static int avg = 0, samecount=0, lastzc = 0;
+static int totshifts =0; 
+
 static READ32_HANDLER(samxilinx_r)
 {
 	data32_t data = 0;
 	if(~mem_mask == 0xFF00)
+	{	
+		if (lastzc != samlocals.zc)
+		{
+			 wchar_t buffer[256];
+			 avg += samecount;
+			 totshifts++;
+			 swprintf(buffer, 256, L"ZCC %d, %f\n", samecount, (float)avg / (float)totshifts);
+			// OutputDebugStringW(buffer);
+			 samecount = 0;
+			 lastzc = samlocals.zc;
+		}
+		else
+		{
+			samecount++;
+		}
+
+		/*
+static READ32_HANDLER(samxilinx_r)
+{
+	data32_t data = 0; 
+	if(~mem_mask == 0xFF00)*/
 		// was ((6 | zc) << 2) | u1...   bits:   0 1 1 zc u1 u1
 		//                     works     bits:   0 0 0 zc u1 u1
 		//                                                u1 = solenoids have power - 1-32
 		//                                                   u1 = power switch
 		data = (( 7 << 3 ) | (samlocals.zc << 2) | (samlocals.powerswitch != 0 ? 3 : 0)) << 8;
-	else
+	} else
 		return data;
 	return data;
 }
@@ -786,8 +811,7 @@ static WRITE32_HANDLER(samcpu_w)
 static MEMORY_WRITE32_START(sam_writemem)
 	{ 0x00000000, 0x000FFFFF, MWA32_RAM, &sam_page0_ram},  // Boot RAM
 	{ 0x00300000, 0x003FFFFF, MWA32_RAM, &sam_reset_ram},  // Swapped RAM
-	{ 0x01000000, 0x0107FFFF, MWA32_RAM, &sam_hack_ram },  // For Mustang hack
-	{ 0x01080000, 0x0109EFFF, MWA32_RAM },
+	{ 0x01000000, 0x0109EFFF, MWA32_RAM },
 	{ 0x0109F000, 0x010FFFFF, samxilinx_w },
 	{ 0x01100000, 0x01FFFFFF, samdmdram_w },
 	{ 0x02100000, 0x0211FFFF, MWA32_RAM, &sam_cpu },
@@ -860,14 +884,20 @@ PORT_END
 static MACHINE_INIT(sam) {
 	at91_set_ram_pointers(sam_reset_ram, sam_page0_ram);
 	at91_set_transmit_serial(sam_transmit_serial);
+	at91_set_serial_receive_ready(sam_LED_hack);
 #ifdef SAM_USE_JIT
-	at91_init_jit(0,0x1080000);
+	if (options.at91jit)
+	{
+		at91_init_jit(0,(options.at91jit > 1) ? options.at91jit : 0x1080000);
+	}
 #endif
 	//at91_init_jit(0,0x12794);  // address on FG where reducing loop length was required
 	//at91_init_jit(0, 0x3278c); // Determined need for IRQ check here - was looping waiting for one.
 	//at91_init_jit(0, 0x1456c);// buggy opcode (TODO: Emulated)
 	//at91_init_jit(0,0x97fc);  // buggy opcode (Fixed)
 	memset(sam_ext_leds, 0, SAM_LEDS_MAX * sizeof(data8_t));
+	if (_strnicmp(Machine->gamedrv->name,"csi_",4)==0 || _strnicmp(Machine->gamedrv->name,"ij4_",4)==0)
+		at91_block_timers = 1;
 }
 
 static MACHINE_RESET(sam) {
@@ -889,6 +919,39 @@ static SWITCH_UPDATE(sam) {
 
 		// 0x1000(coin door) >> 12
 		samlocals.powerswitch = ~(inports[SAM_COMINPORT]>>12) & 0x01;
+	}
+}
+
+
+int at91_receive_serial(int usartno, data8_t *buf, int size);
+
+static void sam_LED_hack(int usartno)
+{
+	static int hasrunhack =0;
+	const char *gn;
+
+	if (hasrunhack)
+		return;
+
+	hasrunhack = 1;
+	gn = Machine->gamedrv->name;
+
+	// Several LE games do not transmit data for a really long time.  These are ROM hacks that force the issue to get things moving.  
+	
+	if (stricmp(gn, "mt_145h")==0)
+	{
+		cpu_writemem32ledw(0x1061728, 0x00);
+	}
+	else if (stricmp(gn, "mt_145")==0)
+	{
+		cpu_writemem32ledw_dword(0x1eb0, 0xe1a00000);
+	}
+	else //if (stricmp(gn, "twd_156h")==0)  // The default implementation is to blast some data at it.  This seems to work for Walking Dead and at least speeds up others. 
+	{
+		data8_t buf[256];
+		memset(buf, 0xff, sizeof(buf)-1);
+		buf[255]=0;
+		at91_receive_serial(0,buf, 255);
 	}
 }
 
@@ -951,21 +1014,9 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 	}
 }
 
-
-void sam_serial_hack()
-{
-	/* This hack is for Mustang LE (I may need to add others!? ... but Star Trek LE is ok).  The game does not 
-	   transmit data for a really long time until this memory location changes from 0x62 to anything else.  Force the issue to get things moving. 
-	   
-	   TODO: Check ROM CRC so this only activates for the right ROM to avoid possible unexpected consequences, however unlikely that might be.  */
-
-	if ((sam_hack_ram[0x61728 / 4] & 0xff) == 0x62)
-		sam_hack_ram[0x61728 / 4] &= 0xffffff00;
-	
-}
-
 static INTERRUPT_GEN(sam_vblank) {
 	samlocals.vblankCount += 1;
+	
 	memcpy(coreGlobals.lampMatrix, coreGlobals.tmpLampMatrix, 40);
 	if ((samlocals.vblankCount % SAM_DISPLAYSMOOTH) == 0) {
 	    coreGlobals.diagnosticLed = samlocals.diagnosticLed;
@@ -980,6 +1031,8 @@ static INTERRUPT_GEN(sam_vblank) {
 static NVRAM_HANDLER(sam) {
 	core_nvram(file, read_or_write, sam_cpu, 0x20000, 0xff);
 }
+
+void at91_clear_timer();
 
 static void sam_timer(int data)
 {
@@ -2534,6 +2587,8 @@ SAM_ROMLOAD_ACDC3(twd_156, "twd_156.bin", CRC(4bd62b0f) SHA1(b1d5e7d96f45fb3e076
 SAM_ROMEND
 SAM_ROMLOAD_ACDC3(twd_156h, "twd_156h.bin", CRC(4594a287) SHA1(1e1a3b94bacf54a0c20cfa978db1284008c0e0a1), 0x05C80448)
 SAM_ROMEND
+SAM_ROMLOAD_ACDC3(twd_156c, "twd_156c.bin", CRC(DC6699CF) SHA1(93f0759243c815f55c2e52db8dfc3b3faa94a28d), 0x05C80448)
+SAM_ROMEND
 
 SAM_INPUT_PORTS_START(twd, 1) SAM_INPUT_PORTS_END
 
@@ -2555,6 +2610,7 @@ CORE_CLONEDEF(twd, 153, 105, "The Walking Dead (V1.53)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 153h, 105, "The Walking Dead LE (V1.53)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156, 105, "The Walking Dead (V1.56)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156h, 105, "The Walking Dead LE (V1.56)", 2015, "Stern", sam, 0)
+CORE_CLONEDEF(twd, 156c, 105, "The Walking Dead LE Color (V1.56)", 2015, "Stern", sam, 0)
 
 //Spider-Man Vault Edition
 INITGAME(smanve, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_NOMINI);
