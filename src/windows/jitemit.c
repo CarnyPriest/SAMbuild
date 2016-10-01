@@ -77,7 +77,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <stdint.h>
 
 #include "memory.h"
 #include "jit.h"
@@ -721,7 +720,7 @@ void jit_emit_commit(struct jit_ctl *jit)
 				int use_proxy = 0;
 
 				// get the label address
-			    byte *lblnat = label_to_native(jit, i->lbl);
+				byte *lblnat = label_to_native(jit, i->lbl);
 				int lbldelta = lblnat - (i->nataddr + i->len);
 
 				// If it's one of the special emulator handlers, it will definitely be

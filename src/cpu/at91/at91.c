@@ -72,12 +72,7 @@ extern int activecpu;
 #define LOG_AIC_IVW 0				//Turn on/off logging of AIC - Interrupt Vector Write Command
 #define LOG_AIC_EOI 0				//Turn on/off logging of AIC - End of Interrupt Command
 #define LOG_AIC_VECTOR_READ 0		//Turn on/off logging of AIC - Vector Address Read
-#define LOG_USART1_DATA_OUT 1
-
-#if (defined(_DEBUG) && (defined(LOG_TOSCREEN) || defined(LOG_USART1_DATA_OUT)))
-// For console debug window output
-#include<Windows.h>
-#endif
+#define LOG_USART1_DATA_OUT 0
 
 //Flags for Testing
 #define INT_BLOCK_FIQ   0			//Turn on/off blocking of specified Interrupt (Leave OFF for non-test situation)
@@ -160,7 +155,7 @@ static void timer_trigger_event(int timer_num);
 #define TC_OVRFL_IRQ_ENABLED(x)		(at91.tc_clock[(x)].tc_irq_mask & 1)
 #define TC_WAVEMODE(x)				(at91.tc_clock[(x)].tc_chan_mode & 0x8000)		//bit 15 of Channel Mode = 1 for Wave Mode
 #define TC_RC_TRIGGER(x)			(at91.tc_clock[(x)].tc_chan_mode & 0x4000)		//bit 14 of Channel Mode = 1 for RC Compare Trigger
-#define AT91_USART_IRQ(x)           2+(1-x)
+#define AT91_USART_IRQ(x)			(2+(1-x))
 /* Private Data */
 
 typedef struct
@@ -189,7 +184,7 @@ typedef struct
 	data32_t aic_irqmask;						//holds the irq enabled mask for each interrupt 0-31 (0 = disabled, 1 = enabled) - 1 bit per interrupt.
 	data32_t aic_irqstatus;						//holds the status of the current interrupt # - 0-31 are valid #
 	data32_t aic_irqpending;					//holds the status of any pending interupts
-	data32_t aic_spurious;                      //Spurious interrupt vector
+	data32_t aic_spurious;						//Spurious interrupt vector
 	data32_t pio_enabled_status;				//holds status of each pio pin, 1 bit per pin. (0 = peripheral control, 1 = PIO control)
 	data32_t pio_output_status;					//holds output status of each pio pin, 1 bit per pin. (0 = Input Pin, 1 = Output Pin)
 	data32_t pio_output_data_status;			//holds output data status of each pio pin, 1 bit per pin. (0 = Pin Value is programmed as 0, 1 = Pin is programmed 1) - Only if pin is under PIO control and set as an output pin.
@@ -260,31 +255,11 @@ static AT91_REGS_USART at91usart[2] = {{ 0, US_TXRDY | US_TXEMPTY | US_ENDTX,0,0
 #undef LOG
 
 #if LOG_AT91
-
 #if LOG_TOSCREEN
-
-void DebuggerLog ( const char * format, ... )
-{
-  char buffer[256];
-  wchar_t  ws[256]; 
-
-  va_list args;
-  va_start (args, format);
-  vsnprintf (buffer,256,format, args); 
-  // Surely there's a more direct way lol
-  swprintf(ws, 256, L"%hs", buffer); 
-  OutputDebugStringW(ws);
-  va_end (args);
-}
-
-#define LOG(x) DebuggerLog x
-
+#define LOG(x) printf x
 #else
-
 #define LOG(x) logerror x
-
 #endif
-
 #else
 #define LOG(x)
 #endif
@@ -464,22 +439,6 @@ static void serial_timer_event(int timer_num)
 	{
 		if (at91usart[usartno].US_TCR > 0 && (at91usart[usartno].US_CSR & US_ENDTX) == 0 )
 		{
-#if (LOG_USART1_DATA_OUT && _DEBUG)
-			{
-				wchar_t tmp1[20];
-
-				swprintf(tmp1, _countof(tmp1), L"DO%d: ", usartno);
-				OutputDebugStringW(tmp1);
-
-				for (i = 0; i < at91usart[usartno].US_TCR; i++)
-				{
-					data8_t b = cpu_readmem32ledw(at91usart[usartno].US_TPR + i);
-					swprintf(tmp1, _countof(tmp1), L"%02X", b);
-					OutputDebugStringW(tmp1);
-				}
-				OutputDebugStringW(L"\n");
-			}
-#endif 
 			if (at91_transmit_serial)
 			{
 				// TODO: There ought to be a way to get to the memory pointer and just pass it. 
@@ -508,16 +467,6 @@ static void serial_timer_event(int timer_num)
 			}
 		} else if (at91usart[usartno].US_TPR == 0 && (at91usart[usartno].US_CSR & US_TXEMPTY) == 0 )
 			{
-#if (LOG_USART1_DATA_OUT && _DEBUG)
-				wchar_t tmp1[20];
-
-				if ((data8_t)at91usart[usartno].US_THR == 0x80)
-					OutputDebugStringW(L"\n");
-				swprintf(tmp1, _countof(tmp1), L"%c", (data8_t)at91usart[usartno].US_THR);
-
-				//				swprintf(tmp1, _countof(tmp1), L"%02X", (data8_t)at91usart[usartno].US_THR);
-				OutputDebugStringW(tmp1);
-#endif			
 				if (at91_transmit_serial)
 				{
 					at91_transmit_serial(usartno, (data8_t*)&(at91usart[usartno].US_THR), 1);
@@ -533,7 +482,7 @@ static void serial_timer_event(int timer_num)
 			} 
 		if (at91usart[usartno].at91_rbuf_tail != at91usart[usartno].at91_rbuf_head)
 		{
-			if (at91usart[usartno].US_RPR !=0 && at91usart[usartno].US_RCR > 0 )
+			if (at91usart[usartno].US_RPR !=0 && at91usart[usartno].US_RCR > 0)
 			{
 				int i;
 				for (i=0;i<0x40;i++ && at91usart[usartno].US_RCR > 0)
@@ -1316,12 +1265,12 @@ INLINE data32_t internal_read (int addr)
 
 					//Counter Value
 					case 0x10:
-					
+
 						#if USE_MAME_TIMERS
 						LOG(("Timer TC%d - Reading Counter Value not supported with MAME TIMERS!\n",timer_num));
 						data = at91.tc_clock[timer_num].tc_counter;// ARM7_ICOUNT;
 #else
-							data = at91.tc_clock[timer_num].tc_counter;
+						data = at91.tc_clock[timer_num].tc_counter;
 						#endif
 
 						break;
@@ -1449,9 +1398,9 @@ INLINE data32_t internal_read (int addr)
 			switch(offset3)
 			{
 				//IRQ Based on current IRQ source 0-31, returns value of Source Vector
-				case 0x100:  // IVR		
+				case 0x100:  // IVR
 					// Find the highest ranked vector that's set in irqpending
-				
+
 					for (i = 0; i < 31; i++)
 					{
 						if (at91.aic_irqpending & (1 << at91_priority_map[i]))
@@ -1470,7 +1419,7 @@ INLINE data32_t internal_read (int addr)
 					}
 					if (i==31) 
 						data = at91.aic_spurious;
-     				ARM7.pendingIrq = 0;
+					ARM7.pendingIrq = 0;
 //					arm7_core_set_irq_line(ARM7_IRQ_LINE, 0);
 					break;
 
@@ -1986,17 +1935,17 @@ void at91_init(void)
 int at91_block_timers = 0;
 
 static void timer_trigger_event(int timer_num)
-{	
+{
 	//reset counter and flag status
 	at91.tc_clock[timer_num].tc_counter = 0;
 	at91.tc_clock[timer_num].tc_status |= 0x10;
 
 	//generate an interrupt?
-	if(TC_RC_IRQ_ENABLED(timer_num) /* &&  */) 
+	if(TC_RC_IRQ_ENABLED(timer_num) /* && */)
 	{
 		if (!at91_block_timers || (GET_CPSR & I_MASK) ==0)
 			at91_fire_irq(AT91_TC0_IRQ+timer_num);	
-	} 
+	}
 }
 #else
 INLINE BeforeOpCodeHook(void)

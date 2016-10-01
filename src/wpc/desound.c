@@ -385,7 +385,7 @@ static INTERRUPT_GEN(de2s_firq) {
 /* by Steve Ellenoff ( 10/11/2004 - 10/28/2004 )
 
    Hardware: CPU/Sound Bd. II w/ ATMEL Processor
-			 SPI Part N?: 520-5300-00
+			 SPI Part Nº: 520-5300-00
 
    Uses an Atmel AT9140008 CPU (ARM7TDMI Core) and Xilinx FPGA for sound.
    Board is 100% compatible with previous generation hardware (all games using 8Mb roms)
@@ -661,7 +661,7 @@ static void setup_at91(void)
   //set up the JIT memory map - allow for 128k of address space from address 0
   if (options.at91jit)
   {
-	 at91_init_jit(0, 0x20000);
+    at91_init_jit(0, 0x20000);
   }
   //because the boot rom code gets written to ram, and then remapped to page 0, we need an interface to handle this.
   at91_set_ram_pointers(de3as_reset_ram,de3as_page0_ram);
