@@ -1,3 +1,4 @@
+// PINMAME: All cmpx opcodes are different from the latest ones (10/2016) in MAME/MESS as it screws up AY emu of some machines
 
 /*
 
@@ -1061,6 +1062,15 @@ INLINE void adda_im( void )
 /* $8c CMPX immediate -***- */
 INLINE void cmpx_im( void )
 {
+#ifdef PINMAME
+	UINT32 r,d;
+	PAIR b;
+	IMMWORD(b);
+	d = X;
+	r = d - b.d;
+	CLR_NZV;
+	SET_NZ16(r); SET_V16(d,b.d,r);
+#else
 	PAIR r,d,b;
 	IMMWORD(b);
 	d.d = X;
@@ -1069,6 +1079,7 @@ INLINE void cmpx_im( void )
 	SET_Z16(r.d);
 	SET_N8(r.b.h);
 	SET_V8(d.b.h, b.b.h, r.b.h);
+#endif
 }
 
 /* $8c CPX immediate -**** (6803) */
@@ -1216,6 +1227,15 @@ INLINE void adda_di( void )
 /* $9c CMPX direct -***- */
 INLINE void cmpx_di( void )
 {
+#ifdef PINMAME
+	UINT32 r,d;
+	PAIR b;
+	DIRWORD(b);
+	d = X;
+	r = d - b.d;
+	CLR_NZV;
+	SET_NZ16(r); SET_V16(d,b.d,r);
+#else
 	PAIR r,d,b;
 	DIRWORD(b);
 	d.d = X;
@@ -1224,6 +1244,7 @@ INLINE void cmpx_di( void )
 	SET_Z16(r.d);
 	SET_N8(r.b.h);
 	SET_V8(d.b.h, b.b.h, r.b.h);
+#endif
 }
 
 /* $9c CPX direct -**** (6803) */
@@ -1369,6 +1390,15 @@ INLINE void adda_ix( void )
 /* $ac CMPX indexed -***- */
 INLINE void cmpx_ix( void )
 {
+#ifdef PINMAME
+	UINT32 r,d;
+	PAIR b;
+	IDXWORD(b);
+	d = X;
+	r = d - b.d;
+	CLR_NZV;
+	SET_NZ16(r); SET_V16(d,b.d,r);
+#else
 	PAIR r,d,b;
 	IDXWORD(b);
 	d.d = X;
@@ -1377,6 +1407,7 @@ INLINE void cmpx_ix( void )
 	SET_Z16(r.d);
 	SET_N8(r.b.h);
 	SET_V8(d.b.h, b.b.h, r.b.h);
+#endif
 }
 
 /* $ac CPX indexed -**** (6803)*/
@@ -1522,6 +1553,15 @@ INLINE void adda_ex( void )
 /* $bc CMPX extended -***- */
 INLINE void cmpx_ex( void )
 {
+#ifdef PINMAME
+	UINT32 r,d;
+	PAIR b;
+	EXTWORD(b);
+	d = X;
+	r = d - b.d;
+	CLR_NZV;
+	SET_NZ16(r); SET_V16(d,b.d,r);
+#else
 	PAIR r,d,b;
 	EXTWORD(b);
 	d.d = X;
@@ -1530,6 +1570,7 @@ INLINE void cmpx_ex( void )
 	SET_Z16(r.d);
 	SET_N8(r.b.h);
 	SET_V8(d.b.h, b.b.h, r.b.h);
+#endif
 }
 
 /* $bc CPX extended -**** (6803) */
@@ -1959,10 +2000,11 @@ INLINE void ldd_ix( void )
 }
 
 /* $ec ADCX immediate -****    NSC8105 only.  Flags are a guess - copied from addb_im() */
+// actually this is ADDX, causes garbage in nightgal.cpp otherwise
 INLINE void adcx_im( void )
 {
 	UINT16 t,r;
-	IMMBYTE(t); r = X+t+(CC&0x01);
+	IMMBYTE(t); r = X+t/*+(CC&0x01)*/;
 	CLR_HNZVC; SET_FLAGS8(X,t,r); SET_H(X,t,r);
 	X = r;
 }
@@ -2146,4 +2188,27 @@ INLINE void stx_ex( void )
 	SET_NZ16(X);
 	EXTENDED;
 	WM16(EAD,&m6808.x);
+}
+
+/* NSC8105 specific, guessed opcodes (tested by Night Gal Summer) */
+// $bb - $mask & [X + $disp8]
+INLINE void btst_ix( void )
+{
+	UINT8 val;
+	UINT8 mask = M_RDOP_ARG(PCD);
+	{EA=X+(M_RDOP_ARG(PCD+1));PC+=2;}
+	val = RM(EAD) & mask;
+	CLR_NZVC; SET_NZ8(val);
+}
+
+// $b2 - assuming correct, store first byte to (X + $disp8)
+INLINE void stx_nsc( void )
+{
+	IMM8;
+	UINT8 val = RM(EAD);
+	IMM8;
+	EA = X + RM(EAD);
+	CLR_NZV;
+	SET_NZ8(val);
+	WM(EAD,val);
 }
