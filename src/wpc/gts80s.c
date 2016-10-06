@@ -858,6 +858,7 @@ static WRITE_HANDLER( s80bs_dac2_vol_w )
 	GTS80BS_locals.dac2_volume = data;
 	DAC_DC_offset_correction_data_16_w(1, (int)GTS80BS_locals.dac2_volume * (int)GTS80BS_locals.dac2_data);
 }
+
 //DAC Handling.. Set data to send
 static WRITE_HANDLER( s80bs_dac_data_w )
 {
@@ -1221,7 +1222,7 @@ MEMORY_END
 static struct DACinterface GTS3_dacInt =
 {
   2,			/*2 Chips - but it seems we only access 1?*/
- {100,100}		/* Volume */
+ {50,50}		/* Volume */
 };
 
 static struct OKIM6295interface GTS3_okim6295_interface = {
