@@ -4,8 +4,6 @@
 #include "vpintf.h"
 #include "cpu/at91/at91.h"
 #include "sndbrd.h"
-wchar_t tmp[81];
-#include <Windows.h>
 // Defines
 
 #define SAM_USE_JIT
@@ -16,7 +14,7 @@ wchar_t tmp[81];
 // We need the MAME scheduler to check for IRQ events more frequently than the FIQ if JIT is in use
 // JIT does not relinqish CPU until the next timer event.  This causes input problems.    Checking
 // IRQs more frequently is a good use of the higher performing code anyhow. 
-#define SAM_OVERSAMPLING 8 
+#define SAM_OVERSAMPLING 1
 #define SAM_IRQFREQ 4008 * SAM_OVERSAMPLING
 
 #else
@@ -43,6 +41,27 @@ wchar_t tmp[81];
 #define SAM_3COL 0x03
 #define SAM_8COL 0x08
 
+#ifdef _DEBUG
+#include <Windows.h>
+
+void DebuggerLog ( const char * format, ... )
+{
+  char buffer[256];
+  wchar_t  ws[256]; 
+
+  va_list args;
+  va_start (args, format);
+  vsnprintf (buffer,256,format, args); 
+  // Surely there's a more direct way lol
+  swprintf(ws, 256, L"%hs", buffer); 
+  OutputDebugStringW(ws);
+  va_end (args);
+}
+
+#define LOG(x) DebuggerLog x
+#else
+#define LOG(x)
+#endif
 // Variables
 struct {
 	int vblankCount;
@@ -238,7 +257,7 @@ LABEL_6:
 			case 0:
 				data = (coreGlobals.swMatrix[2 * samlocals.col + 1] | coreGlobals.swMatrix[2 * samlocals.col + 2] << 8) ^ 0xFFFF;
 				break;
-			case 2:
+			case 2:				
 				data = (coreGlobals.swMatrix[9] | ((core_swapNyb[coreGlobals.swMatrix[11] & 0xF] | (0x10 * core_swapNyb[coreGlobals.swMatrix[11] >> 4])) << 8)) ^ 0xFFFF;
 				break;
 			case 4:
@@ -261,41 +280,17 @@ LABEL_6:
 	return data << 8 * v5;
 }
 
-static int avg = 0, samecount=0, lastzc = 0;
-static int totshifts =0; 
-
 static READ32_HANDLER(samxilinx_r)
 {
 	data32_t data = 0;
-	if(~mem_mask == 0xFF00)
-	{	
-		if (lastzc != samlocals.zc)
-		{
-			 wchar_t buffer[256];
-			 avg += samecount;
-			 totshifts++;
-			 swprintf(buffer, 256, L"ZCC %d, %f\n", samecount, (float)avg / (float)totshifts);
-			// OutputDebugStringW(buffer);
-			 samecount = 0;
-			 lastzc = samlocals.zc;
-		}
-		else
-		{
-			samecount++;
-		}
-
-		/*
-static READ32_HANDLER(samxilinx_r)
-{
-	data32_t data = 0; 
-	if(~mem_mask == 0xFF00)*/
+	if(~mem_mask == 0xFF00) 
+	{
 		// was ((6 | zc) << 2) | u1...   bits:   0 1 1 zc u1 u1
 		//                     works     bits:   0 0 0 zc u1 u1
 		//                                                u1 = solenoids have power - 1-32
 		//                                                   u1 = power switch
 		data = (( 7 << 3 ) | (samlocals.zc << 2) | (samlocals.powerswitch != 0 ? 3 : 0)) << 8;
-	} else
-		return data;
+	}
 	return data;
 }
 
@@ -891,13 +886,11 @@ static MACHINE_INIT(sam) {
 		at91_init_jit(0,(options.at91jit > 1) ? options.at91jit : 0x1080000);
 	}
 #endif
-	//at91_init_jit(0,0x12794);  // address on FG where reducing loop length was required
-	//at91_init_jit(0, 0x3278c); // Determined need for IRQ check here - was looping waiting for one.
 	//at91_init_jit(0, 0x1456c);// buggy opcode (TODO: Emulated)
 	//at91_init_jit(0,0x97fc);  // buggy opcode (Fixed)
 	memset(sam_ext_leds, 0, SAM_LEDS_MAX * sizeof(data8_t));
-	if (_strnicmp(Machine->gamedrv->name,"csi_",4)==0 || _strnicmp(Machine->gamedrv->name,"ij4_",4)==0)
-		at91_block_timers = 1;
+//	if (_strnicmp(Machine->gamedrv->name,"csi_",4)==0 || _strnicmp(Machine->gamedrv->name,"ij4_",4)==0)
+	//	at91_block_timers = 1;
 }
 
 static MACHINE_RESET(sam) {
@@ -927,13 +920,8 @@ int at91_receive_serial(int usartno, data8_t *buf, int size);
 
 static void sam_LED_hack(int usartno)
 {
-	static int hasrunhack =0;
 	const char *gn;
 
-	if (hasrunhack)
-		return;
-
-	hasrunhack = 1;
 	gn = Machine->gamedrv->name;
 
 	// Several LE games do not transmit data for a really long time.  These are ROM hacks that force the issue to get things moving.  
@@ -1014,6 +1002,7 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 	}
 }
 
+
 static INTERRUPT_GEN(sam_vblank) {
 	samlocals.vblankCount += 1;
 	
@@ -1047,7 +1036,8 @@ static INTERRUPT_GEN(sam_irq)
 	count++;
 	if (count==SAM_OVERSAMPLING)
 	{
-		cpu_set_irq_line(SAM_CPU, 1, PULSE_LINE);
+		at91_fire_irq(AT91_FIQ_IRQ);
+//		cpu_set_irq_line(SAM_CPU, 1, PULSE_LINE);
 		count=0;
 	}
 #else

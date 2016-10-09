@@ -1188,6 +1188,8 @@ void core_updateSw(int flipEn) {
       for (ii = 1; ii < CORE_FIRSTCUSTSOL+core_gameData->hw.custSol; ii++) {
         if (chgSol & 0x01) {
           /*-- solenoid has changed state --*/
+		
+				
           OnSolenoid(ii, allSol & 0x01);
           /*-- log solenoid number on the display (except flippers) --*/
           if ((!pmoptions.dmd_only && (allSol & 0x01)) &&

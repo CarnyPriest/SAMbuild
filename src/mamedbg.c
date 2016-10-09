@@ -1745,18 +1745,35 @@ static void trace_select( void )
  * Loops are detected and a loop count is output after the
  * first repetition instead of disassembling the loop over and over
  **************************************************************************/
+
+#ifdef COVERAGE_TRACE
+static UINT32 *usedpcs = NULL;
+#endif
+
 static void trace_output( void )
 {
 	static char buffer[127+1];
 	char *dst = buffer;
 
+	unsigned pc = activecpu_get_pc();
+	unsigned addr_width = (ABITS + 3) / 4;
+
+#ifdef COVERAGE_TRACE
+	if (pc >= 0x108000)
+		return;
+	if (usedpcs == NULL)
+	{
+		usedpcs = (UINT32 *)malloc(0x108000 * sizeof(UINT32));
+		memset(usedpcs, 0, 0x108000 * sizeof(UINT32));
+	}
+#else	
 	if( trace_on && TRACE.file )
 	{
 		unsigned pc = activecpu_get_pc();
 		unsigned addr_width = (ABITS + 3) / 4;
 		int count, i;
 
-		/* check for trace_loops */
+		/* check for trace_loops */ 
 		for( i = count = 0; i < MAX_LOOPS; i++ )
 			if( TRACE.last_pc[i] == pc )
 				count++;
@@ -1785,18 +1802,29 @@ static void trace_output( void )
 				for( i = 0; i < MAX_REGS && TRACE.regs[i]; i++ )
 					dst += sprintf( dst, "%s ", activecpu_dump_reg(TRACE.regs[i]) );
 			}
+#endif
+
+#ifdef COVERAGE_TRACE
+	if ( usedpcs[pc] == 0)
+	{
+		usedpcs[pc] = 1;
+#endif
 			dst += sprintf( dst, "%0*X: ", addr_width, pc );
 			activecpu_dasm( dst, pc );
 			strcat( dst, "\n" );
 			fprintf( TRACE.file, "%s", buffer );
 			fflush(TRACE.file);
-			memmove(
+#ifdef COVERAGE_TRACE
+	}
+#else
+	 		memmove(
 				&TRACE.last_pc[0],
 				&TRACE.last_pc[1],
 				(MAX_LOOPS-1)*sizeof(TRACE.last_pc[0]) );
 			TRACE.last_pc[MAX_LOOPS-1] = pc;
 		}
 	}
+#endif
 }
 
 /**************************************************************************

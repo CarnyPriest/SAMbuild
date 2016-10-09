@@ -45,7 +45,7 @@ extern unsigned at91_get_reg(int regnum);
 .. though there's still room for improvement. */
 {
 	data32_t pc;
-	static data32_t pc_prev2 = 0, pc_prev1=0;
+	static data32_t pc_prev2 = 0, pc_prev1=0, pccnt = 0;
 	data32_t insn;
 
 	RESET_ICOUNT
@@ -65,10 +65,13 @@ extern unsigned at91_get_reg(int regnum);
 
 			// Debug test triggers
 
-			if (pc == 0x25b5c)
+			if (pc == 0x11f20) //0x7aa4) //0x134b4)//0x16ba4)// 0x16210)
 			{
 				//debug_key_pressed=1;
-				pc = 0x25b5c;
+				pccnt++;
+				if (pccnt == 0x6b8)
+					pccnt = 0x6b8;
+				pc = 0x11f20; // 0x134b4;// 0x16ba4;
 			}
 
 			// Helpful to backtrace a crash :)
@@ -363,8 +366,6 @@ jit_go_native:
 		R15 = tmp1;
 		ARM7_ICOUNT = tmp2;
 	}
-	
-	ARM7_CHECKIRQ;
 	// resume emulation
 	goto resume_from_jit;
 

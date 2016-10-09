@@ -143,14 +143,12 @@ DRIVERNV(voltanc )      //BY35      10/08 Voltan Escapes Cosmic Doom (7-digit Re
 DRIVERNV(voltand )      //BY35      10/08 Voltan Escapes Cosmic Doom (/10 Free Play)
 DRIVERNV(startrek)      //BY35-745: 01/78 Star Trek
 DRIVERNV(startreb)      //BY35      05/05 Star Trek (7-digit conversion)
-DRIVERNV(ratfink)       //BY35      24/15 Clone of Star Trek (7-digit conversion)
 DRIVERNV(startrec)      //BY35      10/08 Star Trek (7-digit Rev3 Free Play)
 DRIVERNV(startred)      //BY35      10/08 Star Trek (/10 Free Play)
                         //??        02/78 Skateball (Prototype)
 DRIVERNV(kiss    )      //BY35-746: 04/78 Kiss
 DRIVERNV(kissb   )      //BY35      05/05 Kiss (7-digit conversion)
 DRIVERNV(kissc   )      //BY35      10/08 Kiss (7-digit Rev3 Free Play)
-DRIVERNV(missworld)
 DRIVERNV(kissd   )      //BY35      10/08 Kiss (/10 Free Play)
 DRIVERNV(kissp   )      //BY35      ??/?? Kiss (prototype)
 DRIVERNV(kissp2  )      //BY35      ??/?? Kiss (prototype v.2)
@@ -160,7 +158,6 @@ DRIVERNV(slbmania)      //BY35-786: 06/78 Silverball Mania
 DRIVERNV(slbmanib)      //BY35      11/02 Silverball Mania (7-digit conversion)
 DRIVERNV(hglbtrtr)      //BY35-750: 08/78 Harlem Globetrotters On Tour
 DRIVERNV(hglbtrtb)      //BY35      11/02 Harlem Globetrotters On Tour (7-digit conversion)
-DRIVERNV(penthouse)     //BY35      clone of hglbtrtb, Penthouse Pinball Dreams 2008
 DRIVERNV(dollyptn)      //BY35-777: 10/78 Dolly Parton
 DRIVERNV(dollyptb)      //BY35      11/02 Dolly Parton (7-digit conversion)
 DRIVERNV(paragon )      //BY35-748: 12/78 Paragon
@@ -597,7 +594,6 @@ DRIVERNV(rock)          //S80b-697: 10/85 Rock
 DRIVERNV(s80btest)      //S80B: Text Fixture
 DRIVERNV(raven)         //S80b-702: 03/86 Raven
 DRIVERNV(ravena)        //                Raven (alternate set)
-DRIVERNV(rambo)         //                Rambo (Raven MOD)
 DRIVERNV(rock_enc)      //S80b-704: 04/86 Rock Encore
 DRIVERNV(hlywoodh)      //S80b-703: 06/86 Hollywood Heat
 DRIVERNV(genesis)       //S80b-705: 09/86 Genesis
@@ -669,6 +665,7 @@ DRIVERNV(stargat1)      //                Stargate (rev.1)
 DRIVERNV(stargat2)      //                Stargate (rev.2)
 DRIVERNV(stargat3)      //                Stargate (rev.3)
 DRIVERNV(stargat4)      //                Stargate (rev.4)
+DRIVERNV(stargat5)      //                Stargate (rev.5)
 DRIVERNV(bighurt)       //S3-743:   06/95 Big Hurt (rev.3)
 DRIVERNV(snspares)      //S3-N111:  10/95 Strikes N' Spares (rev.6)
 DRIVERNV(snspare1)      //                Strikes N' Spares (rev.1)
@@ -1735,6 +1732,7 @@ DRIVER(twd,153)         //S.A.M.: 11/15 Walking Dead, The - V1.53
 DRIVER(twd,153h)        //S.A.M.: 11/15 Walking Dead, The - V1.53 Limited Edition
 DRIVER(twd,156)         //S.A.M.: 12/15 Walking Dead, The - V1.56
 DRIVER(twd,156h)        //S.A.M.: 12/15 Walking Dead, The - V1.56 Limited Edition
+DRIVER(twd,156c)        //S.A.M.: 12/15 Walking Dead, The - V1.56 Limited Edition
 
 // ---------------
 // TABART GAMES
@@ -1871,7 +1869,6 @@ DRIVER(omni,l1)         //          04/80 W Omni (Shuffle)
 DRIVER(blkou,l1)        //S6-495:   06/80 W Blackout
 DRIVER(blkou,f1)        //          06/80 W Blackout, French speech
 DRIVER(blkou,t1)        //                  Blackout /10 Scoring Ted Estes
-DRIVER(blkou,hf)        //                  Pumpkin Carving
 DRIVER(scrpn,l1)        //S6-494:   07/80 W Scorpion
 DRIVER(scrpn,t1)        //                  Scorpion /10 Scoring Ted Estes
 DRIVER(algar,l1)        //S6-499:   09/80 W Algar

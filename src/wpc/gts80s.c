@@ -21,20 +21,30 @@
     Gottlieb System 80 Sound Boards
 
     - System 80/80A Sound Board
+      Black Hole, Volcano, and Devils Dare
 
     - System 80/80A Sound & Speech Board
 		- subtype 0: without SC-01 (Votrax) chip installed
 		- subtype 1: SC-01 (Votrax) chip installed
 
+		Schematics corresponding to the -1 revision of the board can be found in the Mars, God of War and Volcano manuals.
+		Schematics corresponding to the -3 revision of the board can be found in the Black Hole and Haunted House manuals.
+
     - System 80A Sound Board with a PiggyPack installed
-	  (thanks goes to Peter Hall for providing some very useful information)
+      (thanks goes to Peter Hall for providing some very useful information)
+
+       was first used during the production of Amazon Hunt, and continued until Tag Team Pinball
 
     - System 80B Sound Board (3 generations, plus an additional DAC board for Bone Busters only)
 
-	- System 3 sound boards
+      hit the scene with Rock
+      2x6502, AY-3-8912 or YM2151
 
+    - System 3 sound boards
+      2x6502, YM2151
 */
 
+#define DAC_SAMPLE_RATE (4*48000)
 
 /*----------------------------------------
 / Gottlieb Sys 80/80A Sound Board
@@ -65,7 +75,7 @@ static WRITE_HANDLER(gts80s_riot6530_0a_w) {
 		return;
 
 	GTS80S_locals.clock[GTS80S_locals.buf_pos] = timer_get_time();
-	GTS80S_locals.buffer[GTS80S_locals.buf_pos++] = ((data<<7)-0x4000)*2;
+	GTS80S_locals.buffer[GTS80S_locals.buf_pos++] = (((INT16)data<<7)-0x4000)*2;
 }
 
 static WRITE_HANDLER(gts80s_riot6530_0b_w) {
@@ -117,7 +127,7 @@ MEMORY_WRITE_START(GTS80S_writemem)
 { 0xf800, 0xffff, MWA_ROM},
 MEMORY_END
 
-static void GTS80S_Update(int num, INT16 *buffer, int length)
+static void GTS80S_Update(int num, INT16 *buffer, int length) // El Dorado City of Gold, Black Hole (Sound Only), Volcano (Sound Only), Panthera, etc
 {
 	double dActClock, dInterval, dCurrentClock;
 	int i;
@@ -178,7 +188,6 @@ void gts80s_init(struct sndbrdData *brdData) {
 		memcpy(mr+0x1000, mr+0x0700, 0x100);
 	}
 
-
 	/*
 		Init RAM, i.e. set base of all bank to the base of bank 1,
 		the memory repeats ever 64 bytes; haven't found another way to
@@ -197,7 +206,7 @@ void gts80s_init(struct sndbrdData *brdData) {
 	  stream_free(stream_locals.stream);
 	}
 	stream_locals.stream = stream_init("SND DAC", 100, 11025, 0, GTS80S_Update);
-	set_RC_filter(stream_locals.stream, 270000, 15000, 0, 33000);
+	set_RC_filter(stream_locals.stream, 270000, 15000, 0, 33000, 11025);
 }
 
 /*--------------
@@ -259,8 +268,6 @@ MACHINE_DRIVER_END
 / Gottlieb Sys 80/80A Sound & Speech Board
 /-----------------------------------------*/
 
-#define GTS80SS_BUFFER_SIZE 4096
-
 static struct {
 	struct sndbrdData boardData;
 	int    device;
@@ -270,9 +277,12 @@ static struct {
 	int    dips;
 	UINT8* pRIOT6532_3_ram;
 
-	INT16  buffer[GTS80SS_BUFFER_SIZE+1];
-	double clock[GTS80SS_BUFFER_SIZE+1];
-	int	   buf_pos;
+	INT16  curr_value;
+	INT16  next_value;
+	int    last_sound;
+
+	double last_clock;
+	double last_soundupdate;
 
 	void   *timer;
 } GTS80SS_locals;
@@ -309,14 +319,21 @@ static WRITE_HANDLER(GTS80SS_riot3b_w) { logerror("riot3b_w: 0x%02x\n", data);}
 /* D/A converter for volume */
 static WRITE_HANDLER(GTS80SS_da1_latch_w) {
 //	logerror("da1_w: 0x%02x\n", data);
-	if ( GTS80SS_locals.buf_pos>=GTS80SS_BUFFER_SIZE )
-		return;
 
-	GTS80SS_locals.clock[GTS80SS_locals.buf_pos] = timer_get_time();
-	GTS80SS_locals.buffer[GTS80SS_locals.buf_pos++] = ((data<<7)-0x4000)*2;
+	INT32 tmp = ((INT32)data << 8) - (INT32)0x7F80;
 
-	//mixer_set_volume(stream_locals.stream, 100 * data / 255);
+//	logerror("%s %.8f %d\n", (GTS80SS_locals.last_sound == 0) ? "c2" : "c ", timer_get_time(), tmp);
+
+	if (GTS80SS_locals.last_sound == 0) // missed a soundupdate: lerp data in here directly
+		tmp = (tmp + GTS80SS_locals.next_value) / 2;
+
+	GTS80SS_locals.next_value = tmp;
+	GTS80SS_locals.last_sound = 0;
+
 	GTS80SS_locals.device = 1;
+
+	GTS80SS_locals.last_clock = timer_get_time();
+	stream_update(stream_locals.stream, 0);
 }
 
 /* D/A converter for voice clock */
@@ -366,10 +383,7 @@ static WRITE_HANDLER(GTS80SS_vs_latch_w) {
 	logerror("vs_latch: %03x: %02x / %d\n", offset, data, GTS80SS_locals.device);
 	if (GTS80SS_locals.boardData.subType) {
 		if (GTS80SS_locals.device < 7) {
-			mixer_set_volume(0, 100);
-			mixer_set_volume(1, 100);
-			mixer_set_volume(2, 100);
-			mixer_set_volume(3, 100);
+			votraxsc01_set_volume(100);
 			votraxsc01_w(0, data^0x3f);
 		}
 	}
@@ -399,10 +413,7 @@ static READ_HANDLER(GTS80SS_riot6532_3_ram_r)
 static WRITE_HANDLER(empty_w)
 {
 	if (GTS80SS_locals.boardData.subType) {
-		mixer_set_volume(0, 0);
-		mixer_set_volume(1, 0);
-		mixer_set_volume(2, 0);
-		mixer_set_volume(3, 0);
+		votraxsc01_set_volume(0);
 	}
 	GTS80SS_locals.device = 7;
 }
@@ -446,33 +457,50 @@ MEMORY_WRITE_START(GTS80SS_writemem)
 { 0xf000, 0xffff, empty_w}, // the soundboard does fake writes to the ROM area (used for a delay function)
 MEMORY_END
 
-static void GTS80_ss_Update(int num, INT16 *buffer, int length)
+static void GTS80_ss_Update(int num, INT16 *buffer, int length) // Mars - God of War, Black Hole, Haunted House, etc
 {
-	double dActClock, dInterval, dCurrentClock;
 	int i;
 
-	dCurrentClock = GTS80SS_locals.clock[0];
+	//logerror("%s %.8f %d\n", (GTS80SS_locals.last_sound == 0) ? "sc" : "s ", timer_get_time(), length);
 
-	dActClock = timer_get_time();
-	dInterval = (dActClock-GTS80SS_locals.clock[0]) / length;
+	/* zero-length? bail */
+	if (length == 0)
+		return;
 
-	//if ( GTS80SS_locals.buf_pos>1 )
-	//	GTS80SS_locals.buf_pos = GTS80SS_locals.buf_pos;
+	if (length > DAC_SAMPLE_RATE/384) // there was quite some time since the last sound update? -> we're entering or leaving silence
+	{
+		if (GTS80SS_locals.last_sound != 0) // clock did not update next_value since the last update -> fade to silence (resolves clicks and simulates real DAC kinda)
+		{
+			float tmp = GTS80SS_locals.curr_value;
+			for (i = 0; i < length; i++, tmp *= 0.95f)
+				*buffer++ = (INT16)tmp;
 
-	i = 0;
-	GTS80SS_locals.clock[GTS80SS_locals.buf_pos] = 9e99;
-	while ( length ) {
-		*buffer++ = GTS80SS_locals.buffer[i];
-		length--;
-		dCurrentClock += dInterval;
+			GTS80SS_locals.next_value = (INT16)tmp; // update next_value with the faded value
+		}
+		else // clock did update next_value just now, so we now need to fade/lerp from silence to next_value
+		{
+			INT32 data = (INT32)GTS80SS_locals.curr_value;
+			INT32 slope = (((INT32)GTS80SS_locals.next_value - data) << 15) / length;
+			data <<= 15;
 
-		while ( (GTS80SS_locals.clock[i+1]<=dCurrentClock) )
-			i++;
+			for (i = 0; i < length; i++, data += slope)
+				*buffer++ = data >> 15;
+		}
+	}
+	else // clock does the update (or the sound buffer catches up) -> fill buffer with curr_value, then next_value
+	{
+		double diff = (timer_get_time() - GTS80SS_locals.last_soundupdate) / length;
+		double t = GTS80SS_locals.last_soundupdate;
+
+		for (i = 0; i < length; i++, t += diff)
+			*buffer++ = (t < GTS80SS_locals.last_clock) ? GTS80SS_locals.curr_value : GTS80SS_locals.next_value; // lerping between the values leads to noise for whatever reason, so raw values only!
 	}
 
-	GTS80SS_locals.clock[0] = dActClock;
-	GTS80SS_locals.buffer[0] = GTS80SS_locals.buffer[GTS80SS_locals.buf_pos-1];
-	GTS80SS_locals.buf_pos = 1;
+	GTS80SS_locals.curr_value = GTS80SS_locals.next_value;
+
+	GTS80SS_locals.last_soundupdate = timer_get_time();
+
+	GTS80SS_locals.last_sound = 1;
 }
 
 /*--------------
@@ -511,9 +539,10 @@ void gts80ss_init(struct sndbrdData *brdData) {
     riot6532_config(3, &GTS80SS_riot6532_intf);
     riot6532_set_clock(3, 905000);
 
-	GTS80SS_locals.clock[0]  = 0;
-	GTS80SS_locals.buffer[0] = 0;
-	GTS80SS_locals.buf_pos   = 1;
+	GTS80SS_locals.curr_value = 0;
+	GTS80SS_locals.next_value = 0;
+	GTS80SS_locals.last_sound = 0;
+	GTS80SS_locals.last_clock = GTS80SS_locals.last_soundupdate = 0.;
 
 	{
 	UINT8 *mr = memory_region(GTS80SS_locals.boardData.cpuNo);
@@ -524,8 +553,8 @@ void gts80ss_init(struct sndbrdData *brdData) {
 	if (stream_locals.stream) {
 	  stream_free(stream_locals.stream);
 	}
-	stream_locals.stream = stream_init("SND DAC", 50, 11025, 0, GTS80_ss_Update);
-	set_RC_filter(stream_locals.stream, 270000, 15000, 0, 10000);
+	stream_locals.stream = stream_init("SND DAC", 50, DAC_SAMPLE_RATE, 0, GTS80_ss_Update);
+	//set_RC_filter(stream_locals.stream, 270000, 15000, 0, 10000, DAC_SAMPLE_RATE);
 }
 
 /*--------------
@@ -820,26 +849,27 @@ static WRITE_HANDLER( s80bs_ym2151_w )
 static WRITE_HANDLER( s80bs_dac_vol_w )
 {
 	GTS80BS_locals.dac_volume = data;
-	DAC_data_16_w(0, GTS80BS_locals.dac_volume * GTS80BS_locals.dac_data);
+	DAC_DC_offset_correction_data_16_w(0, (int)GTS80BS_locals.dac_volume * (int)GTS80BS_locals.dac_data);
 	//logerror("volume = %x\n",data);
 	//DAC_data_w(0,data);
 }
 static WRITE_HANDLER( s80bs_dac2_vol_w )
 {
 	GTS80BS_locals.dac2_volume = data;
-	DAC_data_16_w(1, GTS80BS_locals.dac2_volume * GTS80BS_locals.dac2_data);
+	DAC_DC_offset_correction_data_16_w(1, (int)GTS80BS_locals.dac2_volume * (int)GTS80BS_locals.dac2_data);
 }
+
 //DAC Handling.. Set data to send
 static WRITE_HANDLER( s80bs_dac_data_w )
 {
 	GTS80BS_locals.dac_data = data;
-	DAC_data_16_w(0, GTS80BS_locals.dac_volume * GTS80BS_locals.dac_data);
+	DAC_DC_offset_correction_data_16_w(0, (int)GTS80BS_locals.dac_volume * (int)GTS80BS_locals.dac_data);
 	//DAC_data_w(0,data);
 }
 static WRITE_HANDLER( s80bs_dac2_data_w )
 {
 	GTS80BS_locals.dac2_data = data;
-	DAC_data_16_w(1, GTS80BS_locals.dac2_volume * GTS80BS_locals.dac2_data);
+	DAC_DC_offset_correction_data_16_w(1, (int)GTS80BS_locals.dac2_volume * (int)GTS80BS_locals.dac2_data);
 }
 
 //Process command from Main CPU
@@ -1192,7 +1222,7 @@ MEMORY_END
 static struct DACinterface GTS3_dacInt =
 {
   2,			/*2 Chips - but it seems we only access 1?*/
- {100,100}		/* Volume */
+ {50,50}		/* Volume */
 };
 
 static struct OKIM6295interface GTS3_okim6295_interface = {
@@ -1557,13 +1587,13 @@ static WRITE_HANDLER(techno_sp0250_latch) {
 static WRITE_HANDLER( techno_dac_vol_w )
 {
 	techno_locals.dac_volume = data;
-	DAC_data_16_w(0, techno_locals.dac_volume * techno_locals.dac_data);
+	DAC_DC_offset_correction_data_16_w(0, (int)techno_locals.dac_volume * (int)techno_locals.dac_data);
 }
 //DAC Handling.. Set data to send
 static WRITE_HANDLER( techno_dac_data_w )
 {
 	techno_locals.dac_data = data;
-	DAC_data_16_w(0, techno_locals.dac_volume * techno_locals.dac_data);
+	DAC_DC_offset_correction_data_16_w(0, (int)techno_locals.dac_volume * (int)techno_locals.dac_data);
 }
 
 //TMS7000 will use dac chip #1

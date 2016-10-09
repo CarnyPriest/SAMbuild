@@ -310,7 +310,7 @@ static void snd_q(int data) {
 static CDP1802_CONFIG playsound_config3 =
 {
 	snd_mode,	// MODE
-	snd_ef3,		// EF
+	snd_ef3,	// EF
 	NULL,		// SC
 	snd_q,		// Q
 	NULL,		// DMA read
@@ -346,16 +346,12 @@ MACHINE_DRIVER_END
 
 static WRITE_HANDLER(ay8910_0_porta_w)	{
   int volume = 100 - 25 * (data >> 6);
-  AY8910_set_volume(0, 0, volume);
-  AY8910_set_volume(0, 1, volume);
-  AY8910_set_volume(0, 2, volume);
+  AY8910_set_volume(0, ALL_8910_CHANNELS, volume);
   // TODO bits 1 to 6 control a slight reverb effect!?
 }
 static WRITE_HANDLER(ay8910_1_porta_w)	{
   int volume = 100 - 25 * (data >> 6);
-  AY8910_set_volume(1, 0, volume);
-  AY8910_set_volume(1, 1, volume);
-  AY8910_set_volume(1, 2, volume);
+  AY8910_set_volume(1, ALL_8910_CHANNELS, volume);
   // TODO bits 1 to 6 control a slight reverb effect!?
 }
 struct AY8910interface play4s_8910Int = {
@@ -401,7 +397,7 @@ static void snd_sc(int data) {
 static CDP1802_CONFIG playsound_config4 =
 {
 	snd_mode,	// MODE
-	snd_ef4,		// EF
+	snd_ef4,	// EF
 	snd_sc,		// SC
 	NULL,		// Q
 	NULL,		// DMA read
@@ -473,7 +469,7 @@ static void play5s_msmIrq(int data) {
 static struct MSM5205interface play5s_msm5205Int = {
 	1,					//# of chips
 	384000,				//384Khz Clock Frequency?
-	{play5s_msmIrq},		//VCLK Int. Callback
+	{play5s_msmIrq},	//VCLK Int. Callback
 	{MSM5205_S48_4B},	//Sample Mode
 	{100}				//Volume
 };
@@ -553,7 +549,7 @@ static WRITE_HANDLER(ay8910_z_portb_w)	{
 struct AY8910interface playzs_8910Int = {
 	1,			/* 1 chip */
 	2000000,	/* 2.01216 MHz quartz on pic! */
-	{ 25 },	/* Volume */
+	{ 25 },		/* Volume */
 	{ 0 },
 	{ 0 },
 	{ ay8910_z_porta_w },

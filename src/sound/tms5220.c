@@ -468,13 +468,6 @@ static void update_ready_state(struct tms5220 *tms);
 static INT32 lattice_filter(struct tms5220 *tms);
 static INT16 clip_analog(INT16 clip);
 
-#ifdef PINMAME
-static int reverbPos;
-static int reverbDelay;
-static float reverbForce;
-static INT16 reverbBuffer[5000];
-#endif
-
 /**********************************************************************************************
 
      tms5220_reset -- resets the TMS5220
@@ -496,6 +489,7 @@ void tms5220_reset_chip(void *chip)
   /* Note that we do not actually clear IRQ on start-up : IRQ is even raised if tms->buffer_empty or tms->buffer_low are 0 */
   tms->speaking_now = tms->speak_external = tms->talk_status = tms->irq_pin = tms->ready_pin = 0;
   set_interrupt_state(tms, 0);
+  tms->io_ready = 1;
   update_ready_state(tms);
   tms->buffer_empty = tms->buffer_low = 1;
 
@@ -517,7 +511,7 @@ void tms5220_reset_chip(void *chip)
 
   /* initialize the sample generators */
   tms->inhibit = 1;
-  tms->subcycle = tms->tms5220c_rate = tms->pitch_count = tms->PC = 0;
+  tms->pitch_count = tms->subcycle = tms->tms5220c_rate = tms->PC = 0;
   tms->subc_reload = FORCE_SUBC_RELOAD;
   tms->OLDE = tms->OLDP = 1;
   tms->interp_period = reload_table[tms->tms5220c_rate&0x3];
@@ -533,11 +527,6 @@ void tms5220_reset_chip(void *chip)
     (*tms->load_address_callback)(0);
 
   tms->schedule_dummy_read = TRUE;
-  tms->io_ready = 1;
-
-#ifdef PINMAME
-  reverbDelay = 0;
-#endif
 }
 
 void tms5220_reset(void) {
@@ -1274,34 +1263,8 @@ empty:
   }
 }
 
-#ifdef PINMAME
-void tms5200_set_reverb(int delay, float force) { //!! sampling rate dependent
-  reverbPos = 0;
-  reverbDelay = delay;
-  reverbForce = force;
-  memset(&reverbBuffer, 0, sizeof(reverbBuffer));
-}
-
-static void apply_reverb(INT16 *buf, int len) {
-  if (reverbDelay && len) {
-    int i;
-    int newPos = reverbPos - reverbDelay;
-    if (newPos < 0) newPos += 5000;
-    for (i = 0; i < len; i++) {
-      buf[i] = (INT16)((float)buf[i] * (1.0f - reverbForce) + (float)reverbBuffer[newPos] * reverbForce);
-      reverbBuffer[reverbPos] = buf[i];
-      reverbPos++; if (reverbPos > 5000) reverbPos = 0;
-      newPos++; if (newPos > 5000) newPos = 0;
-    }
-  }
-}
-#endif
-
 void tms5220_process(INT16 *buffer, unsigned int size) {
   tms5220_process_chip(&onechip, buffer, size);
-#ifdef PINMAME
-  apply_reverb(buffer, size);
-#endif
 }
 
 /**********************************************************************************************
@@ -1432,10 +1395,6 @@ static INT32 lattice_filter(struct tms5220 *tms)
 static void process_command(struct tms5220 *tms, unsigned char cmd)
 {
   int i;
-#ifdef PINMAME
-  int reverb_delay;
-  float reverb_force;
-#endif
 #ifdef DEBUG_COMMAND_DUMP
   fprintf(stderr,"process_command called with parameter %02X\n",cmd);
 #endif
@@ -1530,15 +1489,8 @@ static void process_command(struct tms5220 *tms, unsigned char cmd)
           (*tms->read_callback)(1);
       }
       i = tms->variant;
-#ifdef PINMAME
-      reverb_delay = reverbDelay;
-      reverb_force = reverbForce;
-#endif
       tms5220_reset_chip(tms);
       tms5220_set_variant(i);
-#ifdef PINMAME
-      tms5200_set_reverb(reverb_delay, reverbForce);
-#endif
       break;
   }
 
@@ -1594,11 +1546,6 @@ static int extract_bits(struct tms5220 *tms, int count)
 static void parse_frame(struct tms5220 *tms)
 {
   int indx, i, rep_flag;
-
-#ifdef PINMAME
-  int reverb_delay;
-  float reverb_force;
-#endif
 
   // We actually don't care how many bits are left in the fifo here; the frame subpart will be processed normally, and any bits extracted 'past the end' of the fifo will be read as zeroes; the fifo being emptied will set the /BE latch which will halt speech exactly as if a stop frame had been encountered (instead of whatever partial frame was read); the same exact circuitry is used for both on the real chip, see us patent 4335277 sheet 16, gates 232a (decode stop frame) and 232b (decode /BE plus DDIS (decode disable) which is active during speak external).
 
@@ -1694,11 +1641,8 @@ static void parse_frame(struct tms5220 *tms)
 #endif
 #ifdef PINMAME
   i = tms->variant;
-  reverb_delay = reverbDelay;
-  reverb_force = reverbForce;
   tms5220_reset_chip(tms);
   tms5220_set_variant(i);
-  tms5200_set_reverb(reverb_delay, reverbForce);
 #endif
 }
 
