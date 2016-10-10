@@ -8,22 +8,13 @@
 
 #define SAM_USE_JIT
 #define SAM_DISPLAYSMOOTH 4
-#define SAM_CPUFREQ	    40000000
 
-#ifdef SAM_USE_JIT
-// We need the MAME scheduler to check for IRQ events more frequently than the FIQ if JIT is in use
-// JIT does not relinqish CPU until the next timer event.  This causes input problems.    Checking
-// IRQs more frequently is a good use of the higher performing code anyhow. 
-#define SAM_OVERSAMPLING 1
-#define SAM_IRQFREQ 4008 * SAM_OVERSAMPLING
-
-#else
+#define SAM_CPUFREQ	40000000
 #define SAM_IRQFREQ 4008
-#endif
-
 #define WAVE_OUT_RATE 24000
 #define SAM_TIMER 120
 #define BUFFSIZE 262144
+#define FIQ_SOUND_SYNC 1
 
 #define SAM_CPU	0
 #define SAM_ROMBANK0 1
@@ -52,7 +43,7 @@ void DebuggerLog ( const char * format, ... )
   va_list args;
   va_start (args, format);
   vsnprintf (buffer,256,format, args); 
-  // Surely there's a more direct way lol
+  // Surely there's a more direct way :) 
   swprintf(ws, 256, L"%hs", buffer); 
   OutputDebugStringW(ws);
   va_end (args);
@@ -73,11 +64,11 @@ struct {
 	int zc;
 	data32_t ram1;
 	data32_t ram2;
-	INT16 samplebuf[BUFFSIZE];
-	INT16 lastsamp;
+	INT16 samplebuf[2][BUFFSIZE];
+	INT16 lastsamp[2];
 	char unused2[2];
-	int sampout;
-	int sampnum;
+	int sampout[2];
+	int sampnum[2];
 	int msu[6];
 	int powerswitch;
 	INT16 bank;
@@ -187,32 +178,77 @@ const struct sndbrdIntf samIntf = {
 	"SAM1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, SNDBRD_NODATASYNC
 };
 
-static void sam_sh_update(int num, INT16 *buffer, int length)
+static void sam_sh_update(int num, INT16 *buffer[2], int length)
 {
-	int ii;
+	int ii, channel, delta;
+#ifdef _DEBUG
+	static long loopcount = 0, failundercount = 0, undercount =0, overcount =0;
+	loopcount++;
+#endif 
 
-	ii = 0;
 	if ( length > 0 )
 	{
-		while ( samlocals.sampout != samlocals.sampnum && samlocals.sampnum >= 64 )
+		for(channel=0;channel<2;channel++)
 		{
-			buffer[ii] = samlocals.samplebuf[samlocals.sampout];
-			samlocals.sampout = (samlocals.sampout + 1) % BUFFSIZE;
-			samlocals.lastsamp = buffer[ii++];
-			if ( ii >= length )
-				return;
+			ii = 0;
+
+			while ( ii < length && samlocals.sampout[channel] != samlocals.sampnum[channel])
+			{
+				buffer[channel][ii] = samlocals.samplebuf[channel][samlocals.sampout[channel]];
+				samlocals.sampout[channel] = (samlocals.sampout[channel] + 1) % BUFFSIZE;
+				samlocals.lastsamp[channel] = buffer[channel][ii++];
+			}
+			// TODO: These are buffer over and under-run cases
+			// It would be good to tweak the FIQ frequency slightly based on these, just need
+			// to change the FIQ generator to a normal MAME timer so the value can be altered
+			// at runtime
+			delta = samlocals.sampnum[channel] - samlocals.sampout[channel];
+
+			if (delta > WAVE_OUT_RATE * 20 / 1000)
+			{
+#ifdef _DEBUG
+				if (channel == 0)
+					overcount++;
+#endif
+				samlocals.sampout[channel] = samlocals.sampnum[channel];
+			} 
+			else if (delta < WAVE_OUT_RATE * 2 / 1000)
+			{	
+#ifdef _DEBUG
+				if (channel == 0 && ii < length)
+					failundercount++;
+#endif 
+				for ( ; ii < length; ++ii )
+					buffer[channel][ii] = samlocals.lastsamp[channel];
+#ifdef FIQ_SOUND_SYNC
+				// Ask the ROM for more samples to try and keep it within range.
+				// Skip it for CSI and IJ since they are extraordinarily timing sensitive.
+				if (channel == 0 && !at91_block_timers)
+				{
+#ifdef _DEBUG
+					undercount++;
+#endif 
+					at91_fire_irq(AT91_FIQ_IRQ);
+				}
+#endif 
+			}
+#ifdef _DEBUG
+			if (channel == 0 && (loopcount % 100) == 0)
+			{
+				LOG(("Buffer status: %ld over, %ld starved, %ld under of %ld loops\n", overcount, failundercount, undercount, loopcount));
+			}
+#endif 
+
 		}
-		for ( ; ii < length; ++ii )
-			buffer[ii] = samlocals.lastsamp;
 	}
 }
 
 int sam_sh_start(const struct MachineSound *msound)
 {
-	char stream_name[40];
+	const char *streamnames[] = { "SAM Left", "SAM Right" };
+	int mixlevels[2] = { MIXER(100,MIXER_PAN_LEFT), MIXER(100,MIXER_PAN_RIGHT) };
 
-	sprintf(stream_name, "%s", "SAM1");
-	sam_stream = stream_init(stream_name, 100, WAVE_OUT_RATE*2, 0, sam_sh_update);
+	sam_stream = stream_init_multi(2, streamnames, mixlevels, WAVE_OUT_RATE, 0, sam_sh_update);
 	return sam_stream < 0;
 }
 
@@ -385,11 +421,17 @@ MEMORY_END
 static data32_t prev_data;
 static WRITE32_HANDLER(samxilinx_w)
 {
-	if(~mem_mask & 0xFFFF0000)
+	if(~mem_mask & 0xFFFF0000) // Left ch??
+	{
 		data >>= 16;
-	prev_data = data;
-	samlocals.samplebuf[samlocals.sampnum] = data;
-	samlocals.sampnum = (samlocals.sampnum + 1) % BUFFSIZE;
+		samlocals.samplebuf[0][samlocals.sampnum[0]] = data;
+		samlocals.sampnum[0] = (samlocals.sampnum[0] + 1) % BUFFSIZE;
+	}
+	else
+	{
+		samlocals.samplebuf[1][samlocals.sampnum[0]] = data;
+		samlocals.sampnum[1] = (samlocals.sampnum[0] + 1) % BUFFSIZE;
+	}
 }
 
 static WRITE32_HANDLER(samdmdram_w)
@@ -861,7 +903,9 @@ static WRITE32_HANDLER(sam_port_w)
 			l_vol = (samlocals.msu[0] & 0x7F) * 0.78125;
 		if (samlocals.msu[3] == 0 )
 			r_vol = (samlocals.msu[0] & 0x7F) * 0.78125;
-		mixer_set_stereo_volume(0, l_vol, r_vol);
+		mixer_set_stereo_volume(0, l_vol, 0);
+		mixer_set_stereo_volume(1, 0, r_vol);
+
 		samlocals.msu[5] = 16;
 		samlocals.msu[4] = 0;
 	}
@@ -886,11 +930,9 @@ static MACHINE_INIT(sam) {
 		at91_init_jit(0,(options.at91jit > 1) ? options.at91jit : 0x1080000);
 	}
 #endif
-	//at91_init_jit(0, 0x1456c);// buggy opcode (TODO: Emulated)
-	//at91_init_jit(0,0x97fc);  // buggy opcode (Fixed)
 	memset(sam_ext_leds, 0, SAM_LEDS_MAX * sizeof(data8_t));
-//	if (_strnicmp(Machine->gamedrv->name,"csi_",4)==0 || _strnicmp(Machine->gamedrv->name,"ij4_",4)==0)
-	//	at91_block_timers = 1;
+	if (_strnicmp(Machine->gamedrv->name,"csi_",4)==0 || _strnicmp(Machine->gamedrv->name,"ij4_",4)==0)
+		at91_block_timers = 1;
 }
 
 static MACHINE_RESET(sam) {
@@ -1030,19 +1072,7 @@ static void sam_timer(int data)
 
 static INTERRUPT_GEN(sam_irq)
 {
-#ifdef SAM_USE_JIT
-	static int count = 0;
-
-	count++;
-	if (count==SAM_OVERSAMPLING)
-	{
-		at91_fire_irq(AT91_FIQ_IRQ);
-//		cpu_set_irq_line(SAM_CPU, 1, PULSE_LINE);
-		count=0;
-	}
-#else
-	cpu_set_irq_line(SAM_CPU, 1, PULSE_LINE);
-#endif
+	at91_fire_irq(AT91_FIQ_IRQ);
 }
 
 static MACHINE_DRIVER_START(sam)
@@ -1058,26 +1088,10 @@ static MACHINE_DRIVER_START(sam)
     MDRV_NVRAM_HANDLER(sam)
     MDRV_TIMER_ADD(sam_timer, SAM_TIMER) // was 145
     MDRV_SOUND_ADD(CUSTOM, samCustInt)
+	MDRV_SOUND_ATTRIBUTES(SOUND_SUPPORTS_STEREO)
     MDRV_DIAGNOSTIC_LEDH(2)
 MACHINE_DRIVER_END
 
-/* Not needed 
-static MACHINE_DRIVER_START(sam_fast)
-    MDRV_IMPORT_FROM(PinMAME)
-    MDRV_SWITCH_UPDATE(sam)
-    MDRV_CPU_ADD(AT91, 40000000)
-    MDRV_CPU_MEMORY(sam_readmem, sam_writemem)
-    MDRV_CPU_PORTS(sam_readport, sam_writeport)
-    MDRV_CPU_VBLANK_INT(sam_vblank, 1)
-    MDRV_CPU_PERIODIC_INT(sam_irq, SAM_IRQFREQ)
-    MDRV_CORE_INIT_RESET_STOP(sam, sam, NULL)
-    MDRV_DIPS(8)
-    MDRV_NVRAM_HANDLER(sam)
-    MDRV_TIMER_ADD(sam_timer, 104)
-    MDRV_SOUND_ADD(CUSTOM, samCustInt)
-    MDRV_DIAGNOSTIC_LEDH(2)
-MACHINE_DRIVER_END
-*/
 
 #define INITGAME(name, gen, disp, lampcol, hw) \
 	static core_tGameData name##GameData = { \
