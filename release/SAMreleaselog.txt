@@ -1,3 +1,8 @@
+version 2.39a
+official rev 4019
+S.A.M. 
+Merge Latest SAM fixes [DJRobX]
+ ----------------------
 version 2.39
 official rev 3987
 S.A.M. 
