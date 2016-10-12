@@ -233,10 +233,10 @@ static void sam_sh_update(int num, INT16 *buffer[2], int length)
 #endif 
 			}
 #ifdef _DEBUG
-			if (channel == 0 && (loopcount % 100) == 0)
-			{
-				LOG(("Buffer status: %ld over, %ld starved, %ld under of %ld loops\n", overcount, failundercount, undercount, loopcount));
-			}
+			//if (channel == 0 && (loopcount % 100) == 0)
+			//{
+			//	LOG(("Buffer status: %ld over, %ld starved, %ld under of %ld loops\n", overcount, failundercount, undercount, loopcount));
+			//}
 #endif 
 
 		}
@@ -294,7 +294,12 @@ LABEL_6:
 				data = (coreGlobals.swMatrix[2 * samlocals.col + 1] | coreGlobals.swMatrix[2 * samlocals.col + 2] << 8) ^ 0xFFFF;
 				break;
 			case 2:				
-				data = (coreGlobals.swMatrix[9] | ((core_swapNyb[coreGlobals.swMatrix[11] & 0xF] | (0x10 * core_swapNyb[coreGlobals.swMatrix[11] >> 4])) << 8)) ^ 0xFFFF;
+				data = (coreGlobals.swMatrix[9] | ((core_swapNyb[coreGlobals.swMatrix[11] & 0xF] | (0x10 * core_swapNyb[coreGlobals.swMatrix[11] >> 4])) << 8));
+				// Copy flipper states (D8, D10, D12, D14) to EOS (Dx+1).   SAM is not 
+				// using standard VPM flipper coils, so the EOS simulation does not
+				// take place, and the ROM reports technician errors.
+				data |= (data & ((1 << 8) | (1 << 10) | (1 << 12) | (1 << 14))) << 1;
+				data ^= 0xFFFF;
 				break;
 			case 4:
 				if ( ~mem_mask == 0xFF00 )
@@ -2498,7 +2503,7 @@ SAM_ROMLOAD_ST(st_161, "st_161.bin", CRC(e7a923ce) SHA1(d7f676a13bfa93b540af8469
 SAM_ROMEND
 SAM_ROMLOAD_ST(st_161h, "st_161h.bin", CRC(74ad8a31) SHA1(18c940d021441ba87854f5eb6edb84aeffabdaae), 0x037ab5d4)
 SAM_ROMEND
-SAM_ROMLOAD_ST(st_161c, "st_161c.bin", CRC(74ad8a31) SHA1(18c940d021441ba87854f5eb6edb84aeffabdaae), 0x037FFFF0)
+SAM_ROMLOAD_ST(st_161c, "st_161c.bin", CRC(3e826d23) SHA1(d3421a7ac9be62766764a5508b9cb6573a8cacfc), 0x037FFFF0)
 SAM_ROMEND
 SAM_INPUT_PORTS_START(st, 1) SAM_INPUT_PORTS_END
 

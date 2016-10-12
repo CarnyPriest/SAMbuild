@@ -96,11 +96,14 @@ struct mixer_channel_data
 	void* data_end;
 	void* data_current;
 
+	int frac; /* resample fixed point state (used if filter is not active or in case of USE_LIBSAMPLERATE for the samples playback) */
+
 #ifdef USE_LIBSAMPLERATE
 	SRC_STATE* src_left;
 	SRC_STATE* src_right;
+
+	int legacy_resample; // fallback to old legacy samples playback
 #else
-	int frac; /* resample fixed point state (used if filter is not active) */
 	int pivot; /* resample brehesnam state (used if filter is active) */
 	int step; /* fixed point increment */
 
@@ -195,6 +198,9 @@ static void mixer_channel_resample_set(struct mixer_channel_data *channel, unsig
 
 #ifdef USE_LIBSAMPLERATE
 	mixerlogerror(("Mixer:mixer_channel_resample_set(%s,%d,%d)\n", channel->name, from_frequency, restart));
+
+	if (restart)
+		channel->frac = 0;
 #else
 	mixerlogerror(("Mixer:mixer_channel_resample_set(%s,%d,%d,%d)\n", channel->name, from_frequency, lowpass_frequency, restart));
 
@@ -289,12 +295,13 @@ static unsigned mixer_channel_resample_16(struct mixer_channel_data* channel,
 {
 	unsigned dst_base = (accum_base + channel->samples_available) & ACCUMULATOR_MASK;
 	unsigned dst_pos = dst_base;
-	double scale;
+
 	INT16* __restrict src = *psrc;
 
 #ifdef USE_LIBSAMPLERATE
 	SRC_DATA data;
 	long i;
+	const double scale = volume * (8.0 * 0x10000000 / 256.0);
 
 	src_len = MIN(src_len, MAX((unsigned int)(dst_len*1.2*((double)channel->from_frequency / channel->to_frequency)),1)); //1.2=magic, limit incoming input, so that not all is immediately processed
 
@@ -360,6 +367,42 @@ static unsigned mixer_channel_resample_16(struct mixer_channel_data* channel,
 	}
 
 #ifdef USE_LIBSAMPLERATE
+	// Special/Legacy samples playback code-path:
+
+	if (channel->legacy_resample)
+	{
+		/* end address */
+		INT16* src_end = src + src_len;
+		unsigned dst_pos_end = (dst_pos + dst_len) & ACCUMULATOR_MASK;
+
+		int step = ((unsigned long long)channel->from_frequency << FRACTION_BITS) / channel->to_frequency;
+		int frac = channel->frac;
+		src += frac >> FRACTION_BITS;
+		frac &= FRACTION_MASK;
+
+		while (src < src_end && dst_pos != dst_pos_end)
+		{
+			dst[dst_pos] += (*src * volume) >> 8;
+			frac += step;
+			dst_pos = (dst_pos + 1) & ACCUMULATOR_MASK;
+			src += frac >> FRACTION_BITS;
+			frac &= FRACTION_MASK;
+		}
+
+		/* adjust the end if it's too big */
+		if (src > src_end) {
+			frac += (int)(src - src_end) << FRACTION_BITS;
+			src = src_end;
+		}
+
+		channel->frac = frac;
+
+		*psrc = src;
+		return (dst_pos - dst_base) & ACCUMULATOR_MASK;
+	}
+
+	// Normal libsamplerate code-path:
+
 	src_short_to_float_array(src, in_f, src_len); //!! opt.?
 
 	data.data_in = in_f;
@@ -373,7 +416,6 @@ static unsigned mixer_channel_resample_16(struct mixer_channel_data* channel,
 
 	mixer_apply_reverb_filter(channel, out_f, data.output_frames_gen, left_right);
 
-	scale = volume * (8.0 * 0x10000000 / 256.0);
 	for (i = 0; i < data.output_frames_gen; ++i) //!! opt.?
 	{
 		double scaled_value = out_f[i] * scale;
@@ -493,12 +535,13 @@ static unsigned mixer_channel_resample_8(struct mixer_channel_data *channel,
 {
 	unsigned dst_base = (accum_base + channel->samples_available) & ACCUMULATOR_MASK;
 	unsigned dst_pos = dst_base;
-	double scale;
+
 	INT8* __restrict src = *psrc;
 
 #ifdef USE_LIBSAMPLERATE
 	SRC_DATA data;
 	long i;
+	const double scale = volume * (8.0 * 0x10000000 / 256.0);
 
 	src_len = MIN(src_len, MAX((unsigned int)(dst_len*1.2*((double)channel->from_frequency / channel->to_frequency)),1)); //1.2=magic, limit incoming input, so that not all is immediately processed
 
@@ -532,6 +575,42 @@ static unsigned mixer_channel_resample_8(struct mixer_channel_data *channel,
 	}
 
 #ifdef USE_LIBSAMPLERATE
+	// Special/Legacy samples playback code-path:
+
+	if (channel->legacy_resample)
+	{
+		/* end address */
+		INT8* src_end = src + src_len;
+		unsigned dst_pos_end = (dst_pos + dst_len) & ACCUMULATOR_MASK;
+
+		int step = ((unsigned long long)channel->from_frequency << FRACTION_BITS) / channel->to_frequency;
+		int frac = channel->frac;
+		src += frac >> FRACTION_BITS;
+		frac &= FRACTION_MASK;
+
+		while (src < src_end && dst_pos != dst_pos_end)
+		{
+			dst[dst_pos] += *src * volume;
+			dst_pos = (dst_pos + 1) & ACCUMULATOR_MASK;
+			frac += step;
+			src += frac >> FRACTION_BITS;
+			frac &= FRACTION_MASK;
+		}
+
+		/* adjust the end if it's too big */
+		if (src > src_end) {
+			frac += (int)(src - src_end) << FRACTION_BITS;
+			src = src_end;
+		}
+
+		channel->frac = frac;
+
+		*psrc = src;
+		return (dst_pos - dst_base) & ACCUMULATOR_MASK;
+	}
+
+	// Normal libsamplerate code-path:
+	
 	src_char_to_float_array(src, in_f, src_len); //!! opt.?
 
 	data.data_in = in_f;
@@ -545,7 +624,6 @@ static unsigned mixer_channel_resample_8(struct mixer_channel_data *channel,
 
 	mixer_apply_reverb_filter(channel, out_f, data.output_frames_gen, left_right);
 
-	scale = volume * (8.0 * 0x10000000 / 256.0);
 	for (i = 0; i < data.output_frames_gen; ++i) //!! opt.?
 	{
 		double scaled_value = out_f[i] * scale;
@@ -684,15 +762,15 @@ static unsigned mixer_channel_resample_8_pan(struct mixer_channel_data *channel,
 		/* save */
 #ifndef USE_LIBSAMPLERATE
 		unsigned save_pivot = channel->pivot;
-		unsigned save_frac = channel->frac;
 #endif
+		unsigned save_frac = channel->frac;
 		INT8* save_src = *src;
 		count = mixer_channel_resample_8(channel, cl, volume[0], left_accum, dst_len, src, src_len, 0);
 		/* restore */
 #ifndef USE_LIBSAMPLERATE
 		channel->pivot = save_pivot;
-		channel->frac = save_frac;
 #endif
+		channel->frac = save_frac;
 		*src = save_src;
 		mixer_channel_resample_8(channel, cr, volume[1], right_accum, dst_len, src, src_len, 1);
 	}
@@ -740,15 +818,15 @@ static unsigned mixer_channel_resample_16_pan(struct mixer_channel_data *channel
 		/* save */
 #ifndef USE_LIBSAMPLERATE
 		unsigned save_pivot = channel->pivot;
-		unsigned save_frac = channel->frac;
 #endif
+		unsigned save_frac = channel->frac;
 		INT16* save_src = *src;
 		count = mixer_channel_resample_16(channel, cl, volume[0], left_accum, dst_len, src, src_len, 0);
 		/* restore */
 #ifndef USE_LIBSAMPLERATE
 		channel->pivot = save_pivot;
-		channel->frac = save_frac;
 #endif
+		channel->frac = save_frac;
 		*src = save_src;
 		mixer_channel_resample_16(channel, cr, volume[1], right_accum, dst_len, src, src_len, 1);
 	}
@@ -1026,8 +1104,10 @@ void mixer_sh_update(void)
 			channel->samples_available = 0;
 		else
 			channel->samples_available -= samples_this_frame;
-	}
+		if (channel->samples_available > 2)
+			channel->samples_available = channel->samples_available;
 
+	}
 	/* copy the mono 32-bit data to a 16-bit buffer, clipping along the way */
 	if (!is_stereo)
 	{
@@ -1167,6 +1247,10 @@ int mixer_allocate_channels(int channels, const int *default_mixing_levels)
 			}
 		}
 
+#ifdef USE_LIBSAMPLERATE
+		channel->legacy_resample = 1;
+#endif
+
 		/* set the default name */
 		mixer_set_name(first_free_channel + i, 0);
 	}
@@ -1223,6 +1307,9 @@ void mixer_set_volume(int ch, int volume)
 {
 	struct mixer_channel_data *channel = &mixer_channel[ch];
 
+	if (channel->left_volume == volume && channel->right_volume == volume)
+		return;
+
 	mixer_update_channel(channel, sound_scalebufferpos(samples_this_frame));
 	channel->left_volume  = volume;
 	channel->right_volume = volume;
@@ -1237,6 +1324,9 @@ void mixer_set_mixing_level(int ch, int level)
 {
 	struct mixer_channel_data *channel = &mixer_channel[ch];
 
+	if (channel->mixing_level == level)
+		return;
+
 	mixer_update_channel(channel, sound_scalebufferpos(samples_this_frame));
 	channel->mixing_level = level;
 }
@@ -1248,6 +1338,9 @@ void mixer_set_mixing_level(int ch, int level)
 void mixer_set_stereo_volume(int ch, int l_vol, int r_vol )
 {
 	struct mixer_channel_data *channel = &mixer_channel[ch];
+
+	if (channel->left_volume == l_vol && channel->right_volume == r_vol)
+		return;
 
 	mixer_update_channel(channel, sound_scalebufferpos(samples_this_frame));
 	channel->left_volume  = l_vol;
@@ -1400,6 +1493,8 @@ int mixer_samples_this_frame(void)
 #define EXTRA_SAMPLES 1    // safety margin for sampling rate conversion
 int mixer_need_samples_this_frame(int channel,int freq)
 {
+	if ( mixer_channel[channel].samples_available > samples_this_frame)
+		return 0;
 	return (samples_this_frame - mixer_channel[channel].samples_available)
 			* freq / Machine->sample_rate + EXTRA_SAMPLES;
 }
@@ -1446,7 +1541,7 @@ void mixer_play_sample_16(int ch, INT16 *data, int len, int freq, int loop)
 {
 	struct mixer_channel_data *channel = &mixer_channel[ch];
 
-	mixerlogerror(("Mixer:mixer_play_sample_16(%s,,%d,%d,%s)\n",channel->name,len/2,freq,loop ? "loop" : "single"));
+	mixerlogerror(("Mixer:mixer_play_sample_16(%s,%d,%d,%s)\n",channel->name,len/2,freq,loop ? "loop" : "single"));
 
 	/* skip if sound is off, or if this channel is a stream */
 	if (Machine->sample_rate == 0 || channel->is_stream)
@@ -1515,6 +1610,9 @@ void mixer_set_sample_frequency(int ch, int freq)
 	if (channel->is_playing) {
 		mixerlogerror(("Mixer:mixer_set_sample_frequency(%s,%d)\n",channel->name,freq));
 
+		if (channel->from_frequency == freq)
+			return;
+
 		mixer_update_channel(channel, sound_scalebufferpos(samples_this_frame));
 
 		mixer_channel_resample_set(channel,freq,
@@ -1577,5 +1675,18 @@ void mixer_set_reverb_filter(int ch, float delay, float force)
 	channel->reverbDelay[0] = channel->reverbDelay[1] = delay;
 	channel->reverbForce[0] = channel->reverbForce[1] = force;
 	memset(channel->reverbBuffer, 0, sizeof(channel->reverbBuffer[0][0])*2*REVERB_LENGTH);
+}
+#endif
+
+#ifdef USE_LIBSAMPLERATE
+void mixer_set_channel_legacy_resample(int ch, int enable)
+{
+	struct mixer_channel_data *channel = &mixer_channel[ch];
+
+	channel->legacy_resample = enable;
+}
+#else
+void mixer_set_channel_legacy_resample(int ch, int enable)
+{
 }
 #endif

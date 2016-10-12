@@ -438,7 +438,7 @@ static void Votrax_Update(int num, INT16 *buffer, int length)
 
 			memset(buffer, 0x00, samplesToCopy*sizeof(INT16));
 			buffer += samplesToCopy;
-
+			length -= samplesToCopy;
 			votraxsc01_locals.iDelay -= samplesToCopy;
 		}
 		else if ( votraxsc01_locals.iSamplesInBuffer==0 ) {
