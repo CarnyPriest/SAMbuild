@@ -1,3 +1,6 @@
+version 2.40
+official rev 4028
+ ----------------------
 version 2.39a
 official rev 4019
 S.A.M. 
