@@ -300,7 +300,7 @@ extern void video_update_core_dmd(struct mame_bitmap *bitmap, const struct recta
 #define CORE_CUSTSWCOL     CORE_STDSWCOLS  /* first custom (game specific) switch column */
 #define CORE_MAXLAMPCOL     42   /* lamp column (0-7=std lamp matrix 8- custom) */
 #define CORE_CUSTLAMPCOL   CORE_STDLAMPCOLS  /* first custom lamp column */
-#define CORE_MAXRGBLAMPS     260      //!! ??
+#define CORE_MAXRGBLAMPS     260
 #define CORE_MAXPORTS        8   /* Maximum input ports */
 #define CORE_MAXGI           5   /* Maximum GI strings */
 #define CORE_MAXNVRAM        131118 /* Maximum number of NVRAM bytes, only used for get_ChangedNVRAM so far */
@@ -354,6 +354,11 @@ extern void video_update_core_dmd(struct mame_bitmap *bitmap, const struct recta
 #define LBLUE       (COL_LAMP+6)
 #define LPURPLE     (COL_LAMP+7)
 
+/* Modulated solenoid array */
+#define CORE_MODSOL_CUR		0
+#define CORE_MODSOL_PREV	1
+#define CORE_MODSOL_MAX		68
+
 /*-------------------------------------------
 /  Draw data. draw lamps,switches,solenoids
 /  in this way instead of a matrix
@@ -388,6 +393,8 @@ typedef struct {
   UINT16 drawSeg[CORE_SEGCOUNT]; /* segments drawn */
   UINT32 solenoids;       /* on power driver bord */
   UINT32 solenoids2;      /* flipper solenoids */
+  UINT8  modulatedSolenoids[2][CORE_MODSOL_MAX];
+  int    modulatedsolEn;  /* Enable solenoid modulation decoding */
   UINT32 pulsedSolState;  /* current pulse value of solenoids on driver board */
   UINT64 lastSol;         /* last state of all solenoids */
   int    gi[CORE_MAXGI];  /* WPC gi strings */
