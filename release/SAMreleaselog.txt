@@ -1,3 +1,7 @@
+version 2.41
+S.A.M. 
+AUX solenoids, modulated flashers, ROM controlled GI support in sam.c [djrobx]
+ ----------------------
 version 2.40a
 official rev 4044
 S.A.M. 

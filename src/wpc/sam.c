@@ -4,6 +4,8 @@
 #include "vpintf.h"
 #include "cpu/at91/at91.h"
 #include "sndbrd.h"
+#include <assert.h>
+
 // Defines
 
 #define SAM_USE_JIT
@@ -13,7 +15,10 @@
 #define SAM_IRQFREQ 4008
 #define WAVE_OUT_RATE 24000
 #define SAM_TIMER 120
-#define BUFFSIZE 262144
+// Sound buffer was very excessive at 256KB before. 
+// 1 second is plenty.   The code now throws out sound that's delayed over 20ms, 
+// so 1 second gives 5x cushion when operating normally. 
+#define BUFFSIZE (WAVE_OUT_RATE)    
 #define FIQ_SOUND_SYNC 1
 
 #define SAM_CPU	0
@@ -25,14 +30,15 @@
 #define SAM_MINIDMD3 0x04
 #define SAM_NOMINI3	 0x08
 #define SAM_NOMINI4	 0x10
-#define SAM_NOMINI5	 0x20
+#define SAM_GAME_TRON	 0x20
+#define SAM_GAME_AUXSOL8    0x40
+#define SAM_GAME_AUXSOL12    0x80
 
 #define SAM_0COL 0x00
 #define SAM_2COL 0x02
 #define SAM_3COL 0x03
 #define SAM_8COL 0x08
 
-#ifdef _DEBUG
 #include <Windows.h>
 
 void DebuggerLog ( const char * format, ... )
@@ -50,9 +56,6 @@ void DebuggerLog ( const char * format, ... )
 }
 
 #define LOG(x) DebuggerLog x
-#else
-#define LOG(x)
-#endif
 // Variables
 struct {
 	int vblankCount;
@@ -73,6 +76,10 @@ struct {
 	int powerswitch;
 	INT16 bank;
 	char minidata[226];
+	UINT32 solenoidbits[CORE_MODSOL_MAX];
+	UINT32 modulated_lights[6];
+	UINT8 modulated_lights_prev_levels[6];
+	UINT8 last_aux_line_6; 
 } samlocals;
 
 static int sam_getSol(int solNo);
@@ -198,10 +205,7 @@ static void sam_sh_update(int num, INT16 *buffer[2], int length)
 				samlocals.sampout[channel] = (samlocals.sampout[channel] + 1) % BUFFSIZE;
 				samlocals.lastsamp[channel] = buffer[channel][ii++];
 			}
-			// TODO: These are buffer over and under-run cases
-			// It would be good to tweak the FIQ frequency slightly based on these, just need
-			// to change the FIQ generator to a normal MAME timer so the value can be altered
-			// at runtime
+			
 			delta = samlocals.sampnum[channel] - samlocals.sampout[channel];
 
 			if (delta > WAVE_OUT_RATE * 20 / 1000)
@@ -490,7 +494,6 @@ static int led[] =
 static char lastbank11;
 static int minidmdx;
 static int minidmdy;
-static char lastbank6;
 static int dword_105E0AFC;
 static int led_target;
 
@@ -541,15 +544,25 @@ LABEL_6:
 				sam_bank[0]++;
 				if ( sam_bank[0] == 1 )
 				{
-					samlocals.solenoids &= 0xFFFF00FF;
-					for(ii = 0; ii <= 7; ii++)
+					if (options.usemodsol)
 					{
-						if ( bank & (1<<ii) )
-							sam_bank[14 + ii] = 0x19;
-						if( sam_bank[14 + ii] > 0)
+						for(ii = 0; ii <= 7; ii++)
 						{
-							sam_bank[14 + ii]--;
-							samlocals.solenoids |= ((sam_bank[14 + ii] > 0) << (8 + ii));
+							core_update_modulated_light(&samlocals.solenoidbits[ii+8], bank & (1<<ii)); 
+						}
+					}
+					else
+					{
+						samlocals.solenoids &= 0xFFFF00FF;
+						for(ii = 0; ii <= 7; ii++)
+						{
+							if ( bank & (1<<ii) )
+								sam_bank[14 + ii] = 0x19;
+							if( sam_bank[14 + ii] > 0)
+							{
+								sam_bank[14 + ii]--;
+								samlocals.solenoids |= ((sam_bank[14 + ii] > 0) << (8 + ii));
+							}
 						}
 					}
 					//samlocals.solenoids |= (bank << 8);
@@ -559,108 +572,93 @@ LABEL_6:
 				sam_bank[1]++;
 				if ( sam_bank[1] == 1 )
 				{
-					samlocals.solenoids &= 0xFFFFFF00;
-					for(ii = 0; ii <= 7; ii++)
+					if (options.usemodsol)
 					{
-						if ( bank & (1<<ii) )
-							sam_bank[6 + ii] = 0x19;
-						if( sam_bank[6 + ii] > 0)
+						for(ii = 0; ii <= 7; ii++)
 						{
-							sam_bank[6 + ii]--;
-							samlocals.solenoids |= ((sam_bank[6 + ii] > 0) << ii);
+							core_update_modulated_light(&samlocals.solenoidbits[ii], bank & (1<<ii)); 
 						}
+
 					}
-					//samlocals.solenoids |= bank;
+					else
+					{
+						samlocals.solenoids &= 0xFFFFFF00;
+						for(ii = 0; ii <= 7; ii++)
+						{
+							if ( bank & (1<<ii) )
+								sam_bank[6 + ii] = 0x19;
+							if( sam_bank[6 + ii] > 0)
+							{
+								sam_bank[6 + ii]--;
+								samlocals.solenoids |= ((sam_bank[6 + ii] > 0) << ii);
+							}
+						}
+						//samlocals.solenoids |= bank;
+					}
 				}
 				return;
 			case 2:
 				sam_bank[2]++;
 				if ( sam_bank[2] == 1 )
 				{
-					samlocals.solenoids &= 0xFF00FFFF;
-					for(ii = 0; ii <= 7; ii++)
+					if (options.usemodsol)
 					{
-						if ( bank & (1<<ii) )
-							sam_bank[22 + ii] = 0x19;
-						if( sam_bank[22 + ii] > 0)
+						for(ii = 0; ii <= 7; ii++)
 						{
-							sam_bank[22 + ii]--;
-							samlocals.solenoids |= ((sam_bank[22 + ii] > 0) << (16 + ii));
+							core_update_modulated_light(&samlocals.solenoidbits[ii+16], bank & (1<<ii)); 
 						}
 					}
-					//samlocals.solenoids |= (bank << 16);
+					else
+					{
+						samlocals.solenoids &= 0xFF00FFFF;
+						for(ii = 0; ii <= 7; ii++)
+						{
+							if ( bank & (1<<ii) )
+								sam_bank[22 + ii] = 0x19;
+							if( sam_bank[22 + ii] > 0)
+							{
+								sam_bank[22 + ii]--;
+								samlocals.solenoids |= ((sam_bank[22 + ii] > 0) << (16 + ii));
+							}
+						}
+						//samlocals.solenoids |= (bank << 16);
+					}
 				}
 				return;
 			case 3:
 				sam_bank[3]++;
 				if ( sam_bank[3] == 1 )
 				{
-					samlocals.solenoids &= 0x00FFFFFF;
-					for(ii = 0; ii <= 7; ii++)
+					if (options.usemodsol)
 					{
-						if ( bank & (1<<ii) )
-							sam_bank[30 + ii] = 0x19;
-						if( sam_bank[30 + ii] > 0)
+						for(ii = 0; ii <= 7; ii++)
 						{
-							sam_bank[30 + ii]--;
-							samlocals.solenoids |= ((sam_bank[30 + ii] > 0) << (24 + ii));
+							core_update_modulated_light(&samlocals.solenoidbits[ii+24], bank & (1<<ii)); 
 						}
 					}
-					//samlocals.solenoids |= (bank << 24);
+					else
+					{
+						samlocals.solenoids &= 0x00FFFFFF;
+						for(ii = 0; ii <= 7; ii++)
+						{
+							if ( bank & (1<<ii) )
+								sam_bank[30 + ii] = 0x19;
+							if( sam_bank[30 + ii] > 0)
+							{
+								sam_bank[30 + ii]--;
+								samlocals.solenoids |= ((sam_bank[30 + ii] > 0) << (24 + ii));
+							}
+						}
+						//samlocals.solenoids |= (bank << 24);
+					}
 				}
 				return;
 			case 6:
-				sam_bank[4]++;
-	/*			if (bank!=lastbank6)
-				{
-				  swprintf(tmp, _countof(tmp), L"%d %d\r\n", bank, sam_bank[4]);
-				  OutputDebugStringW(tmp);
-				} */
-				// 9/5/2016 - Modified by djrobx
-				// 
-				// Removing sam_bank[4] check as it causes us to miss the aux board solenoid event (because the one we want is at 2!).
-				// Adding check for gameSpecific1 == 0.    This same event seems to be used for other
-				// purposes (probably different hardware connected to same port on SAM board), 
-				// so we want to ensure we only modify the solenoids if the others aren't set. 
-				//
-				// if ( sam_bank[4] == 1 && bank >= 0)
-				if ( core_gameData->hw.gameSpecific1 == 0 )
-				{
-					switch(sam_bank[4])
-					{
-					case 2:
-						samlocals.custsol &= 0xFFFFFF00;
-						for(ii = 0; ii <= 7; ii++)
-						{
-							if ( bank & (1<<ii) )
-								sam_bank[38 + ii] = 0x19;
-							if( sam_bank[38 + ii] > 0)
-							{
-								sam_bank[38 + ii]--;
-								samlocals.custsol |= ((sam_bank[38 + ii] > 0) << (ii));
-							}
-						}
-						break;
-					case 3:
-						samlocals.custsol &= 0xFFFF00FF;
-						for(ii = 0; ii <= 7; ii++)
-						{
-							if ( bank & (1<<ii) )
-								sam_bank[47 + ii] = 0x19;
-							if( sam_bank[47 + ii] > 0)
-							{
-								sam_bank[47 + ii]--;
-								samlocals.custsol |= ((sam_bank[47 + ii] > 0) << (8 + ii));
-							}
-						}					
-						break;
-					}
-				}
 				if ( core_gameData->hw.gameSpecific1 & 1 )
 				{
 					if ( minidmdx == 1 )
 					{
-						minidmdy = led[sam_led(bank & 0x7F | ((lastbank6 & 0x7F) << 7))];
+						minidmdy = led[sam_led(bank & 0x7F | ((samlocals.last_aux_line_6 & 0x7F) << 7))];
 					}
 					else
 					{
@@ -669,9 +667,9 @@ LABEL_6:
 						if ( minidmdx >= 17 )
 						{
 LABEL_157:
-							if ( (~lastbank6 & bank) >= 0x80)
+							if ( (~samlocals.last_aux_line_6 & bank) >= 0x80)
 							{
-								lastbank6 = bank;
+								samlocals.last_aux_line_6 = bank;
 								minidmdx = 0;
 								return;
 							}
@@ -684,18 +682,18 @@ LABEL_157:
 				if ( core_gameData->hw.gameSpecific1 & 2 )
 				{
 					int test;
-					test = bank & ~lastbank6;
+					test = bank & ~samlocals.last_aux_line_6;
 					if (!((test < 0x80) && (test >= 0)))
 					{
 						minidmdx = 0;
-						lastbank6 = bank;
+						samlocals.last_aux_line_6 = bank;
 						minidmdy = sam_led(bank & 3);
 						return;
 					}
 					if ( minidmdx < 3 )
 					{
 			            coreGlobals.tmpLampMatrix[minidmdy + minidmdx + 2 * minidmdy + 10] = bank & 0x7F;
-						lastbank6 = bank;
+						samlocals.last_aux_line_6 = bank;
 			            coreGlobals.lampMatrix[minidmdy + minidmdx + 2 * minidmdy + 10] = bank & 0x7F;
 						minidmdx++;
 			            return;
@@ -704,7 +702,7 @@ LABEL_157:
 				if ( core_gameData->hw.gameSpecific1 & 4 )
 				{
 					int test;
-					test = bank & ~lastbank6;
+					test = bank & ~samlocals.last_aux_line_6;
 					if ( (test < 0x80) && (test >= 0) )
 					{
 						minidmdx++;
@@ -718,13 +716,13 @@ LABEL_157:
 					{
 						if ( minidmdx == 1 )
 						{
-							lastbank6 = bank;
+							samlocals.last_aux_line_6 = bank;
 							minidmdy = sam_led(bank & 0x1F);
 							return;
 						}
 						if ( minidmdx > 1 && minidmdx < 7 )
 						{
-							lastbank6 = bank;
+							samlocals.last_aux_line_6 = bank;
 							samlocals.minidata[16 * minidmdy + minidmdx] = bank & 0x7F;
 							return;
 						}
@@ -739,18 +737,20 @@ LABEL_157:
 					}
 				}
 LABEL_176:
-				lastbank6 = bank;
+				samlocals.last_aux_line_6 = bank;
 				break;
 			case 8:
 				sam_bank[0] = 0;
 				sam_bank[1] = 0;
 				sam_bank[2] = 0;
 				sam_bank[3] = 0;
-				sam_bank[4] = 0;
 				sam_bank[5] = 0;
 				sam_bank[46]++;
-				if ( sam_bank[46] == 2 )
-					led_target = sam_led(bank);
+				if( sam_bank[46] == 1 || sam_bank[46] == 2)
+				{
+					led_target = core_BitColToNum(bank);
+					break;
+				}
 				return;
 			case 10:
 				sam_bank[46] = 0;
@@ -759,6 +759,63 @@ LABEL_176:
 					coreGlobals.tmpLampMatrix[led_target] = core_revbyte(bank);
 				return;
 			case 11:
+				coreGlobals.gi[0] = (~bank & 0x01);
+
+				// Previous versions of the code counted the number of writes to locate 
+				// the solenoid bank.  The safest way is to apply the solenoid when the target column is written here.
+				// However, this makes the 8 port bank "backwards" compared to previous 
+				// versions, and makes the solenoid IDs go over 64 which is undesirable
+				// for the VPM core.   Swap them for 8 port aux boards. 
+				
+				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL12) && (~bank & 0x20)) ||
+					(core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL8) && (~bank & 0x10))
+				{
+					if (options.usemodsol)
+					{
+						for (ii = 0; ii <= 7; ii++)
+						{
+							core_update_modulated_light(&samlocals.solenoidbits[ii + CORE_FIRSTCUSTSOL - 1], samlocals.last_aux_line_6 & (1 << ii));
+						}
+					}
+					else
+					{
+						samlocals.custsol &= 0xFFFFFF00;
+						for (ii = 0; ii <= 7; ii++)
+						{
+							if (samlocals.last_aux_line_6 & (1 << ii))
+								sam_bank[38 + ii] = 0x19;
+							if (sam_bank[38 + ii] > 0)
+							{
+								sam_bank[38 + ii]--;
+								samlocals.custsol |= ((sam_bank[38 + ii] > 0) << (ii));
+							}
+						}
+					}
+				}
+				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL12) && (~bank & 0x10)))
+				{
+					if (options.usemodsol)
+					{
+						for (ii = 0; ii <= 7; ii++)
+						{
+							core_update_modulated_light(&samlocals.solenoidbits[ii + CORE_FIRSTCUSTSOL + 8 - 1], samlocals.last_aux_line_6 & (1 << ii));
+						}
+					}
+					else
+					{
+						samlocals.custsol &= 0xFFFF00FF;
+						for (ii = 0; ii <= 7; ii++)
+						{
+							if (samlocals.last_aux_line_6 & (1 << ii))
+								sam_bank[47 + ii] = 0x19;
+							if (sam_bank[47 + ii] > 0)
+							{
+								sam_bank[47 + ii]--;
+								samlocals.custsol |= ((sam_bank[47 + ii] > 0) << (8 + ii));
+							}
+						}
+					}
+				}
 				if ( core_gameData->hw.gameSpecific1 & SAM_MINIDMD3 )
 				{
 					if ( (bank & ~lastbank11) & 8 )
@@ -767,21 +824,31 @@ LABEL_176:
 						dword_105E0AFC = 1;
 				}
 				if ( core_gameData->hw.gameSpecific1 & SAM_NOMINI3 && ~bank & 0x08 )
-					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(lastbank6);
+					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(samlocals.last_aux_line_6);
 				if ( core_gameData->hw.gameSpecific1 & SAM_NOMINI4 && ~bank & 0x10 )
-					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(lastbank6);
-				if ( core_gameData->hw.gameSpecific1 & SAM_NOMINI5 )
+					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(samlocals.last_aux_line_6);
+				if ( core_gameData->hw.gameSpecific1 & SAM_GAME_TRON )
 				{
 					if ( ~bank & 0x08 )
-						coreGlobals.lampMatrix[8] = coreGlobals.tmpLampMatrix[8] = core_revbyte(lastbank6);
+						coreGlobals.lampMatrix[8] = coreGlobals.tmpLampMatrix[8] = core_revbyte(samlocals.last_aux_line_6);
 					if ( ~bank & 0x10 )
-						coreGlobals.lampMatrix[9] = coreGlobals.tmpLampMatrix[9] = core_revbyte(lastbank6);
+					{
+						coreGlobals.lampMatrix[9] = coreGlobals.tmpLampMatrix[9] = core_revbyte(samlocals.last_aux_line_6);
+						core_update_modulated_light(&samlocals.modulated_lights[0], samlocals.last_aux_line_6 & (1 << 3));
+						core_update_modulated_light(&samlocals.modulated_lights[1], samlocals.last_aux_line_6 & (1 << 4));
+						core_update_modulated_light(&samlocals.modulated_lights[2], samlocals.last_aux_line_6 & (1 << 5));
+					}
 					if ( ~bank & 0x20 )
-						coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(lastbank6);
+					{
+						coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(samlocals.last_aux_line_6);
+						core_update_modulated_light(&samlocals.modulated_lights[3], samlocals.last_aux_line_6 & (1 << 3));
+						core_update_modulated_light(&samlocals.modulated_lights[4], samlocals.last_aux_line_6 & (1 << 4));
+						core_update_modulated_light(&samlocals.modulated_lights[5], samlocals.last_aux_line_6 & (1 << 5));
+					}
 					if ( ~bank & 0x40 )
 						logerror("Test");
 				}
-		        if ( (~bank & 0x40) && (lastbank6 & 3) )
+		        if ( (~bank & 0x40) && (samlocals.last_aux_line_6 & 3) )
 					logerror("error");
 				lastbank11 = bank;
 				return;
@@ -908,8 +975,8 @@ static WRITE32_HANDLER(sam_port_w)
 			l_vol = (samlocals.msu[0] & 0x7F) * 0.78125;
 		if (samlocals.msu[3] == 0 )
 			r_vol = (samlocals.msu[0] & 0x7F) * 0.78125;
-		mixer_set_stereo_volume(0, l_vol, 0);
-		mixer_set_stereo_volume(1, 0, r_vol);
+		mixer_set_stereo_volume(0, (int)l_vol, 0);
+		mixer_set_stereo_volume(1, 0, (int)r_vol);
 
 		samlocals.msu[5] = 16;
 		samlocals.msu[4] = 0;
@@ -973,11 +1040,11 @@ static void sam_LED_hack(int usartno)
 
 	// Several LE games do not transmit data for a really long time.  These are ROM hacks that force the issue to get things moving.  
 	
-	if (stricmp(gn, "mt_145h")==0)
+	if (_stricmp(gn, "mt_145h")==0)
 	{
 		cpu_writemem32ledw(0x1061728, 0x00);
 	}
-	else if (stricmp(gn, "mt_145")==0)
+	else if (_stricmp(gn, "mt_145")==0)
 	{
 		cpu_writemem32ledw_dword(0x1eb0, 0xe1a00000);
 	}
@@ -1051,6 +1118,8 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 
 
 static INTERRUPT_GEN(sam_vblank) {
+	int i;
+
 	samlocals.vblankCount += 1;
 	
 	memcpy(coreGlobals.lampMatrix, coreGlobals.tmpLampMatrix, 40);
@@ -1058,9 +1127,32 @@ static INTERRUPT_GEN(sam_vblank) {
 	    coreGlobals.diagnosticLed = samlocals.diagnosticLed;
 		samlocals.diagnosticLed = 0;
 	}
-	memcpy(coreGlobals.RGBlamps, sam_ext_leds, SAM_LEDS_MAX * sizeof(data8_t));
-	coreGlobals.solenoids = samlocals.solenoids;
-	coreGlobals.solenoids2 = samlocals.solenoids2;
+	switch(core_gameData->hw.gameSpecific1)
+	{
+	case SAM_GAME_TRON:
+		for(i=0;i<6;i++)
+		{
+			coreGlobals.RGBlamps[i+20] = core_calc_modulated_light(samlocals.modulated_lights[i], 15, &samlocals.modulated_lights_prev_levels[i]);
+		}
+		break;
+	default:
+		memcpy(coreGlobals.RGBlamps, sam_ext_leds, SAM_LEDS_MAX * sizeof(data8_t));
+		break;
+	}
+	if (options.usemodsol)
+	{
+		for(i=0;i<CORE_MODSOL_MAX;i++)
+		{
+			if (i==32) // Skip VPM reserved solenoids
+				i=CORE_FIRSTCUSTSOL-1;
+			coreGlobals.modulatedSolenoids[CORE_MODSOL_CUR][i] = core_calc_modulated_light(samlocals.solenoidbits[i], 24, &coreGlobals.modulatedSolenoids[CORE_MODSOL_PREV][i]);		
+		}
+	}
+	else
+	{
+		coreGlobals.solenoids = samlocals.solenoids;
+		coreGlobals.solenoids2 = samlocals.solenoids2;
+	}
 	core_updateSw(TRUE);
 }
 
@@ -2032,7 +2124,7 @@ CORE_CLONEDEF(bbh, 160, 140, "Big Buck Hunter Pro (V1.6)", 2010, "Stern", sam, 0
 CORE_CLONEDEF(bbh, 170, 140, "Big Buck Hunter Pro (V1.7)", 2010, "Stern", sam, 0)
 
 //Iron Man - ?? seems ok
-INITGAME(im, GEN_SAM, sam_dmd128x32, SAM_0COL, SAM_NOMINI);
+INITGAME(im, GEN_SAM, sam_dmd128x32, SAM_0COL, SAM_GAME_AUXSOL12);
 
 SAM_ROMLOAD(im_100, "im_100.bin", CRC(b27d12bf) SHA1(dfb497f2edaf4321823b243cced9d9e2b7bac628), 0x1b8fe44)
 SAM_ROMEND
@@ -2065,7 +2157,7 @@ CORE_CLONEDEF(im, 183, 100, "Iron Man (V1.83)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(im, 183ve, 100, "Iron Man Vault Edition (V1.83)", 2014, "Stern", sam, 0)
 
 //Tron: Legacy - ?? seems ok
-INITGAME(trn, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_NOMINI5);
+INITGAME(trn, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_GAME_TRON);
 
 SAM_ROMLOAD(trn_160, "trn160.bin", CRC(38eb16b1) SHA1(4f18080d76e07a3308497116cf3e39a7fab4cd25), 0x01f0f314)
 SAM_ROMEND
@@ -2118,7 +2210,7 @@ CORE_CLONEDEF(tf, 150h, 120, "Transformers Limited Edition (V1.5)", 2012, "Stern
 CORE_CLONEDEF(tf, 180h, 120, "Transformers Limited Edition (V1.8)", 2013, "Stern", sam, 0)
 
 //Avatar - ?? Seems ok
-INITGAME(avr, GEN_SAM, sam_dmd128x32, SAM_0COL, SAM_NOMINI);
+INITGAME(avr, GEN_SAM, sam_dmd128x32, SAM_0COL, SAM_GAME_AUXSOL12);
 
 SAM_ROMLOAD(avr_106, "avr106.bin", CRC(695799e5) SHA1(3e216fd4273adb7417294b3e648befd69350ab25), 0x01ED31B4)
 SAM_ROMEND
@@ -2200,7 +2292,7 @@ CORE_CLONEDEF(rsn, 110h, 110, "Rolling Stones Limited/Premium Edition (V1.1)", 2
     ROM_COPY( SAM_ROMREGION, 0, 0x09800000, 0x00800000) \
     ROM_COPY( SAM_ROMREGION, 0, 0x0A000000, 0x00300000)
 
-INITGAME(acd, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_NOMINI);
+INITGAME(acd, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12);
  
 SAM_ROMLOAD_ACDC1(acd_121, "acd_121.bin", CRC(4f5f43e9) SHA1(19045e9cdb2522770013c24c6fed265009278dea), 0x03D8F40C)
 SAM_ROMEND
@@ -2254,7 +2346,7 @@ CORE_CLONEDEF(acd, 168c, 121, "AC/DC Pro (V1.68) (Colored)", 2014, "Stern", sam,
 CORE_CLONEDEF(acd, 168h, 121, "AC/DC Limited Edition (V1.68)", 2014, "Stern", sam, 0)
 
 //X-Men
-INITGAME(xmn, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_NOMINI);
+INITGAME(xmn, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL8);
 
 SAM_ROMLOAD(xmn_100, "xmn_100.bin", CRC(997b2973) SHA1(68bb379860a0fe5be6a8a8f28b6fd8fe640e172a), 0x01FB7DEC)
 SAM_ROMEND
@@ -2306,7 +2398,7 @@ CORE_CLONEDEF(xmn, 151, 100, "X-Men Pro (V1.51)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(xmn, 151h, 100, "X-Men Limited Edition (V1.51)", 2014, "Stern", sam, 0)
 
 //Avengers
-INITGAME(avs, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_NOMINI);
+INITGAME(avs, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL8);
 
 SAM_ROMLOAD(avs_110, "avs_110.bin", CRC(2cc01e3c) SHA1(0ae7c9ced7e1d48b0bf4afadb6db508e558a7ebb), 0x01D032AC)
 SAM_ROMEND
@@ -2366,7 +2458,7 @@ CORE_CLONEDEF(avs, 170h, 110, "Avengers Limited Edition (V1.7)", 2016, "Stern", 
     ROM_COPY( SAM_ROMREGION, 0, 0x07800000, 0x00800000) \
     ROM_COPY( SAM_ROMREGION, 0, 0x08000000, 0x00800000)
 
-INITGAME(mtl, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_NOMINI);
+INITGAME(mtl, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12);
 
 SAM_ROMLOAD_MTL1(mtl_103, "mtl_103.bin", CRC(9b073858) SHA1(129872e38d21d9d6d20f81388825113f13645bab), 0x04D24D04)
 SAM_ROMEND
@@ -2471,7 +2563,7 @@ CORE_CLONEDEF(mtl, 170c, 103, "Metallica Pro (V1.7) (Colored)", 2016, "Stern", s
     ROM_COPY( SAM_ROMREGION, 0, 0x07800000, 0x00800000) \
     ROM_COPY( SAM_ROMREGION, 0, 0x08000000, 0x00800000)
 
-INITGAME(st, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_NOMINI);
+INITGAME(st, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_GAME_AUXSOL12);
 
 SAM_ROMLOAD_ST(st_120, "st_120.bin", CRC(dde9db23) SHA1(09e67564bce0ff7c67f1d16c4f9d8595f8130372), 0x02B14CFC)													
 SAM_ROMEND
@@ -2517,7 +2609,7 @@ CORE_CLONEDEF(st, 161h, 120, "Star Trek Limited Edition (V1.61)", 2015, "Stern",
 
 //Mustang
 
-INITGAME(mt, GEN_SAM, sam_dmd128x32, SAM_8COL,0);
+INITGAME(mt, GEN_SAM, sam_dmd128x32, SAM_8COL,SAM_GAME_AUXSOL12);
 
 SAM_ROMLOAD(mt_120, "mt_120.bin", CRC(be7437ac) SHA1(5db10d7f48091093c33d522a663f13f262c08c3e), 0x037DA5EC)													
 SAM_ROMEND
@@ -2552,7 +2644,7 @@ CORE_CLONEDEF(mt, 145hb, 120 , "Mustang Boss (V1.45)", 2016, "Stern", sam, 0)
 
 //Walking Dead
 
-INITGAME(twd, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_NOMINI);
+INITGAME(twd, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_GAME_AUXSOL12);
 
 SAM_ROMLOAD_ACDC3(twd_105, "twd_105.ebi", CRC(59b4e4d6) SHA1(642e827d58c9877a9f3c29b75784660894f045ad), 0x04F4FBF8)													
 SAM_ROMEND
@@ -2610,7 +2702,7 @@ CORE_CLONEDEF(twd, 156, 105, "The Walking Dead (V1.56)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156h, 105, "The Walking Dead LE (V1.56)", 2015, "Stern", sam, 0)
 
 //Spider-Man Vault Edition
-INITGAME(smanve, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_NOMINI);
+INITGAME(smanve, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_GAME_AUXSOL12);
 
 SAM_ROMLOAD_ACDC1(smanve_100, "smanve_100.bin", CRC(f761fa19) SHA1(259bd6d42e742eaad1b7b50f9b5e4830c81084b0), 0x03F2CA8C)
 SAM_ROMEND
