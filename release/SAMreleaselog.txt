@@ -1,3 +1,8 @@
+version 2.40a
+official rev 4044
+S.A.M. 
+in sam.c *line = hew[temp] + 63; remove + 63 to make the colors look right [lucky1]
+ ----------------------
 version 2.40
 official rev 4028
  ----------------------

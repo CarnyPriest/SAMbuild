@@ -1189,7 +1189,7 @@ PINMAME_VIDEO_UPDATE(samdmd_update) {
 			temp = *RAM1;
 			if ((*RAM1 & 0xF0) == 0xF0)
 				temp = *RAM2;
-			*line = hew[temp] + 63;
+			*line = hew[temp];
 			*line++;
 		}
 	}
