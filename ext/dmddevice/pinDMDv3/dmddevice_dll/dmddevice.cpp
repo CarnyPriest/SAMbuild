@@ -1,33 +1,30 @@
-// This is the main DLL file.
-
-#include "windows.h"
-#include "stdafx.h"
-#include "dmddevice.h"
-#include "pinDMD3.h"
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "usbalphanumeric.h"
+
+#include "..\..\dmddevice.h"
+#include "..\pindmd3\pinDMD3.h"
+
+#include "..\..\usbalphanumeric.h"
 
 bool isOpen = false;
-UINT64 gen = 0;
+//UINT64 gen = 0;
 
 
-void Send_Clear_Screen(void)
+void Send_Clear_Screen(void) //!! unused
 {
 	memset(OutputPacketBuffer,0x00, 2048);
 	render16ShadeFrame(OutputPacketBuffer);
 	Sleep(50);
 }
 
-int Open()
+DMDDEV int Open()
 {
 	return 1;
 }
 
-
-
-
-bool Close()
+DMDDEV bool Close()
 {
 	if (isOpen) {
 		pindmdDeInit();
@@ -38,28 +35,24 @@ bool Close()
 	return true;
 }
 
-
-
-
-void PM_GameSettings(const char* GameName, UINT64 HardwareGeneration, tPMoptions Options)
+DMDDEV void PM_GameSettings(const char* GameName, UINT64 HardwareGeneration, const tPMoptions &Options)
 {
-	gen = HardwareGeneration;
+	//gen = HardwareGeneration;
 	if (pindmdInit(Options)) {
 		isOpen = true;
 		OutputPacketBuffer = (UINT8 *)malloc(2048);
 	}
 }
 
-void Set_4_Colors_Palette(rgb24 color0, rgb24 color33, rgb24 color66, rgb24 color100) 
+DMDDEV void Set_4_Colors_Palette(rgb24 color0, rgb24 color33, rgb24 color66, rgb24 color100) 
 {
 }
 
 
-void Render_4_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer) 
+DMDDEV void Render_4_Shades(UINT16 width, UINT16 height, UINT8 *currbuffer)
 {
 	if (isOpen) {
-		int byteIdx=0;
-		int i,j,v;
+		//int byteIdx=0;
 		UINT8 tempbuffer[128*32]; // for rescale
 
 		// 128x16 = display centered vert
@@ -70,41 +63,85 @@ void Render_4_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer)
 		if(width == 192 && height == 64)
 		{
 			UINT32 o = 0;
-			for(j = 0; j < 32; ++j)
-				for(i = 0; i < 128; ++i,++o)
+			for(int j = 0; j < 32; ++j)
+				for(int i = 0; i < 128; ++i,++o)
 				{
 					const UINT32 offs = j*(2*192)+i*3/2;
 					if((i&1) == 1) // filter only each 2nd pixel, could do better than this
 						tempbuffer[o] = (UINT8)(((int)currbuffer[offs] + (int)currbuffer[offs+192] + (int)currbuffer[offs+1] + (int)currbuffer[offs+193])/4);
 					else
 						tempbuffer[o] = (UINT8)(((int)currbuffer[offs] + (int)currbuffer[offs+192])/2);
+
+					switch (tempbuffer[o]){
+					case 0:
+						tempbuffer[o] = 0;
+						break;
+					case 1:
+						tempbuffer[o] = 1;
+						break;
+					case 2:
+						tempbuffer[o] = 7;
+						break;
+					case 3:
+						tempbuffer[o] = 15;
+						break;
+					}
 				}
 		}
 		else if(width == 256 && height == 64)
 		{
 			UINT32 o = 0;
-			for(j = 0; j < 32; ++j)
-				for(i = 0; i < 128; ++i,++o)
+			for(int j = 0; j < 32; ++j)
+				for(int i = 0; i < 128; ++i,++o)
 				{
 					const UINT32 offs = j*(2*256)+i*2;
 					tempbuffer[o] = (UINT8)(((int)currbuffer[offs] + (int)currbuffer[offs+256] + (int)currbuffer[offs+1] + (int)currbuffer[offs+257])/4);
+
+					switch (tempbuffer[o]){
+					case 0:
+						tempbuffer[o] = 0;
+						break;
+					case 1:
+						tempbuffer[o] = 1;
+						break;
+					case 2:
+						tempbuffer[o] = 7;
+						break;
+					case 3:
+						tempbuffer[o] = 15;
+						break;
+					}
 				}
 		} else
-			memcpy(tempbuffer,currbuffer,4096);
+			for (int i = 0; i < width*height; i++){
+				switch (currbuffer[i]){
+				case 0:
+					tempbuffer[i] = 0;
+					break;
+				case 1:
+					tempbuffer[i] = 1;
+					break;
+				case 2:
+					tempbuffer[i] = 7;
+					break;
+				case 3:
+					tempbuffer[i] = 15;
+					break;
+				}
+			}
 	
-
 		// dmd height
-/*		for(j = 0; j < ((height==16)?16:32); ++j)
+/*		for(int j = 0; j < ((height==16)?16:32); ++j)
 		{
 			// dmd width
-			for(i = 0; i < 128; i+=8)
+			for(int i = 0; i < 128; i+=8)
 			{
 				int bd0,bd1,bd2,bd3;
 				bd0 = 0;
 				bd1 = 0;
 				bd2 = 0;
 				bd3 = 0;
-				for (v = 7; v >= 0; v--)
+				for (int v = 7; v >= 0; v--)
 				{
 					// pixel colour
 					int pixel = tempbuffer[j*128 + i+v];
@@ -141,11 +178,10 @@ void Render_4_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer)
 	}
 }
 
-void Render_16_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer) 
+DMDDEV void Render_16_Shades(UINT16 width, UINT16 height, UINT8 *currbuffer) 
 {
 	if (isOpen) {
-		int byteIdx=0;
-		int i,j,v;
+		//int byteIdx=0;
 		UINT8 tempbuffer[128*32]; // for rescale
 
 		// 128x16 = display centered vert
@@ -156,8 +192,8 @@ void Render_16_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer)
 		if(width == 192 && height == 64)
 		{
 			UINT32 o = 0;
-			for(j = 0; j < 32; ++j)
-				for(i = 0; i < 128; ++i,++o)
+			for(int j = 0; j < 32; ++j)
+				for(int i = 0; i < 128; ++i,++o)
 				{
 					const UINT32 offs = j*(2*192)+i*3/2;
 					if((i&1) == 1) // filter only each 2nd pixel, could do better than this
@@ -169,28 +205,28 @@ void Render_16_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer)
 		else if(width == 256 && height == 64)
 		{
 			UINT32 o = 0;
-			for(j = 0; j < 32; ++j)
-				for(i = 0; i < 128; ++i,++o)
+			for(int j = 0; j < 32; ++j)
+				for(int i = 0; i < 128; ++i,++o)
 				{
 					const UINT32 offs = j*(2*256)+i*2;
 					tempbuffer[o] = (UINT8)(((int)currbuffer[offs] + (int)currbuffer[offs+256] + (int)currbuffer[offs+1] + (int)currbuffer[offs+257])/4);
 				}
 		} else
-			memcpy(tempbuffer,currbuffer,4096);
+			memcpy(tempbuffer,currbuffer,width*height);
 	
 
 		// dmd height
-		/*for(j = 0; j < ((height==16)?16:32); ++j)
+		/*for(int j = 0; j < ((height==16)?16:32); ++j)
 		{
 			// dmd width
-			for(i = 0; i < 128; i+=8)
+			for(int i = 0; i < 128; i+=8)
 			{
 				int bd0,bd1,bd2,bd3;
 				bd0 = 0;
 				bd1 = 0;
 				bd2 = 0;
 				bd3 = 0;
-				for (v = 7; v >= 0; v--)
+				for (int v = 7; v >= 0; v--)
 				{
 					// pixel colour
 					int pixel = tempbuffer[j*128 + i+v];
@@ -223,11 +259,8 @@ void Render_16_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer)
 }
 
 
-void Render_PM_Alphanumeric_Frame(layout_t layout, UINT16 *seg_data, UINT16 *seg_data2) 
+DMDDEV void Render_PM_Alphanumeric_Frame(layout_t layout, const UINT16 *const seg_data, const UINT16 *const seg_data2) 
 {
-	int i;
-	UINT8 tempbuffer[128*32]; 
-
 	if (isOpen) {	
 		memset(AlphaNumericFrameBuffer,0x00,2048);
 	
@@ -278,7 +311,8 @@ void Render_PM_Alphanumeric_Frame(layout_t layout, UINT16 *seg_data, UINT16 *seg
 				break;
 		}
 
-		for (i = 0; i < 512; ++i) {
+		UINT8 tempbuffer[128*32]; 
+		for (int i = 0; i < 512; ++i) {
 			tempbuffer[(i*8)] = AlphaNumericFrameBuffer[i] & 0x01 | AlphaNumericFrameBuffer[i+512]<<1 & 0x02 | AlphaNumericFrameBuffer[i+1024]<<2 & 0x04 | AlphaNumericFrameBuffer[i+1536]<<3 & 0x08;
 			tempbuffer[(i*8)+1] = AlphaNumericFrameBuffer[i]>>1 & 0x01 | AlphaNumericFrameBuffer[i+512] & 0x02 | AlphaNumericFrameBuffer[i+1024]<<1 & 0x04 | AlphaNumericFrameBuffer[i+1536]<<2 & 0x08;
 			tempbuffer[(i*8)+2] = AlphaNumericFrameBuffer[i]>>2 & 0x01 | AlphaNumericFrameBuffer[i+512]>>1 & 0x02 | AlphaNumericFrameBuffer[i+1024] & 0x04 | AlphaNumericFrameBuffer[i+1536]<<1 & 0x08;
@@ -292,13 +326,3 @@ void Render_PM_Alphanumeric_Frame(layout_t layout, UINT16 *seg_data, UINT16 *seg
 		render16ShadeFrame(tempbuffer);
 	}
 }
-
-
-   
-
-
-
-
-	
-
-

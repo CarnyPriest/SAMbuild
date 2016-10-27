@@ -1,36 +1,40 @@
-// This is the main DLL file.
-
-#include "windows.h"
-#include "stdafx.h"
-#include "dmddevice.h"
-#include <lusb0_usb.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "usbalphanumeric.h"
+
+#include "..\libusb\include\lusb0_usb.h"
+#include "..\libusb\lib\dynamic\libusb_dyn.c"
+
+#include "..\..\dmddevice.h"
+#include "..\..\usbalphanumeric.h"
+
+//define vendor id and product id
+#define VID 0x0314
+#define PID 0xe457
+
+//endpoints for communication
+#define EP_IN 0x81
+#define EP_OUT 0x01
 
 bool isOpen = false;
 
 usb_dev_handle *DeviceHandle = NULL; 
-usb_dev_handle* open_dev( void );
 
 
-void Send_Clear_Screen(void)
+void Send_Clear_Screen(void) //!! unused
 {
 	memset(OutputPacketBuffer,0x00, 2052);
 	const UINT8 tmp[4] = {
 		0x81, 0xC3, 0xE7, 0x00 //header
 		}; 
 	memcpy(OutputPacketBuffer, tmp, sizeof(tmp));
-	usb_bulk_write(DeviceHandle, EP_OUT, OutputPacketBuffer, 2052, 1000);
+	usb_bulk_write(DeviceHandle, EP_OUT, (char*)OutputPacketBuffer, 2052, 1000);
 	Sleep(50);
 }
 
-int Open()
+DMDDEV int Open()
 {
-		int ret = 0;
-		struct usb_bus *bus;
-		struct usb_device *dev = NULL;
-
 		//init usb library
 		usb_init();
 		//find busses
@@ -38,24 +42,26 @@ int Open()
 		//find devices
 		usb_find_devices();
 
+		struct usb_bus *bus;
+		struct usb_device *dev = NULL;
 		for (bus = usb_get_busses(); bus; bus = bus->next) {
 			for (dev = bus->devices; dev; dev = dev->next) {
 				//if device vendor id and product id are match
 				if (dev->descriptor.idVendor == VID && dev->descriptor.idProduct == PID)
+				{
 					//try to open our device
 					DeviceHandle = usb_open(dev);
-				break;
+					if(DeviceHandle)
+						break;
+				}
 			}
 		}
-
 
 		if(DeviceHandle == NULL)
 		{
 			MessageBox(NULL, L"pinDMD v2 not found",L"Error", MB_ICONERROR);
 			return 0;
 		}
-
-		
 
 		if (usb_set_configuration(DeviceHandle, 1) < 0) {
 			usb_close(DeviceHandle);
@@ -69,12 +75,12 @@ int Open()
 		}
 
 /*		char string[256] = {};
-		ret = usb_get_string_simple(DeviceHandle, dev->descriptor.iProduct, string, sizeof(string));
+		int ret = usb_get_string_simple(DeviceHandle, dev->descriptor.iProduct, string, sizeof(string));
 
 		if (ret > 0) {
 			if (strcmp(string, "pinDMD V2") == 0) { 
 */
-				OutputPacketBuffer = (char *)malloc(2052);
+				OutputPacketBuffer = (unsigned char *)malloc(2052);
 				isOpen = true;
 /*			} else {
 				MessageBox(NULL, L"pinDMD v2 not found",L"Error", MB_ICONERROR);
@@ -84,22 +90,20 @@ int Open()
 		}
 */
 		return 1;
-
 }
 
 
 void Send_Logo(void)
 {
 		FILE *fLogo;
-		UINT8 i,j;
 
 		UINT8 LogoBuffer[32][128] = {};
 
 		// display dmd logo from text file if it exists
 		fopen_s(&fLogo, "dmdlogo.txt","r");
 		if(fLogo){
-			for(i=0; i<32; i++){
-				for(j=0; j<128; j++)
+			for(int i=0; i<32; i++){
+				for(int j=0; j<128; j++)
 				{
 					UINT8 fileChar = getc(fLogo);
 					//Read next char after enter (beginning of next line)
@@ -157,12 +161,13 @@ void Send_Logo(void)
 				}
 			}
 			fclose(fLogo);
-		} 
+		}
+
 	Render_16_Shades(128,32,*LogoBuffer);		
 }
 
 
-bool Close()
+DMDDEV bool Close()
 {
 	if (isOpen) {
 
@@ -178,24 +183,20 @@ bool Close()
 }
 
 
-
-
-void PM_GameSettings(const char* GameName, UINT64 HardwareGeneration, tPMoptions Options)
+DMDDEV void PM_GameSettings(const char* GameName, UINT64 HardwareGeneration, const tPMoptions &Options)
 {
 }
 
-void Set_4_Colors_Palette(rgb24 color0, rgb24 color33, rgb24 color66, rgb24 color100) 
+DMDDEV void Set_4_Colors_Palette(rgb24 color0, rgb24 color33, rgb24 color66, rgb24 color100) 
 {
 }
 
 
-void Render_4_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer) 
+DMDDEV void Render_4_Shades(UINT16 width, UINT16 height, UINT8 *currbuffer) 
 {
 	if (isOpen) {
 		int byteIdx=4;
-		int i,j,v;
 		UINT8 tempbuffer[128*32]; // for rescale
-
 
 		OutputPacketBuffer[0] = 0x81;	// frame sync bytes
 		OutputPacketBuffer[1] = 0xC3;
@@ -210,8 +211,8 @@ void Render_4_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer)
 		if(width == 192 && height == 64)
 		{
 			UINT32 o = 0;
-			for(j = 0; j < 32; ++j)
-				for(i = 0; i < 128; ++i,++o)
+			for(int j = 0; j < 32; ++j)
+				for(int i = 0; i < 128; ++i,++o)
 				{
 					const UINT32 offs = j*(2*192)+i*3/2;
 					if((i&1) == 1) // filter only each 2nd pixel, could do better than this
@@ -223,28 +224,28 @@ void Render_4_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer)
 		else if(width == 256 && height == 64)
 		{
 			UINT32 o = 0;
-			for(j = 0; j < 32; ++j)
-				for(i = 0; i < 128; ++i,++o)
+			for(int j = 0; j < 32; ++j)
+				for(int i = 0; i < 128; ++i,++o)
 				{
 					const UINT32 offs = j*(2*256)+i*2;
 					tempbuffer[o] = (UINT8)(((int)currbuffer[offs] + (int)currbuffer[offs+256] + (int)currbuffer[offs+1] + (int)currbuffer[offs+257])/4);
 				}
 		} else
-			memcpy(tempbuffer,currbuffer,4096);
-	
+			memcpy(tempbuffer,currbuffer,width*height);
+
 
 		// dmd height
-		for(j = 0; j < ((height==16)?16:32); ++j)
+		for(int j = 0; j < ((height==16)?16:32); ++j)
 		{
 			// dmd width
-			for(i = 0; i < 128; i+=8)
+			for(int i = 0; i < 128; i+=8)
 			{
 				int bd0,bd1,bd2,bd3;
 				bd0 = 0;
 				bd1 = 0;
 				bd2 = 0;
 				bd3 = 0;
-				for (v = 7; v >= 0; v--)
+				for (int v = 7; v >= 0; v--)
 				{
 					// pixel colour
 					int pixel = tempbuffer[j*128 + i+v];
@@ -277,17 +278,15 @@ void Render_4_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer)
 			}
 		}
 
-		usb_bulk_write(DeviceHandle, EP_OUT, OutputPacketBuffer, 2052, 1000);
+		usb_bulk_write(DeviceHandle, EP_OUT, (char*)OutputPacketBuffer, 2052, 1000);
 	}
 }
 
-void Render_16_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer) 
+DMDDEV void Render_16_Shades(UINT16 width, UINT16 height, UINT8 *currbuffer) 
 {
 	if (isOpen) {
 		int byteIdx=4;
-		int i,j,v;
 		UINT8 tempbuffer[128*32]; // for rescale
-
 
 		OutputPacketBuffer[0] = 0x81;	// frame sync bytes
 		OutputPacketBuffer[1] = 0xC3;
@@ -302,8 +301,8 @@ void Render_16_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer)
 		if(width == 192 && height == 64)
 		{
 			UINT32 o = 0;
-			for(j = 0; j < 32; ++j)
-				for(i = 0; i < 128; ++i,++o)
+			for(int j = 0; j < 32; ++j)
+				for(int i = 0; i < 128; ++i,++o)
 				{
 					const UINT32 offs = j*(2*192)+i*3/2;
 					if((i&1) == 1) // filter only each 2nd pixel, could do better than this
@@ -315,28 +314,28 @@ void Render_16_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer)
 		else if(width == 256 && height == 64)
 		{
 			UINT32 o = 0;
-			for(j = 0; j < 32; ++j)
-				for(i = 0; i < 128; ++i,++o)
+			for(int j = 0; j < 32; ++j)
+				for(int i = 0; i < 128; ++i,++o)
 				{
 					const UINT32 offs = j*(2*256)+i*2;
 					tempbuffer[o] = (UINT8)(((int)currbuffer[offs] + (int)currbuffer[offs+256] + (int)currbuffer[offs+1] + (int)currbuffer[offs+257])/4);
 				}
 		} else
-			memcpy(tempbuffer,currbuffer,4096);
+			memcpy(tempbuffer,currbuffer,width*height);
 	
 
 		// dmd height
-		for(j = 0; j < ((height==16)?16:32); ++j)
+		for(int j = 0; j < ((height==16)?16:32); ++j)
 		{
 			// dmd width
-			for(i = 0; i < 128; i+=8)
+			for(int i = 0; i < 128; i+=8)
 			{
 				int bd0,bd1,bd2,bd3;
 				bd0 = 0;
 				bd1 = 0;
 				bd2 = 0;
 				bd3 = 0;
-				for (v = 7; v >= 0; v--)
+				for (int v = 7; v >= 0; v--)
 				{
 					// pixel colour
 					int pixel = tempbuffer[j*128 + i+v];
@@ -364,14 +363,13 @@ void Render_16_Shades(UINT8 width, UINT8 height, UINT8 *currbuffer)
 			}
 		}
 
-		usb_bulk_write(DeviceHandle, EP_OUT, OutputPacketBuffer, 2052, 1000);
+		usb_bulk_write(DeviceHandle, EP_OUT, (char*)OutputPacketBuffer, 2052, 1000);
 	}
 }
 
 
-void Render_PM_Alphanumeric_Frame(layout_t layout, UINT16 *seg_data, UINT16 *seg_data2) 
+DMDDEV void Render_PM_Alphanumeric_Frame(layout_t layout, const UINT16 *const seg_data, const UINT16 *const seg_data2)
 {
-
 	if (isOpen) {	
 
 		memset(AlphaNumericFrameBuffer,0x00,2048);
@@ -430,16 +428,6 @@ void Render_PM_Alphanumeric_Frame(layout_t layout, UINT16 *seg_data, UINT16 *seg
 				
 		memcpy(OutputPacketBuffer+4,AlphaNumericFrameBuffer,2048);
 
-		usb_bulk_write(DeviceHandle, EP_OUT, OutputPacketBuffer, 2052, 1000);
+		usb_bulk_write(DeviceHandle, EP_OUT, (char*)OutputPacketBuffer, 2052, 1000);
 	}
 }
-
-
-   
-
-
-
-
-	
-
-
