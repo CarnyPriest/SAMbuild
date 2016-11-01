@@ -1,5 +1,11 @@
+version 2.43
+official rev 4080
+ ----------------------
 version 2.42
 official rev 4062
+ ----------------------
+version 2.41a
+official rev 4059
  ----------------------
 version 2.41
 S.A.M. 
