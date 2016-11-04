@@ -1,3 +1,8 @@
+version 2.43a
+official rev 4088
+S.A.M. 
+flag mini-display for World Poker Tour and Wheel of Fortune
+ ----------------------
 version 2.43
 official rev 4080
  ----------------------

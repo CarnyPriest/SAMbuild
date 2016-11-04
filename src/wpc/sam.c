@@ -1340,26 +1340,26 @@ static struct core_dispLayout sam_dmd128x32[] = {
 
 static struct core_dispLayout sammini1_dmd128x32[] = {
 	DISP_SEG_IMPORT(sam_dmd128x32),
-	{34, 10, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{34, 17, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{34, 24, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{34, 31, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{34, 38, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{34, 45, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{34, 52, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{43, 10, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{43, 17, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{43, 24, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{43, 31, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{43, 38, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{43, 45, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
-	{43, 52, 7, 5, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd_update},
+	{34, 10, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{34, 17, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{34, 24, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{34, 31, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{34, 38, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{34, 45, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{34, 52, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{43, 10, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{43, 17, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{43, 24, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{43, 31, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{43, 38, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{43, 45, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{43, 52, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
 	{0}
 };
 
 static struct core_dispLayout sammini2_dmd128x32[] = {
 	DISP_SEG_IMPORT(sam_dmd128x32),
-	{34, 10, 5, 35, CORE_DMD|CORE_DMDNOAA, (void *)samminidmd2_update},
+	{34, 10, 5, 35, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd2_update},
 	{0}
 };
 
