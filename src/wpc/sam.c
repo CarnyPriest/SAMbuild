@@ -4,6 +4,7 @@
 #include "vpintf.h"
 #include "cpu/at91/at91.h"
 #include "sndbrd.h"
+#include "dmddevice.h"
 #include <assert.h>
 
 // Defines
@@ -1068,9 +1069,14 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 
 	while (size > 0)
 	{
+		if (usartno == 1) {
+				//console messages
+				FwdConsoleData((*data));
+		}
+		
 		if (sam_led_row == -1)
 		{
-			// ooking for the header.
+			// Looking for the header.
 			// Mustang or Star Trek
 			if ((*data) == 0x80 && sam_prev_ch1 == 0x41)
 			{

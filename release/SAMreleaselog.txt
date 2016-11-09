@@ -1,3 +1,8 @@
+version 2.43b
+official rev 4098
+S.A.M. 
+sam.c - forward console data [lucky1]
+ ----------------------
 version 2.43a
 official rev 4088
 S.A.M. 
