@@ -434,8 +434,6 @@ static INTERRUPT_GEN(de2s_firq) {
 #define ARMSNDBUFSIZE 4                     // Sound command input port buffer size (doublebuffer should actually be good enough, but lets play safe)
 #define BUFFSIZE 0x40000
 
-#define AT91_SOUND_CATCHUP_HACK             // Catch up during sound buffer update, if generated sound and consumed sound is too far apart (e.g. somewhere some frequencies or CPU cycles do not match yet :/)
-
 //Includes
 #if AT91IMP_MAKE_WAVS
 #include "sound/wavwrite.h"
@@ -661,7 +659,7 @@ static void setup_at91(void)
   //set up the JIT memory map - allow for 128k of address space from address 0
   if (options.at91jit)
   {
-    at91_init_jit(0, 0x20000);
+	 at91_init_jit(0, 0x20000);
   }
   //because the boot rom code gets written to ram, and then remapped to page 0, we need an interface to handle this.
   at91_set_ram_pointers(de3as_reset_ram,de3as_page0_ram);
@@ -762,15 +760,13 @@ static void at91_sh_update(int num, INT16 *buffer[2], int length)
 	lastsamp[jj] = buffer[jj][ii];
  }
 
+ // Will adjust throttling to keep sound buffers at a desired place.  
+ // Also includes previous "sound catchup" hack should throttling strategy not work. 
+ core_sound_throttle_adj(sampnum[jj], &sampout[jj], BUFFSIZE, WAVE_OUT_RATE);
+
  /* fill the rest with last sample output */ //!! should only be needed, if at all, initially?
  for ( ; ii < length; ii++)
 	buffer[jj][ii] = lastsamp[jj];
-
-#ifdef AT91_SOUND_CATCHUP_HACK
- /* if sound is more than 1s/10 = 100ms apart, then catch up */
- if (sampnum[jj] - sampout[jj] > WAVE_OUT_RATE / 10)
-	 sampout[jj] = sampnum[jj];
-#endif
  }
 }
 

@@ -2,6 +2,7 @@
 #include "core.h"
 #include "sim.h"
 #include "vpintf.h"
+#include "video.h"
 #include "cpu/at91/at91.h"
 #include "sndbrd.h"
 #include "dmddevice.h"
@@ -12,15 +13,17 @@
 #define SAM_USE_JIT
 #define SAM_DISPLAYSMOOTH 4
 
+#define SAM_FAST_FLIPPERS 1
+#define SAM_SOL_FLIPSTART 13 
+#define SAM_SOL_FLIPEND 16
+
 #define SAM_CPUFREQ	40000000
 #define SAM_IRQFREQ 4008
+
 #define WAVE_OUT_RATE 24000
 #define SAM_TIMER 120
-// Sound buffer was very excessive at 256KB before. 
-// 1 second is plenty.   The code now throws out sound that's delayed over 20ms, 
-// so 1 second gives 5x cushion when operating normally. 
-#define BUFFSIZE (WAVE_OUT_RATE)    
-#define FIQ_SOUND_SYNC 1
+// 100ms sound buffer.
+#define BUFFSIZE (WAVE_OUT_RATE * 100 / 1000)    
 
 #define SAM_CPU	0
 #define SAM_ROMBANK0 1
@@ -40,6 +43,8 @@
 #define SAM_3COL 0x03
 #define SAM_8COL 0x08
 
+#if (!defined(_WIN64) && defined(_DEBUG))
+
 #include <Windows.h>
 
 void DebuggerLog ( const char * format, ... )
@@ -57,12 +62,13 @@ void DebuggerLog ( const char * format, ... )
 }
 
 #define LOG(x) DebuggerLog x
+#else
+#define LOG(x)
+#endif
+
 // Variables
 struct {
 	int vblankCount;
-	UINT32 solenoids;
-	UINT32 solenoids2;
-	UINT32 custsol;
 	int diagnosticLed;
 	int col;
 	int zc;
@@ -71,8 +77,8 @@ struct {
 	INT16 samplebuf[2][BUFFSIZE];
 	INT16 lastsamp[2];
 	char unused2[2];
-	int sampout[2];
-	int sampnum[2];
+	int sampout;
+	int sampnum;
 	int msu[6];
 	int powerswitch;
 	INT16 bank;
@@ -93,11 +99,13 @@ static int sam_bank[56];
 static int sam_stream = 0;
 
 #define SAM_LEDS_MAX_STRINGS 4
-#define SAM_LEDS_MAX 65 * SAM_LEDS_MAX_STRINGS
+#define SAM_LED_MAX_STRING_LENGTH 65
+#define SAM_LEDS_MAX SAM_LED_MAX_STRING_LENGTH * SAM_LEDS_MAX_STRINGS
 
 data8_t sam_ext_leds[SAM_LEDS_MAX];
+data8_t sam_tmp_leds[SAM_LED_MAX_STRING_LENGTH];
 data8_t sam_prev_ch1 = 0, sam_prev_ch2 = 0;
-int sam_led_col = 0, sam_led_row = -1;
+int sam_led_col = 0, sam_led_row = -1, sam_target_row, sam_serchar_waiting;
 int sam_leds_per_string;
 
 extern int at91_block_timers;
@@ -178,7 +186,7 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size);
 
 static int sam_getSol(int solNo)
 {
-	return (samlocals.custsol & ( 1 << (solNo-CORE_FIRSTCUSTSOL))) > 0;
+	return coreGlobals.modulatedSolenoids[CORE_MODSOL_CUR][solNo - 1] > 0;
 }
 
 //Sound Interface
@@ -186,65 +194,27 @@ const struct sndbrdIntf samIntf = {
 	"SAM1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, SNDBRD_NODATASYNC
 };
 
+
 static void sam_sh_update(int num, INT16 *buffer[2], int length)
 {
-	int ii, channel, delta;
-#ifdef _DEBUG
-	static long loopcount = 0, failundercount = 0, undercount =0, overcount =0;
-	loopcount++;
-#endif 
+	int ii, channel;
 
-	if ( length > 0 )
+	if (length > 0)
 	{
-		for(channel=0;channel<2;channel++)
+		for (ii = 0; ii < length && samlocals.sampout != samlocals.sampnum; ii++)
 		{
-			ii = 0;
-
-			while ( ii < length && samlocals.sampout[channel] != samlocals.sampnum[channel])
+			for (channel = 0; channel < 2; channel++)
 			{
-				buffer[channel][ii] = samlocals.samplebuf[channel][samlocals.sampout[channel]];
-				samlocals.sampout[channel] = (samlocals.sampout[channel] + 1) % BUFFSIZE;
-				samlocals.lastsamp[channel] = buffer[channel][ii++];
+				buffer[channel][ii] = samlocals.samplebuf[channel][samlocals.sampout];
+				samlocals.lastsamp[channel] = buffer[channel][ii];
 			}
-			
-			delta = samlocals.sampnum[channel] - samlocals.sampout[channel];
-
-			if (delta > WAVE_OUT_RATE * 20 / 1000)
-			{
-#ifdef _DEBUG
-				if (channel == 0)
-					overcount++;
-#endif
-				samlocals.sampout[channel] = samlocals.sampnum[channel];
-			} 
-			else if (delta < WAVE_OUT_RATE * 2 / 1000)
-			{	
-#ifdef _DEBUG
-				if (channel == 0 && ii < length)
-					failundercount++;
-#endif 
-				for ( ; ii < length; ++ii )
-					buffer[channel][ii] = samlocals.lastsamp[channel];
-#ifdef FIQ_SOUND_SYNC
-				// Ask the ROM for more samples to try and keep it within range.
-				// Skip it for CSI and IJ since they are extraordinarily timing sensitive.
-				if (channel == 0 && !at91_block_timers)
-				{
-#ifdef _DEBUG
-					undercount++;
-#endif 
-					at91_fire_irq(AT91_FIQ_IRQ);
-				}
-#endif 
-			}
-#ifdef _DEBUG
-			//if (channel == 0 && (loopcount % 100) == 0)
-			//{
-			//	LOG(("Buffer status: %ld over, %ld starved, %ld under of %ld loops\n", overcount, failundercount, undercount, loopcount));
-			//}
-#endif 
-
+			samlocals.sampout = (samlocals.sampout + 1) % BUFFSIZE;
 		}
+		core_sound_throttle_adj(samlocals.sampnum, &samlocals.sampout, BUFFSIZE, WAVE_OUT_RATE);
+		
+		for (; ii < length; ++ii)
+			for (channel = 0; channel < 2; channel++)
+				buffer[channel][ii] = samlocals.lastsamp[channel];	
 	}
 }
 
@@ -434,13 +404,12 @@ static WRITE32_HANDLER(samxilinx_w)
 	if(~mem_mask & 0xFFFF0000) // Left ch??
 	{
 		data >>= 16;
-		samlocals.samplebuf[0][samlocals.sampnum[0]] = data;
-		samlocals.sampnum[0] = (samlocals.sampnum[0] + 1) % BUFFSIZE;
+		samlocals.samplebuf[0][samlocals.sampnum] = data;
+		samlocals.sampnum = (samlocals.sampnum + 1) % BUFFSIZE;
 	}
 	else
 	{
-		samlocals.samplebuf[1][samlocals.sampnum[0]] = data;
-		samlocals.sampnum[1] = (samlocals.sampnum[0] + 1) % BUFFSIZE;
+		samlocals.samplebuf[1][samlocals.sampnum] = data;
 	}
 }
 
@@ -545,112 +514,66 @@ LABEL_6:
 				sam_bank[0]++;
 				if ( sam_bank[0] == 1 )
 				{
-					if (options.usemodsol)
+					for (ii = 0; ii <= 7; ii++)
 					{
-						for(ii = 0; ii <= 7; ii++)
+						core_update_modulated_light(&samlocals.solenoidbits[ii + 8], bank & (1 << ii));
+#ifdef SAM_FAST_FLIPPERS
+						if (ii + 9 >= SAM_SOL_FLIPSTART && ii + 9 <= SAM_SOL_FLIPEND)
 						{
-							core_update_modulated_light(&samlocals.solenoidbits[ii+8], bank & (1<<ii)); 
-						}
-					}
-					else
-					{
-						samlocals.solenoids &= 0xFFFF00FF;
-						for(ii = 0; ii <= 7; ii++)
-						{
-							if ( bank & (1<<ii) )
-								sam_bank[14 + ii] = 0x19;
-							if( sam_bank[14 + ii] > 0)
+							UINT8 value;
+
+							value = core_calc_modulated_light(samlocals.solenoidbits[ii + 8], 24, &coreGlobals.modulatedSolenoids[CORE_MODSOL_PREV][ii + 8]);
+							coreGlobals.modulatedSolenoids[CORE_MODSOL_CUR][ii+8] = value;
+							if (value > 0)
 							{
-								sam_bank[14 + ii]--;
-								samlocals.solenoids |= ((sam_bank[14 + ii] > 0) << (8 + ii));
+								coreGlobals.solenoids |= (1 << (ii + 8));
 							}
 						}
+#endif
 					}
-					//samlocals.solenoids |= (bank << 8);
 				}
+#ifdef SAM_FAST_FLIPPERS
+				else
+				{
+					// sam bank[0] check is dubious, check to see if any of the flipper bits are on, and enable them now if so.
+					for (ii = SAM_SOL_FLIPSTART; ii <= SAM_SOL_FLIPEND; ii++)
+					{
+						if (bank & (1 << (ii - 9)))
+						{
+							core_update_modulated_light(&samlocals.solenoidbits[ii-1], 1);
+							coreGlobals.solenoids |= (1 << (ii - 1));
+						}
+					}
+				}			
+#endif				
 				return;
 			case 1:
 				sam_bank[1]++;
-				if ( sam_bank[1] == 1 )
+				if (sam_bank[1] == 1)
 				{
-					if (options.usemodsol)
+					for (ii = 0; ii <= 7; ii++)
 					{
-						for(ii = 0; ii <= 7; ii++)
-						{
-							core_update_modulated_light(&samlocals.solenoidbits[ii], bank & (1<<ii)); 
-						}
-
-					}
-					else
-					{
-						samlocals.solenoids &= 0xFFFFFF00;
-						for(ii = 0; ii <= 7; ii++)
-						{
-							if ( bank & (1<<ii) )
-								sam_bank[6 + ii] = 0x19;
-							if( sam_bank[6 + ii] > 0)
-							{
-								sam_bank[6 + ii]--;
-								samlocals.solenoids |= ((sam_bank[6 + ii] > 0) << ii);
-							}
-						}
-						//samlocals.solenoids |= bank;
+						core_update_modulated_light(&samlocals.solenoidbits[ii], bank & (1 << ii));
 					}
 				}
 				return;
 			case 2:
 				sam_bank[2]++;
-				if ( sam_bank[2] == 1 )
+				if (sam_bank[2] == 1)
 				{
-					if (options.usemodsol)
+					for (ii = 0; ii <= 7; ii++)
 					{
-						for(ii = 0; ii <= 7; ii++)
-						{
-							core_update_modulated_light(&samlocals.solenoidbits[ii+16], bank & (1<<ii)); 
-						}
-					}
-					else
-					{
-						samlocals.solenoids &= 0xFF00FFFF;
-						for(ii = 0; ii <= 7; ii++)
-						{
-							if ( bank & (1<<ii) )
-								sam_bank[22 + ii] = 0x19;
-							if( sam_bank[22 + ii] > 0)
-							{
-								sam_bank[22 + ii]--;
-								samlocals.solenoids |= ((sam_bank[22 + ii] > 0) << (16 + ii));
-							}
-						}
-						//samlocals.solenoids |= (bank << 16);
+						core_update_modulated_light(&samlocals.solenoidbits[ii + 16], bank & (1 << ii));
 					}
 				}
 				return;
 			case 3:
 				sam_bank[3]++;
-				if ( sam_bank[3] == 1 )
+				if (sam_bank[3] == 1)
 				{
-					if (options.usemodsol)
+					for (ii = 0; ii <= 7; ii++)
 					{
-						for(ii = 0; ii <= 7; ii++)
-						{
-							core_update_modulated_light(&samlocals.solenoidbits[ii+24], bank & (1<<ii)); 
-						}
-					}
-					else
-					{
-						samlocals.solenoids &= 0x00FFFFFF;
-						for(ii = 0; ii <= 7; ii++)
-						{
-							if ( bank & (1<<ii) )
-								sam_bank[30 + ii] = 0x19;
-							if( sam_bank[30 + ii] > 0)
-							{
-								sam_bank[30 + ii]--;
-								samlocals.solenoids |= ((sam_bank[30 + ii] > 0) << (24 + ii));
-							}
-						}
-						//samlocals.solenoids |= (bank << 24);
+						core_update_modulated_light(&samlocals.solenoidbits[ii + 24], bank & (1 << ii));
 					}
 				}
 				return;
@@ -771,50 +694,16 @@ LABEL_176:
 				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL12) && (~bank & 0x20)) ||
 					(core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL8) && (~bank & 0x10))
 				{
-					if (options.usemodsol)
+					for (ii = 0; ii <= 7; ii++)
 					{
-						for (ii = 0; ii <= 7; ii++)
-						{
-							core_update_modulated_light(&samlocals.solenoidbits[ii + CORE_FIRSTCUSTSOL - 1], samlocals.last_aux_line_6 & (1 << ii));
-						}
-					}
-					else
-					{
-						samlocals.custsol &= 0xFFFFFF00;
-						for (ii = 0; ii <= 7; ii++)
-						{
-							if (samlocals.last_aux_line_6 & (1 << ii))
-								sam_bank[38 + ii] = 0x19;
-							if (sam_bank[38 + ii] > 0)
-							{
-								sam_bank[38 + ii]--;
-								samlocals.custsol |= ((sam_bank[38 + ii] > 0) << (ii));
-							}
-						}
+						core_update_modulated_light(&samlocals.solenoidbits[ii + CORE_FIRSTCUSTSOL - 1], samlocals.last_aux_line_6 & (1 << ii));
 					}
 				}
 				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL12) && (~bank & 0x10)))
 				{
-					if (options.usemodsol)
+					for (ii = 0; ii <= 7; ii++)
 					{
-						for (ii = 0; ii <= 7; ii++)
-						{
-							core_update_modulated_light(&samlocals.solenoidbits[ii + CORE_FIRSTCUSTSOL + 8 - 1], samlocals.last_aux_line_6 & (1 << ii));
-						}
-					}
-					else
-					{
-						samlocals.custsol &= 0xFFFF00FF;
-						for (ii = 0; ii <= 7; ii++)
-						{
-							if (samlocals.last_aux_line_6 & (1 << ii))
-								sam_bank[47 + ii] = 0x19;
-							if (sam_bank[47 + ii] > 0)
-							{
-								sam_bank[47 + ii]--;
-								samlocals.custsol |= ((sam_bank[47 + ii] > 0) << (8 + ii));
-							}
-						}
+						core_update_modulated_light(&samlocals.solenoidbits[ii + CORE_FIRSTCUSTSOL + 8 - 1], samlocals.last_aux_line_6 & (1 << ii));
 					}
 				}
 				if ( core_gameData->hw.gameSpecific1 & SAM_MINIDMD3 )
@@ -1004,6 +893,8 @@ static MACHINE_INIT(sam) {
 	}
 #endif
 	memset(sam_ext_leds, 0, SAM_LEDS_MAX * sizeof(data8_t));
+	memset(sam_tmp_leds, 0, SAM_LED_MAX_STRING_LENGTH * sizeof(data8_t));
+
 	if (_strnicmp(Machine->gamedrv->name,"csi_",4)==0 || _strnicmp(Machine->gamedrv->name,"ij4_",4)==0)
 		at91_block_timers = 1;
 }
@@ -1054,7 +945,7 @@ static void sam_LED_hack(int usartno)
 		data8_t buf[256];
 		memset(buf, 0xff, sizeof(buf)-1);
 		buf[255]=0;
-		at91_receive_serial(0,buf, 255);
+		at91_receive_serial(0,buf, 40);
 	}
 }
 
@@ -1067,6 +958,18 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 {
 	int i;
 
+#ifdef _DEBUG
+	for (i = 0; i < size; i++)
+	{
+		char s[91];
+		sprintf(s, "%02x", data[i]);
+		OutputDebugString(s);
+	}
+	OutputDebugString("\n");
+#endif
+
+	//if (usartno == 1)
+	//	return;
 	while (size > 0)
 	{
 		if (usartno == 1) {
@@ -1080,27 +983,38 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 			// Mustang or Star Trek
 			if ((*data) == 0x80 && sam_prev_ch1 == 0x41)
 			{
+				if (sam_serchar_waiting == 2)
+				{
+					memcpy(&sam_ext_leds[(sam_target_row * sam_leds_per_string)], &sam_tmp_leds[0], sam_leds_per_string);
+				}
 				sam_leds_per_string = sam_prev_ch1;
-				sam_led_col = 0;
 				sam_led_row = sam_prev_ch2 - 0x85;
 				if (sam_led_row > SAM_LEDS_MAX_STRINGS) 
 					sam_led_row = -1;
 			}
-
 			// Walking Dead LE
-			if ((*data) == 0x80 && sam_prev_ch1 == 0x23 && (sam_prev_ch2 == 0x83 || sam_prev_ch2 == 0x88))
+			if (((*data) == 0x80 || (*data)==0xa0) && sam_prev_ch1 == 0x23 && (sam_prev_ch2 == 0x83 || sam_prev_ch2 == 0x88))
 			{
+				// TWD sends garbage data in the led string sometimes.   Only accept if it was framed proeprly. 
+				if (sam_serchar_waiting==2)
+				{
+					memcpy(&sam_ext_leds[(sam_target_row * sam_leds_per_string)], &sam_tmp_leds[0], sam_leds_per_string);
+				}
 				sam_leds_per_string = sam_prev_ch1;
-				sam_led_col = 0;
-				sam_led_row = (sam_prev_ch2 == 0x83) ? 0 : 1;
+				sam_led_row = (sam_prev_ch2 == 0x83) ? ((*data) == 0x80) ? 0 : 2 : ((*data) == 0x80) ? 1 : 3;
 			}	
 			// AC/DC or Metallica 
 			if ((*data) == 0x00 && sam_prev_ch1 == 0x80)
 			{
+				if (sam_serchar_waiting == 2)
+				{
+					memcpy(&sam_ext_leds[(sam_target_row * sam_leds_per_string)], &sam_tmp_leds[0], sam_leds_per_string);
+				}
 				sam_leds_per_string = 56;
-				sam_led_col = 0;
 				sam_led_row = 0;
 			}	
+			sam_led_col=0;
+			sam_serchar_waiting++;
 			sam_prev_ch2 = sam_prev_ch1;
 			sam_prev_ch1 = *(data++);
 			size--;
@@ -1110,13 +1024,15 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 			int count = size > (sam_leds_per_string-sam_led_col) ? sam_leds_per_string-sam_led_col : size;
 			for(i=0;i<count;i++)
 			{
-				sam_ext_leds[(sam_led_row * sam_leds_per_string) + sam_led_col++]=*(data++);
+				sam_tmp_leds[sam_led_col++] = *(data++);
 			}
 			size -= count;
 			if (sam_led_col >= sam_leds_per_string)
 			{
 				sam_prev_ch1 = 0;
+				sam_target_row = sam_led_row;
 				sam_led_row = -1;
+				sam_serchar_waiting = 0;
 			}
 		}
 	}
@@ -1125,6 +1041,8 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 
 static INTERRUPT_GEN(sam_vblank) {
 	int i;
+	UINT8 value;
+	UINT32 solenoidupdate;
 
 	samlocals.vblankCount += 1;
 	
@@ -1145,20 +1063,19 @@ static INTERRUPT_GEN(sam_vblank) {
 		memcpy(coreGlobals.RGBlamps, sam_ext_leds, SAM_LEDS_MAX * sizeof(data8_t));
 		break;
 	}
-	if (options.usemodsol)
+
+	solenoidupdate = 0;
+	for(i=0;i<CORE_MODSOL_MAX;i++)
 	{
-		for(i=0;i<CORE_MODSOL_MAX;i++)
-		{
-			if (i==32) // Skip VPM reserved solenoids
-				i=CORE_FIRSTCUSTSOL-1;
-			coreGlobals.modulatedSolenoids[CORE_MODSOL_CUR][i] = core_calc_modulated_light(samlocals.solenoidbits[i], 24, &coreGlobals.modulatedSolenoids[CORE_MODSOL_PREV][i]);		
-		}
+		if (i==32) // Skip VPM reserved solenoids
+			i=CORE_FIRSTCUSTSOL-1;
+
+		value = core_calc_modulated_light(samlocals.solenoidbits[i], 24, &coreGlobals.modulatedSolenoids[CORE_MODSOL_PREV][i]);		
+		coreGlobals.modulatedSolenoids[CORE_MODSOL_CUR][i] = value;		
+		if (value > 0 && i < 32)
+			solenoidupdate |= (1 << i);
 	}
-	else
-	{
-		coreGlobals.solenoids = samlocals.solenoids;
-		coreGlobals.solenoids2 = samlocals.solenoids2;
-	}
+	coreGlobals.solenoids = solenoidupdate;
 	core_updateSw(TRUE);
 }
 
@@ -1346,26 +1263,26 @@ static struct core_dispLayout sam_dmd128x32[] = {
 
 static struct core_dispLayout sammini1_dmd128x32[] = {
 	DISP_SEG_IMPORT(sam_dmd128x32),
-	{34, 10, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{34, 17, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{34, 24, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{34, 31, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{34, 38, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{34, 45, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{34, 52, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{43, 10, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{43, 17, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{43, 24, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{43, 31, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{43, 38, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{43, 45, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
-	{43, 52, 7, 5, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd_update},
+	{34, 10, 7, 5, CORE_DMD|CORE_DMDNOAA| CORE_NODISP, (void *)samminidmd_update},
+	{34, 17, 7, 5, CORE_DMD|CORE_DMDNOAA| CORE_NODISP, (void *)samminidmd_update},
+	{34, 24, 7, 5, CORE_DMD|CORE_DMDNOAA| CORE_NODISP, (void *)samminidmd_update},
+	{34, 31, 7, 5, CORE_DMD|CORE_DMDNOAA| CORE_NODISP, (void *)samminidmd_update},
+	{34, 38, 7, 5, CORE_DMD|CORE_DMDNOAA| CORE_NODISP, (void *)samminidmd_update},
+	{34, 45, 7, 5, CORE_DMD|CORE_DMDNOAA| CORE_NODISP, (void *)samminidmd_update},
+	{34, 52, 7, 5, CORE_DMD|CORE_DMDNOAA| CORE_NODISP, (void *)samminidmd_update},
+	{43, 10, 7, 5, CORE_DMD|CORE_DMDNOAA | CORE_NODISP, (void *)samminidmd_update},
+	{43, 17, 7, 5, CORE_DMD|CORE_DMDNOAA | CORE_NODISP, (void *)samminidmd_update},
+	{43, 24, 7, 5, CORE_DMD|CORE_DMDNOAA | CORE_NODISP, (void *)samminidmd_update},
+	{43, 31, 7, 5, CORE_DMD|CORE_DMDNOAA | CORE_NODISP, (void *)samminidmd_update},
+	{43, 38, 7, 5, CORE_DMD|CORE_DMDNOAA | CORE_NODISP, (void *)samminidmd_update},
+	{43, 45, 7, 5, CORE_DMD|CORE_DMDNOAA | CORE_NODISP, (void *)samminidmd_update},
+	{43, 52, 7, 5, CORE_DMD|CORE_DMDNOAA | CORE_NODISP, (void *)samminidmd_update},
 	{0}
 };
 
 static struct core_dispLayout sammini2_dmd128x32[] = {
 	DISP_SEG_IMPORT(sam_dmd128x32),
-	{34, 10, 5, 35, CORE_DMD|CORE_DMDNOAA|CORE_NODISP, (void *)samminidmd2_update},
+	{34, 10, 5, 35, CORE_DMD|CORE_DMDNOAA | CORE_NODISP, (void *)samminidmd2_update},
 	{0}
 };
 

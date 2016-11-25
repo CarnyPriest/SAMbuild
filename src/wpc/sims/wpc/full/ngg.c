@@ -637,10 +637,10 @@ static core_tGameData nggGameData = {
 
 #define MARKER_POS_START 36
 #define MARKER_POS_END 64
-#define NGG_SPEED 32
+#define NGG_SPEED 48
 
 static mech_tInitData mechnggWheel = {
-	-sWheelRev, -sWheelFwd, MECH_CIRCLE | MECH_LINEAR | MECH_TWODIRSOL | MECH_FAST | MECH_ACC(32) | MECH_RET(6),12 * NGG_WHEELRES,64 * NGG_WHEELRES,
+	-sWheelRev, -sWheelFwd, MECH_CIRCLE | MECH_LINEAR | MECH_TWODIRSOL | MECH_FAST | MECH_ACC(48) | MECH_RET(6),12 * NGG_WHEELRES,96 * NGG_WHEELRES,
 	{ { swInnerWheel, (MARKER_POS_START-1)*NGG_WHEELRES, (MARKER_POS_END+1)*NGG_WHEELRES},
 	{ swInnerWheel, (0)*NGG_WHEELRES, ((MARKER_POS_END-64) + 1)*NGG_WHEELRES},
 	{ swOuterWheel,0 * NGG_WHEELRES,1 * NGG_WHEELRES }, 
@@ -693,11 +693,11 @@ static WRITE_HANDLER(ngg_wpc_w) {
 //
 // Pos.    0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15
 /*  if (offset == WPC_SOLENOID1) {
-    locals.wheeldir = 0;
+	locals.wheeldir = 0;
     if (lastWheel & ~data & 0x20) 
-        locals.wheeldir++;
+		locals.wheeldir++;
     if (lastWheel & ~data & 0x10) 
-        locals.wheeldir--;
+		locals.wheeldir--;
     core_setSw(swInnerWheel, locals.wheelpos > 0);
     core_setSw(swOuterWheel, locals.wheelpos % 4 == 0 || locals.wheelpos % 4 == 3);
     lastWheel = data;
@@ -783,8 +783,8 @@ static int ngg_getMech (int mechNo) {
     case 1: return locals.goferpos[0] | (locals.goferpos[1] << 1);
     case 2: return locals.ramppos[0] | (locals.ramppos[1] << 1);
     case 3: return locals.slampos;
-    case 4: return mech_getPos(0) * 360 / (64 * NGG_WHEELRES);
-    case 5: return (mech_getSpeed(0) * 100) / NGG_SPEED;
+	case 4: return mech_getPos(0) * 360 / (64 * NGG_WHEELRES);
+	case 5: return (mech_getSpeed(0) * 100) / NGG_SPEED;
   }
   return 0;
 }
