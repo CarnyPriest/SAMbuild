@@ -16,11 +16,11 @@
   #define TRUE (1)
 #endif
 
-//#ifdef MAME_DEBUG
-//  #define DBGLOG(x) logerror x
-//#else
+#ifdef MAME_DEBUG
+  #define DBGLOG(x) logerror x
+#else
   #define DBGLOG(x)
-//#endif
+#endif
 
   #define NORMALREGION(size, reg)  ROM_REGION(size, reg, 0)
   #define NORMALREGIONE(size, reg) ROM_REGION(size, reg, ROMREGION_ERASE)

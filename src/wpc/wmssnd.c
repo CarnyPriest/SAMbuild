@@ -769,10 +769,10 @@ static void dcs_init(struct sndbrdData *brdData);
 /*-- local data --*/
 #define DCS_BUFFER_SIZE	  8192  // Must be power of 2 because of how circular buffer works
 #define DCS_BUFFER_MASK	  (DCS_BUFFER_SIZE - 1)
-#define DCS_SAMPLE_RATE   31250
+#define DCS_DEFAULT_SAMPLE_RATE 31250
 
 static struct {
-int     status;   // 0 = disabled, 1 playing, > 1 startup silence samples remaining
+ int     status;   // 0 = disabled, 1 playing, > 1 startup silence samples remaining
  UINT32  sOut, sIn;
  INT16  *buffer;
  int     stream;
@@ -929,7 +929,7 @@ static int dcs_custStart(const struct MachineSound *msound) {
   memset(&dcs_dac,0,sizeof(dcs_dac));
 
   /*-- allocate a DAC stream --*/
-  dcs_dac.stream = stream_init("DCS DAC", 100, DCS_SAMPLE_RATE, 0, dcs_dacUpdate);
+  dcs_dac.stream = stream_init("DCS DAC", 100, DCS_DEFAULT_SAMPLE_RATE, 0, dcs_dacUpdate);
 
   /*-- allocate memory for our buffer --*/
   dcs_dac.buffer = malloc(DCS_BUFFER_SIZE * sizeof(INT16));
@@ -957,33 +957,33 @@ static void dcs_custStop(void) {
 
 static void dcs_dacUpdate(int num, INT16 *buffer, int length)
 {
-	int ii;
- 
-    /* fill in with samples until we hit the end or run out */
-	for (ii=0; ii < length; ii++) 
-	{
-		if (dcs_dac.sOut == dcs_dac.sIn) break;
-#ifdef DCS_LOWPASS
-		filter_insert(dcs_dac.filter_f, dcs_dac.filter_state, dcs_dac.buffer[dcs_dac.sOut]);
-		buffer[ii] = filter_compute_clamp16(dcs_dac.filter_f, dcs_dac.filter_state);
-#else
-		buffer[ii] = dcs_dac.buffer[dcs_dac.sOut];
-#endif
-		dcs_dac.sOut = (dcs_dac.sOut + 1) & DCS_BUFFER_MASK;
-	}
-	/* Give core feedback on sound buffer progress, so speed can be throttled to keep sound perfect */
-	core_sound_throttle_adj(dcs_dac.sIn, &dcs_dac.sOut, DCS_BUFFER_SIZE, DCS_SAMPLE_RATE);
+    int ii;
 
-	/* fill the rest with the last sample (ideally never necessary) */
-	for ( ; ii < length; ii++)
-	{
+    /* fill in with samples until we hit the end or run out */
+    for (ii = 0; ii < length; ii++)
+    {
+      if (dcs_dac.sOut == dcs_dac.sIn) break;
 #ifdef DCS_LOWPASS
-		filter_insert(dcs_dac.filter_f, dcs_dac.filter_state, dcs_dac.buffer[(dcs_dac.sOut - 1) & DCS_BUFFER_MASK]);
-		buffer[ii] = filter_compute_clamp16(dcs_dac.filter_f, dcs_dac.filter_state);
+      filter_insert(dcs_dac.filter_f, dcs_dac.filter_state, dcs_dac.buffer[dcs_dac.sOut]);
+      buffer[ii] = filter_compute_clamp16(dcs_dac.filter_f, dcs_dac.filter_state);
 #else
-		buffer[ii] = dcs_dac.buffer[(dcs_dac.sOut - 1) & DCS_BUFFER_MASK];
+      buffer[ii] = dcs_dac.buffer[dcs_dac.sOut];
 #endif
-	} 
+      dcs_dac.sOut = (dcs_dac.sOut + 1) & DCS_BUFFER_MASK;
+    }
+    /* Give core feedback on sound buffer progress, so speed can be throttled to keep sound perfect */
+    core_sound_throttle_adj(dcs_dac.sIn, &dcs_dac.sOut, DCS_BUFFER_SIZE, stream_get_sample_rate(dcs_dac.stream));
+
+    /* fill the rest with the last sample (ideally never necessary) */
+    for ( ; ii < length; ii++)
+    {
+#ifdef DCS_LOWPASS
+      filter_insert(dcs_dac.filter_f, dcs_dac.filter_state, dcs_dac.buffer[(dcs_dac.sOut - 1) & DCS_BUFFER_MASK]);
+      buffer[ii] = filter_compute_clamp16(dcs_dac.filter_f, dcs_dac.filter_state);
+#else
+      buffer[ii] = dcs_dac.buffer[(dcs_dac.sOut - 1) & DCS_BUFFER_MASK];
+#endif
+    }
 }
 
 /*-------------------
@@ -1078,15 +1078,15 @@ static void dcs_txData(UINT16 start, UINT16 size, UINT16 memStep, int sRate) {
     { dcs_dac.status = 0; return; }
   if (dcs_dac.status==0) stream_set_sample_rate(dcs_dac.stream,sRate); // unnecessary as sample rate seems to be always 31250
 
-  // If we were not playing before, pre-load buffer with some silence to prevent jumpy starts. 																
+  // If we were not playing before, pre-load buffer with some silence to prevent jumpy starts.
   if (dcs_dac.status == 0)
   {
-	  for (idx = 0; idx < DCS_SAMPLE_RATE * 20 / 1000 + 1; idx++) {
-		  dcs_dac.buffer[dcs_dac.sIn] = 0;
-		  dcs_dac.sIn = (dcs_dac.sIn + 1) & DCS_BUFFER_MASK;
-	  }
+      for (idx = 0; idx < stream_get_sample_rate(dcs_dac.stream) * 20 / 1000 + 1; idx++) {
+          dcs_dac.buffer[dcs_dac.sIn] = 0;
+          dcs_dac.sIn = (dcs_dac.sIn + 1) & DCS_BUFFER_MASK;
+      }
 
-	  dcs_dac.status = 1;
+      dcs_dac.status = 1;
   }
   /*-- size is the size of the buffer not the number of samples --*/
 #if MAMEVER >= 3716
@@ -1105,7 +1105,7 @@ static void dcs_txData(UINT16 start, UINT16 size, UINT16 memStep, int sRate) {
     idx += sStep;
   }
 #endif /* MAMEVER */
-  
+
 }
 #define DCS_IRQSTEPS 4
 /*--------------------------------------------------*/

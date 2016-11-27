@@ -693,11 +693,11 @@ static WRITE_HANDLER(ngg_wpc_w) {
 //
 // Pos.    0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15
 /*  if (offset == WPC_SOLENOID1) {
-	locals.wheeldir = 0;
+    locals.wheeldir = 0;
     if (lastWheel & ~data & 0x20) 
-		locals.wheeldir++;
+        locals.wheeldir++;
     if (lastWheel & ~data & 0x10) 
-		locals.wheeldir--;
+        locals.wheeldir--;
     core_setSw(swInnerWheel, locals.wheelpos > 0);
     core_setSw(swOuterWheel, locals.wheelpos % 4 == 0 || locals.wheelpos % 4 == 3);
     lastWheel = data;
@@ -783,8 +783,8 @@ static int ngg_getMech (int mechNo) {
     case 1: return locals.goferpos[0] | (locals.goferpos[1] << 1);
     case 2: return locals.ramppos[0] | (locals.ramppos[1] << 1);
     case 3: return locals.slampos;
-	case 4: return mech_getPos(0) * 360 / (64 * NGG_WHEELRES);
-	case 5: return (mech_getSpeed(0) * 100) / NGG_SPEED;
+    case 4: return mech_getPos(0) * 360 / (64 * NGG_WHEELRES);
+    case 5: return (mech_getSpeed(0) * 100) / NGG_SPEED;
   }
   return 0;
 }

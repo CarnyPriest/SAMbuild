@@ -701,9 +701,9 @@ void DebugSound(char *s)
 
 void SetThrottleAdj(int adj)
 {
-	char tmp[81];
 
 #ifdef DEBUG_SOUND
+	char tmp[81];
 	static int last = 0;
 	if (adj != last)
 	{
@@ -756,14 +756,14 @@ void throttle_speed_part(int part, int totalparts)
 
 	if (g_iThrottleAdj)
 	{
-		target -= (cycles_t)(g_iThrottleAdj*ticks_per_sleep_msec);		
+		target -= (cycles_t)(g_iThrottleAdj*ticks_per_sleep_msec);
 	}
 	// sync
 	if (curr - target < 0)
 	{
 		// Adjust target for sound catchup
-		
-		// If we are throttling to a fractional vsync, adjust target to the partial target. 
+
+		// If we are throttling to a fractional vsync, adjust target to the partial target.
 		target -= ((target - curr) * (totalparts-part) / totalparts);
 
 		// loop until we reach the target time

@@ -363,7 +363,7 @@ void uSleep(const UINT64 u)
 			SwitchToThread(); // let other threads on same core run
 
 		QueryPerformanceCounter(&TimerNow);
-	} 
+	}
 }
 
 void uSleepApproximate(const UINT64 u)
@@ -384,5 +384,5 @@ void uSleepApproximate(const UINT64 u)
 	{
 		Sleep(1); // really pause thread for 1-2ms (depending on OS)
 		QueryPerformanceCounter(&TimerNow);
-	} 
+	}
 }

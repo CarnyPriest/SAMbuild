@@ -659,7 +659,7 @@ static void setup_at91(void)
   //set up the JIT memory map - allow for 128k of address space from address 0
   if (options.at91jit)
   {
-	 at91_init_jit(0, 0x20000);
+    at91_init_jit(0, 0x20000);
   }
   //because the boot rom code gets written to ram, and then remapped to page 0, we need an interface to handle this.
   at91_set_ram_pointers(de3as_reset_ram,de3as_page0_ram);
@@ -760,8 +760,8 @@ static void at91_sh_update(int num, INT16 *buffer[2], int length)
 	lastsamp[jj] = buffer[jj][ii];
  }
 
- // Will adjust throttling to keep sound buffers at a desired place.  
- // Also includes previous "sound catchup" hack should throttling strategy not work. 
+ // Will adjust throttling to keep sound buffers at a desired place.
+ // Also includes previous "sound catchup" hack should throttling strategy not work.
  core_sound_throttle_adj(sampnum[jj], &sampout[jj], BUFFSIZE, WAVE_OUT_RATE);
 
  /* fill the rest with last sample output */ //!! should only be needed, if at all, initially?
