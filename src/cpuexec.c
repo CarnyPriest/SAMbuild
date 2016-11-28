@@ -1565,7 +1565,7 @@ static void cpu_firstvblankcallback(int param)
 
 static void cpu_synccallback(int param)
 {
-    throttle_speed_part(LOW_LATENCY_THROTTLE_PARTS-sync_countdown, LOW_LATENCY_THROTTLE_PARTS);
+	throttle_speed_part(LOW_LATENCY_THROTTLE_PARTS-sync_countdown, LOW_LATENCY_THROTTLE_PARTS);
 	if(!--sync_countdown)
 		timer_adjust(sync_timer, TIME_NEVER, 0, TIME_NEVER);
 }
@@ -1629,7 +1629,7 @@ static void cpu_vblankcallback(int param)
 		vblank_countdown = vblank_multiplier;
 		sync_countdown = LOW_LATENCY_THROTTLE_PARTS - 1;
 		if(g_low_latency_throttle && frameskip == 0)
-			timer_adjust(sync_timer, TIME_IN_HZ(60* LOW_LATENCY_THROTTLE_PARTS), 0, TIME_IN_HZ(60 * LOW_LATENCY_THROTTLE_PARTS));
+			timer_adjust(sync_timer, TIME_IN_HZ(60 * LOW_LATENCY_THROTTLE_PARTS), 0, TIME_IN_HZ(60 * LOW_LATENCY_THROTTLE_PARTS));
 	}
 }
 

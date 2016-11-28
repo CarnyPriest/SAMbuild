@@ -758,8 +758,8 @@ void throttle_speed_part(int part, int totalparts)
 	cps = osd_cycles_per_second();
 
 	target = this_frame_base + (int)((double)frameskip_counter * (double)cps / video_fps);
-	
-	// If we are throttling to a fractional vsync, adjust target to the partial target. 	
+
+	// If we are throttling to a fractional vsync, adjust target to the partial target.
 	if (totalparts!=1)
 	{
 		// Meh.  The points in the code where frameskip counter gets updated is different from where the frame base is
@@ -777,7 +777,7 @@ void throttle_speed_part(int part, int totalparts)
 	// Adjust target for sound catchup
 	if (g_iThrottleAdj)
 	{
-		target -= (cycles_t)(g_iThrottleAdj*ticks_per_sleep_msec);		
+		target -= (cycles_t)(g_iThrottleAdj*ticks_per_sleep_msec);
 	}
 	// sync
 	if (curr - target < 0)

@@ -96,7 +96,7 @@ static struct rc_option vpinmame_opts[] = {
 	{ "showpindmd", NULL, rc_bool, &g_fShowPinDMD, "0", 0, 0, NULL, "Show PinDMD display" },
 	{ "showwindmd", NULL, rc_bool, &g_fShowWinDMD, "1", 0, 0, NULL, "Show DMD display" },
 	{ "cpu_affinity_mask", NULL, rc_int, &g_cpu_affinity_mask, "0", 0, 0, NULL, "CPU affinity mask" },
-	{ "low_latency_throttle", NULL, rc_bool, &g_low_latency_throttle, "1", 0, 0, NULL, "Distribute CPU execution to minimize flipper latency" },
+	{ "low_latency_throttle", NULL, rc_bool, &g_low_latency_throttle, "1", 0, 0, NULL, "Distribute CPU execution across one emulated frame to minimize flipper latency" },
 	{ NULL,	NULL, rc_end, NULL, NULL, 0, 0,	NULL, NULL }
 };
 
