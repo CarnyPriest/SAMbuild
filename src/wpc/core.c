@@ -1817,9 +1817,7 @@ static void core_findSize(const struct core_dispLayout *layout, int *maxX, int *
   if (layout) {
     for (; layout->length; layout += 1) {
       int tmpX = 0, tmpY = 0, type = layout->type & CORE_SEGMASK;
-#if defined(VPINMAME) && !defined(MAME_DEBUG)
       if (layout->type & CORE_NODISP) continue;
-#endif
       if (type == CORE_IMPORT)
         { core_findSize(layout->lptr, maxX, maxY); continue; }
       if (type == CORE_DMD || type == CORE_VIDEO) {
@@ -1949,8 +1947,8 @@ void core_sound_throttle_adj(int sIn, int *sOut, int buffersize, int samplerate)
 
 	if (delta > samplerate * 50 / 1000)
 	{
-		// Over 50ms delta and throttle didn't catch it fast enough.   Drop some samples, but not so
-		// much that we have to restart from a zero buffer.
+		// Over 50ms delta and throttle didn't catch it fast enough.   Drop some samples, but not so 
+		// much that we have to restart from a zero buffer. 
 		*sOut = sIn - (samplerate * 20 / 1000);
 		if (*sOut < 0)
 			*sOut += buffersize;
@@ -1959,7 +1957,7 @@ void core_sound_throttle_adj(int sIn, int *sOut, int buffersize, int samplerate)
 	}
 	else if (delta > samplerate * 35 / 1000)
 	{
-		SetThrottleAdj(-6);
+		SetThrottleAdj(-4);
 	}
 	else if (delta > samplerate * 25 / 1000)
 	{

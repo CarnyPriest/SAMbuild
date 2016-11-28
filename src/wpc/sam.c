@@ -968,16 +968,15 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 	OutputDebugString("\n");
 #endif
 
-	//if (usartno == 1)
-	//	return;
 	while (size > 0)
 	{
 		if (usartno == 1) {
-				//console messages
-				FwdConsoleData((*data));
+			//console messages
+			FwdConsoleData((*data));
+			return;
 		}
-		
-		if (sam_led_row == -1)
+
+		if (sam_led_row == -1)		
 		{
 			// Looking for the header.
 			// Mustang or Star Trek
@@ -1006,7 +1005,7 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 			// AC/DC or Metallica 
 			if ((*data) == 0x00 && sam_prev_ch1 == 0x80)
 			{
-				if (sam_serchar_waiting == 2)
+				if (sam_serchar_waiting == 1)
 				{
 					memcpy(&sam_ext_leds[(sam_target_row * sam_leds_per_string)], &sam_tmp_leds[0], sam_leds_per_string);
 				}
