@@ -1,3 +1,6 @@
+version 2.45a
+official rev 4117
+ ----------------------
 version 2.45
 official rev 4115
 S.A.M. 
