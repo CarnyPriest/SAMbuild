@@ -683,7 +683,7 @@ LABEL_176:
 					coreGlobals.tmpLampMatrix[led_target] = core_revbyte(bank);
 				return;
 			case 11:
-				coreGlobals.gi[0] = (~bank & 0x01);
+				coreGlobals.gi[0] = (~bank & 0x01) ? 9 : 0;
 
 				// Previous versions of the code counted the number of writes to locate 
 				// the solenoid bank.  The safest way is to apply the solenoid when the target column is written here.
