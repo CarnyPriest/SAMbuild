@@ -694,18 +694,25 @@ LABEL_176:
 				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL12) && (~bank & 0x20)) ||
 					(core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL8) && (~bank & 0x10))
 				{
-					for (ii = 0; ii <= 7; ii++)
+					for (ii = 0; ii <= ((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL8) ? 7 : 5); ii++)
 					{
 						core_update_modulated_light(&samlocals.solenoidbits[ii + CORE_FIRSTCUSTSOL - 1], samlocals.last_aux_line_6 & (1 << ii));
 					}
 				}
 				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL12) && (~bank & 0x10)))
 				{
-					for (ii = 0; ii <= 7; ii++)
+					for (ii = 0; ii <= 5; ii++)
 					{
 						core_update_modulated_light(&samlocals.solenoidbits[ii + CORE_FIRSTCUSTSOL + 8 - 1], samlocals.last_aux_line_6 & (1 << ii));
 					}
 				}
+				// Metallica LE has a special aux board just for the coffin magnet! 
+				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL12) && (~bank & 0x08)))
+				{
+					core_update_modulated_light(&samlocals.solenoidbits[6 + CORE_FIRSTCUSTSOL - 1], samlocals.last_aux_line_6 & 0x80);
+					core_update_modulated_light(&samlocals.solenoidbits[7 + CORE_FIRSTCUSTSOL - 1], samlocals.last_aux_line_6 & 0x40);
+				}
+
 				if ( core_gameData->hw.gameSpecific1 & SAM_MINIDMD3 )
 				{
 					if ( (bank & ~lastbank11) & 8 )
@@ -963,16 +970,18 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 	{
 		char s[91];
 		sprintf(s, "%02x", data[i]);
-		OutputDebugString(s);
+	//	OutputDebugString(s);
 	}
-	OutputDebugString("\n");
+//	OutputDebugString("\n");
 #endif
 
 	while (size > 0)
 	{
 		if (usartno == 1) {
+#ifdef VPINMAME
 			//console messages
 			FwdConsoleData((*data));
+#endif
 			return;
 		}
 
