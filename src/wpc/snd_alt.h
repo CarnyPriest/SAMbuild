@@ -111,7 +111,7 @@ void alt_sound_handle(int boardNo, int cmd)
 
 			cached_machine_name = (char*)malloc(strlen(Machine->gamedrv->name) + 1);
 			strcpy(cached_machine_name, Machine->gamedrv->name);
-			
+
 			getcwd(cwd, sizeof(cwd));
 
 #ifndef _WIN64
@@ -120,7 +120,7 @@ void alt_sound_handle(int boardNo, int cmd)
 			hInst = GetModuleHandle("VPinMAME64.dll");
 #endif
 			GetModuleFileName(hInst, cvpmd, 1024);
-						
+
 			while (*lpHelp) {
 				if (*lpHelp == '\\')
 					lpSlash = lpHelp;
@@ -264,7 +264,7 @@ void alt_sound_handle(int boardNo, int cmd)
 					  int ducking = default_ducking;
 					  DIR *dir2;
 					  struct dirent *entry2;
-					 
+
 					  strcpy_s(PATH2, PATH2l, PATH);
 					  strcat_s(PATH2, PATH2l, entry->d_name);
 
