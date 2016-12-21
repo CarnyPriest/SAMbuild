@@ -1,3 +1,8 @@
+version 2.46
+official rev 4142
+gts3.c - Reduce vblank interrupt frequency for GTS3 DMD, causing animations to run too fast in Tee'd Off [DJRobX]
+at91.c - Fix bug in serial receive code [DJRobX]
+ ----------------------
 version 2.45d
 official rev 4127
  ----------------------
