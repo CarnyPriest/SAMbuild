@@ -37,6 +37,8 @@
 #define SAM_GAME_TRON	 0x20
 #define SAM_GAME_AUXSOL8    0x40
 #define SAM_GAME_AUXSOL12    0x80
+#define SAM_GAME_METALLICA_MAGNET  0x100
+#define SAM_GAME_ACDC_FLAMES  0x200
 
 #define SAM_0COL 0x00
 #define SAM_2COL 0x02
@@ -707,12 +709,17 @@ LABEL_176:
 					}
 				}
 				// Metallica LE has a special aux board just for the coffin magnet! 
-				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL12) && (~bank & 0x08)))
+				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_METALLICA_MAGNET) && (~bank & 0x08)))
 				{
 					core_update_modulated_light(&samlocals.solenoidbits[6 + CORE_FIRSTCUSTSOL - 1], samlocals.last_aux_line_6 & 0x80);
 					core_update_modulated_light(&samlocals.solenoidbits[7 + CORE_FIRSTCUSTSOL - 1], samlocals.last_aux_line_6 & 0x40);
 				}
-
+				// ACDC LE uses a special aux board for flame lights
+				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_ACDC_FLAMES) && (~bank & 0x08)))
+				{
+					for (ii = 0; ii < 8; ii++)
+						sam_ext_leds[70 + ii] = (samlocals.last_aux_line_6 & (1 << ii) ? 255 : 0);
+				}
 				if ( core_gameData->hw.gameSpecific1 & SAM_MINIDMD3 )
 				{
 					if ( (bank & ~lastbank11) & 8 )
@@ -2223,7 +2230,7 @@ CORE_CLONEDEF(rsn, 110h, 110, "Rolling Stones Limited/Premium Edition (V1.1)", 2
     ROM_COPY( SAM_ROMREGION, 0, 0x09800000, 0x00800000) \
     ROM_COPY( SAM_ROMREGION, 0, 0x0A000000, 0x00300000)
 
-INITGAME(acd, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12);
+INITGAME(acd, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12 | SAM_GAME_ACDC_FLAMES);
  
 SAM_ROMLOAD_ACDC1(acd_121, "acd_121.bin", CRC(4f5f43e9) SHA1(19045e9cdb2522770013c24c6fed265009278dea), 0x03D8F40C)
 SAM_ROMEND
@@ -2389,7 +2396,7 @@ CORE_CLONEDEF(avs, 170h, 110, "Avengers Limited Edition (V1.7)", 2016, "Stern", 
     ROM_COPY( SAM_ROMREGION, 0, 0x07800000, 0x00800000) \
     ROM_COPY( SAM_ROMREGION, 0, 0x08000000, 0x00800000)
 
-INITGAME(mtl, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12);
+INITGAME(mtl, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12 | SAM_GAME_METALLICA_MAGNET);
 
 SAM_ROMLOAD_MTL1(mtl_103, "mtl_103.bin", CRC(9b073858) SHA1(129872e38d21d9d6d20f81388825113f13645bab), 0x04D24D04)
 SAM_ROMEND
