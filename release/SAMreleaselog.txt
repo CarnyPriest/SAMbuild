@@ -2,6 +2,7 @@ SAMbuild version 2.8!
 official rev 4156 (minus r4154 enter new 2.9 cycle)
 S.A.M.
 Support ACDC LE flame aux board. Outputs on lights 150-157. [DJRobX]
+Add checksums/documentation for currently missing catalog game code
  ----------------------
 version 2.46a
 official rev 4143

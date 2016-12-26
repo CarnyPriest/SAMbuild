@@ -6,7 +6,7 @@
 #include "cpu/at91/at91.h"
 #include "sndbrd.h"
 #include "dmddevice.h"
-#include <assert.h>
+//#include <assert.h>
 
 // Defines
 
@@ -1508,6 +1508,8 @@ CORE_CLONEDEFNV(scarn200, scarn9nj, "Simpson's Kooky Carnival Redemption (V2.0)"
 //Family Guy - good - complete
 INITGAME(fg, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_NOMINI2);
 
+SAM_ROMLOAD(fg_200a, "fg200a.bin", CRC(c72e89df) SHA1(6cac3812d733c9d030542badb9c65934ecbf8399), 0x185ea9c)
+SAM_ROMEND
 SAM_ROMLOAD(fg_300ai, "fg300ai.bin", CRC(e2cffa79) SHA1(59dff445118ed8a3a76b6e93950802d1fec87619), 0x01FC0290)
 SAM_ROMEND
 SAM_ROMLOAD(fg_400a, "fg400a.bin", CRC(af6c2dd4) SHA1(e3164e982c90a5300144e63e4a74dd225fe1b272), 0x013E789C)
@@ -1549,6 +1551,8 @@ SAM_INPUT_PORTS_START(fg, 1) SAM_INPUT_PORTS_END
 
 CORE_GAMEDEF(fg, 300ai, "Family Guy (V3.00) (English, Italian)", 2007, "Stern", sam, 0)
 
+CORE_CLONEDEF(fg, 200a, 300ai, "Family Guy (V2.00) (English)", 2007, "Stern", sam, 0)
+
 CORE_CLONEDEF(fg, 400a, 300ai, "Family Guy (V4.00) (English)", 2007, "Stern", sam, 0)
 CORE_CLONEDEF(fg, 400ag, 300ai, "Family Guy (V4.00) (English, German)", 2007, "Stern", sam, 0)
 
@@ -1574,6 +1578,18 @@ CORE_CLONEDEF(fg, 1200al, 300ai, "Family Guy (V12.0) (English, Spanish)", 2008, 
 
 //Pirates of the Caribbean - good - complete
 INITGAME(potc, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_NOMINI);
+
+SAM_ROMLOAD(potc_108as, "potc108as.bin", CRC(6c3a3f7f) SHA1(52e97a4f479f8f3f55a72c9c104fb1335a253f1a), 0x1C61F6C)
+SAM_ROMEND
+
+SAM_ROMLOAD(potc_109af, "potc109af.bin", CRC(9d87bb49) SHA1(9db04259a0b2733d6f5966a2f3e0fc1c7002cef1), 0x1AC6550)
+SAM_ROMEND
+SAM_ROMLOAD(potc_109ai, "potc109ai.bin", CRC(a8baad2d) SHA1(f2f2a4a16f646a57cc191f8ae2e483e036edb1e7), 0x1B178E8)
+SAM_ROMEND
+SAM_ROMLOAD(potc_109as, "potc109as.bin", CRC(eb68b86b) SHA1(416c4bf9b4dc035b8dfed3610a4ac5ae31209ca5), 0x1C829B4)
+SAM_ROMEND
+SAM_ROMLOAD(potc_109gf, "potc109gf.bin", CRC(9866b803) SHA1(c7bef6220cc865614974d02406f109e851a86714), 0x1B60464)
+SAM_ROMEND
 
 SAM_ROMLOAD(potc_110af, "potc110af.bin", CRC(9d87bb49) SHA1(9db04259a0b2733d6f5966a2f3e0fc1c7002cef1), 0x01AC6550)
 SAM_ROMEND
@@ -1632,6 +1648,14 @@ SAM_ROMEND
 SAM_INPUT_PORTS_START(potc, 1) SAM_INPUT_PORTS_END
 
 CORE_GAMEDEF(potc, 110af, "Pirates of the Caribbean (V1.10) (English, French)", 2006, "Stern", sam, 0)
+
+CORE_CLONEDEF(potc, 108as, 110af, "Pirates of the Caribbean (V1.08) (English/Spanish)", 2006, "Stern", sam, 0)
+
+CORE_CLONEDEF(potc, 109af, 110af, "Pirates of the Caribbean (V1.09) (English/French)", 2006, "Stern", sam, 0)
+CORE_CLONEDEF(potc, 109ai, 110af, "Pirates of the Caribbean (V1.09) (English/Italian)", 2006, "Stern", sam, 0)
+CORE_CLONEDEF(potc, 109as, 110af, "Pirates of the Caribbean (V1.09) (English/Spanish)", 2006, "Stern", sam, 0)
+CORE_CLONEDEF(potc, 109gf, 110af, "Pirates of the Caribbean (V1.09) (German/French)", 2006, "Stern", sam, 0)
+
 CORE_CLONEDEF(potc, 110ai, 110af, "Pirates of the Caribbean (V1.10) (English, Italian)", 2006, "Stern", sam, 0)
 CORE_CLONEDEF(potc, 110gf, 110af, "Pirates of the Caribbean (V1.10) (German, French)", 2006, "Stern", sam, 0)
 
@@ -1672,6 +1696,8 @@ SAM_ROMLOAD(sman_130al, "sman130al.bin", CRC(33004e72) SHA1(3bc30200945d896aefbf
 SAM_ROMEND
 SAM_ROMLOAD(sman_130gf, "sman130gf.bin", CRC(2838d2f3) SHA1(2192f1fbc393c5e0dcd59198d098bb2531d8b6de), 0x017AEC84)
 SAM_ROMEND
+SAM_ROMLOAD(sman_132, "sman132a.bin", CRC(c8cd8f0a) SHA1(c2e1b54de54e8bd480300054c98a4f09d723edb7), 0x1588E0C)
+SAM_ROMEND
 SAM_ROMLOAD(sman_140, "sman140a.bin", CRC(48c2565d) SHA1(78f5d3242cfaa85fa0fd3937b6042f067dff535b), 0x016CE3C0)
 SAM_ROMEND
 SAM_ROMLOAD(sman_140af, "sman140af.bin", CRC(d181fa71) SHA1(66af219d9266b6b24e6857ad1a6b4fe539058052), 0x01A50398)
@@ -1683,6 +1709,8 @@ SAM_ROMEND
 SAM_ROMLOAD(sman_140gf, "sman140gf.bin", CRC(f1124c86) SHA1(755f15dd566f86695c7143512d81e16af71c8853), 0x01A70F78)
 SAM_ROMEND
 SAM_ROMLOAD(sman_142, "sman142a.bin", CRC(307b0163) SHA1(015c8c86763c645b43bd71a3cdb8975fcd36a99f), 0x016E8D60)
+SAM_ROMEND
+SAM_ROMLOAD(sman_250, "sman250a.bin", CRC(78d61e14) SHA1(3241d62e12d716ed661fbd0949cf4a39feb64437), 0x18775B8)
 SAM_ROMEND
 SAM_ROMLOAD(sman_160, "sman160a.bin", CRC(05425962) SHA1(a37f61239a7116e5c14a345c288f781fa6248cf8), 0x01725778)
 SAM_ROMEND
@@ -1753,6 +1781,7 @@ CORE_GAMEDEF(sman, 130af, "Spider-Man (V1.30) (English, French)", 2007, "Stern",
 CORE_CLONEDEF(sman, 130ai, 130af, "Spider-Man (V1.30) (English, Italian)", 2007, "Stern", sam, 0)
 CORE_CLONEDEF(sman, 130al, 130af, "Spider-Man (V1.30) (English, Spanish)", 2007, "Stern", sam, 0)
 CORE_CLONEDEF(sman, 130gf, 130af, "Spider-Man (V1.30) (German, French)", 2007, "Stern", sam, 0)
+CORE_CLONEDEF(sman, 132, 130af, "Spider-Man (V1.32)", 2007, "Stern", sam, 0)
 CORE_CLONEDEF(sman, 140, 130af, "Spider-Man (V1.4)", 2007, "Stern", sam, 0)
 CORE_CLONEDEF(sman, 140af, 130af, "Spider-Man (V1.4) (English, French)", 2007, "Stern", sam, 0)
 CORE_CLONEDEF(sman, 140ai, 130af, "Spider-Man (V1.4) (English, Italian)", 2007, "Stern", sam, 0)
@@ -1788,6 +1817,7 @@ CORE_CLONEDEF(sman, 210gf, 130af, "Spider-Man (V2.1) (German, French)", 2008, "S
 CORE_CLONEDEF(sman, 220, 130af, "Spider-Man (V2.2)", 2009, "Stern", sam, 0)
 CORE_CLONEDEF(sman, 230, 130af, "Spider-Man (V2.3)", 2009, "Stern", sam, 0)
 CORE_CLONEDEF(sman, 240, 130af, "Spider-Man (V2.4)", 2009, "Stern", sam, 0)
+CORE_CLONEDEF(sman, 250, 130af, "Spider-Man (V2.5)", 2009, "Stern", sam, 0)
 CORE_CLONEDEF(sman, 260, 130af, "Spider-Man (V2.6)", 2010, "Stern", sam, 0)
 CORE_CLONEDEF(sman, 261, 130af, "Spider-Man (V2.61)", 2014, "Stern", sam, 0)
 
@@ -1960,6 +1990,8 @@ SAM_ROMLOAD(bdk_290, "bdk290.bin", CRC(09ce777e) SHA1(79b6d3f91aa4d42318c698a444
 SAM_ROMEND
 SAM_ROMLOAD(bdk_294, "bdk294.bin", CRC(e087ec82) SHA1(aad2c43e6de9a520954eb50b6c824a138cd6f47f), 0x01C00844)
 SAM_ROMEND
+SAM_ROMLOAD(bdk_300, "bdk300.bin", CRC(8325bc80) SHA1(04f20d78ad33956618e576bba108ab145e26f9aa), 0x1C6AD84)
+SAM_ROMEND
 
 SAM_INPUT_PORTS_START(bdk, 1) SAM_INPUT_PORTS_END
 
@@ -1972,6 +2004,7 @@ CORE_CLONEDEF(bdk, 220, 130, "Batman: Dark Knight (V2.2)", 2008, "Stern", sam, 0
 CORE_CLONEDEF(bdk, 240, 130, "Batman: Dark Knight (V2.4)", 2009, "Stern", sam, 0)
 CORE_CLONEDEF(bdk, 290, 130, "Batman: Dark Knight (V2.9)", 2010, "Stern", sam, 0)
 CORE_CLONEDEF(bdk, 294, 130, "Batman: Dark Knight (V2.94)", 2010, "Stern", sam, 0)
+CORE_CLONEDEF(bdk, 300, 130, "Batman: Dark Knight (V3.00 Home Edition/Costco)", 2010, "Stern", sam, 0)
 
 //C.S.I. - good - bugged
 INITGAME(csi, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_NOMINI4);
@@ -2097,9 +2130,23 @@ CORE_CLONEDEF(im, 183ve, 100, "Iron Man Vault Edition (V1.83)", 2014, "Stern", s
 //Tron: Legacy - ?? seems ok
 INITGAME(trn, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_GAME_TRON);
 
+SAM_ROMLOAD(trn_100h, "trn100h.bin", CRC(4c2abebd) SHA1(8e22454932680351d58f863cf9644a9f3db24800), 0x1F19368)
+SAM_ROMEND
+SAM_ROMLOAD(trn_110, "trn110.bin", CRC(bdaf1803) SHA1(f32d5bfb87be85483b0486bbb6f2858efca6efe5), 0x1AB97D8)
+SAM_ROMEND
+SAM_ROMLOAD(trn_120, "trn120.bin", CRC(80dcb8a2) SHA1(9f0810969058222c0104f2b35d17e14bf3f5f8e8), 0x1C7C978)
+SAM_ROMEND
+SAM_ROMLOAD(trn_140, "trn140.bin", CRC(7c9ce1bd) SHA1(c75a6a4c7f0d72460061e5532e1d604f6ea829e3), 0x1E464E8)
+SAM_ROMEND
+SAM_ROMLOAD(trn_150, "trn150.bin", CRC(5ac4021b) SHA1(740187e7a60a32b1d21708a4194e0524211b53a7), 0x1F0420C)
+SAM_ROMEND
 SAM_ROMLOAD(trn_160, "trn160.bin", CRC(38eb16b1) SHA1(4f18080d76e07a3308497116cf3e39a7fab4cd25), 0x01f0f314)
 SAM_ROMEND
 SAM_ROMLOAD(trn_170, "trn170.bin", CRC(1f3b314d) SHA1(59df759539c02600d2579b4e59a184ac3db64020), 0x01F13C9C)
+SAM_ROMEND
+SAM_ROMLOAD(trn_110h, "trn110h.bin", CRC(43a7e45a) SHA1(b03798f00fe481f662ed07fbf7a14766bccbb92e), 0x1F19368)
+SAM_ROMEND
+SAM_ROMLOAD(trn_130h, "trn130h.bin", CRC(adf02601) SHA1(6e3c2706e39a1c01a002ceaea839b934cdac28bc), 0x1F1ED40)
 SAM_ROMEND
 SAM_ROMLOAD(trn_140h, "trn140h.bin", CRC(7de92a4b) SHA1(87eb46e1564b8a913d6cc17a86b50828dd1273de), 0x01f286d8)
 SAM_ROMEND
@@ -2113,7 +2160,14 @@ SAM_ROMEND
 SAM_INPUT_PORTS_START(trn, 1) SAM_INPUT_PORTS_END
 
 CORE_GAMEDEF(trn, 160, "Tron: Legacy Pro (V1.6)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(trn, 100h, 160, "Tron: Legacy Limited Edition (V1.0)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(trn, 110, 160, "Tron: Legacy Pro (V1.1)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(trn, 120, 160, "Tron: Legacy Pro (V1.2)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(trn, 140, 160, "Tron: Legacy Pro (V1.4)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(trn, 150, 160, "Tron: Legacy Pro (V1.5)", 2011, "Stern", sam, 0)
 CORE_CLONEDEF(trn, 170, 160, "Tron: Legacy Pro (V1.7)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(trn, 110h, 160, "Tron: Legacy Limited Edition (V1.1)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(trn, 130h, 160, "Tron: Legacy Limited Edition (V1.3)", 2011, "Stern", sam, 0)
 CORE_CLONEDEF(trn, 140h, 160, "Tron: Legacy Limited Edition (V1.4)", 2011, "Stern", sam, 0)
 CORE_CLONEDEF(trn, 174, 160, "Tron: Legacy Pro (V1.74)", 2013, "Stern", sam, 0)
 CORE_CLONEDEF(trn, 17402, 160, "Tron: Legacy Pro (V1.7402)", 2013, "Stern", sam, 0)
@@ -2122,15 +2176,27 @@ CORE_CLONEDEF(trn, 174h, 160, "Tron: Legacy Limited Edition (V1.74)", 2013, "Ste
 //Transformers - ?? seems ok
 INITGAME(tf, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_NOMINI4);
 
+SAM_ROMLOAD(tf_088h, "tf088h.bin", CRC(a79ca893) SHA1(8f1228727422f5f99a20d60968eeca6c64f6c253), 0x1EB4CE8)
+SAM_ROMEND
+SAM_ROMLOAD(tf_100h, "tf100h.bin", CRC(3be6ffc2) SHA1(c57d00af7ea189ea37ceed28bf85cff1054a1b8c), 0x1F4CCF0)
+SAM_ROMEND
 SAM_ROMLOAD(tf_120, "tf120.bin", CRC(a6dbb32d) SHA1(ac1bef87278ff1ebc98d66cc062c3a7e49580a82), 0x01E306CC)
 SAM_ROMEND
 SAM_ROMLOAD(tf_140, "tf140.bin", CRC(b41c8d33) SHA1(e96462df7481759d5c29a192766f03334b2b4562), 0x01D0C800)
+SAM_ROMEND
+SAM_ROMLOAD(tf_150, "tf150.bin", CRC(130cbed2) SHA1(b299b1b25a6007cbec0ea15d2a156a197215e288), 0x1D0C800)
+SAM_ROMEND
+SAM_ROMLOAD(tf_160, "tf160.bin", CRC(1D0C800) SHA1(10dd73ade7b662bf17b95c2413d23fa942e54660), 0x1D0C800)
 SAM_ROMEND
 SAM_ROMLOAD(tf_170, "tf170.bin", CRC(cd8707e6) SHA1(847c37988bbc12e8200a6762c2851b610a0b849f), 0x01D24F34)
 SAM_ROMEND
 SAM_ROMLOAD(tf_180, "tf180.bin", CRC(0b6e3a4f) SHA1(62e1328e8462680694157aca266055d57347e904), 0x01D24F34)
 SAM_ROMEND
 SAM_ROMLOAD(tf_120h, "tf120h.bin", CRC(0f750246) SHA1(7ab3c9278f443511e5e7fcf062ffc9e8d1456396), 0x01EB1C4C)
+SAM_ROMEND
+SAM_ROMLOAD(tf_130h, "tf130h.bin", CRC(8a1b676f) SHA1(d74f6060091293e6a781e129d19a408baabcf716), 0x1EB1C4C)
+SAM_ROMEND
+SAM_ROMLOAD(tf_140h, "tf140h.bin", CRC(7e7920d6) SHA1(9db41874081d5f28adb5ab23903038f5c959eb1d), 0x1EB1C4C)
 SAM_ROMEND
 SAM_ROMLOAD(tf_150h, "tf150h.bin", CRC(5cec6bfc) SHA1(30899241c2c0a9d42aa19fa3eb4180452bdaec91), 0x01EB1E5C)
 SAM_ROMEND
@@ -2140,16 +2206,24 @@ SAM_ROMEND
 SAM_INPUT_PORTS_START(tf, 1) SAM_INPUT_PORTS_END
 
 CORE_GAMEDEF(tf, 120, "Transformers Pro (V1.2)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(tf, 088h, 120, "Transformers Limited Edition (V0.88)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(tf, 100h, 120, "Transformers Limited Edition (V1.0)", 2011, "Stern", sam, 0)
 CORE_CLONEDEF(tf, 140, 120, "Transformers Pro (V1.4)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(tf, 150, 120, "Transformers Pro (V1.5)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(tf, 160, 120, "Transformers Pro (V1.6)", 2011, "Stern", sam, 0)
 CORE_CLONEDEF(tf, 170, 120, "Transformers Pro (V1.7)", 2012, "Stern", sam, 0)
 CORE_CLONEDEF(tf, 180, 120, "Transformers Pro (V1.8)", 2013, "Stern", sam, 0)
 CORE_CLONEDEF(tf, 120h, 120, "Transformers Limited Edition (V1.2)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(tf, 130h, 120, "Transformers Limited Edition (V1.3)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(tf, 140h, 120, "Transformers Limited Edition (V1.4)", 2011, "Stern", sam, 0)
 CORE_CLONEDEF(tf, 150h, 120, "Transformers Limited Edition (V1.5)", 2012, "Stern", sam, 0)
 CORE_CLONEDEF(tf, 180h, 120, "Transformers Limited Edition (V1.8)", 2013, "Stern", sam, 0)
 
 //Avatar - ?? Seems ok
 INITGAME(avr, GEN_SAM, sam_dmd128x32, SAM_0COL, SAM_GAME_AUXSOL12);
 
+SAM_ROMLOAD(avr_101h, "avr101h.bin", CRC(dbdcc7e5) SHA1(bf9a79209ecdae93efb2930091d2658259a3bd03), 0x1EE1CB8)
+SAM_ROMEND
 SAM_ROMLOAD(avr_106, "avr106.bin", CRC(695799e5) SHA1(3e216fd4273adb7417294b3e648befd69350ab25), 0x01ED31B4)
 SAM_ROMEND
 SAM_ROMLOAD(avr_110, "avr110.bin", CRC(e28df0a8) SHA1(7bc42d329efcb59d71af1736d8881c14ce3f7e5e), 0x01D53CA4)
@@ -2162,6 +2236,7 @@ SAM_ROMEND
 SAM_INPUT_PORTS_START(avr, 1) SAM_INPUT_PORTS_END
 
 CORE_GAMEDEF(avr, 106, "Avatar Pro (V1.06)", 2010, "Stern", sam, 0)
+CORE_CLONEDEF(avr, 101h, 106, "Avatar Limited/Premium Edition (V1.01)", 2010, "Stern", sam, 0)
 CORE_CLONEDEF(avr, 110, 106, "Avatar Pro (V1.1)", 2011, "Stern", sam, 0)
 CORE_CLONEDEF(avr, 120h, 106, "Avatar Limited/Premium Edition (V1.2)", 2011, "Stern", sam, 0)
 CORE_CLONEDEF(avr, 200, 106, "Avatar Pro (V2.0)", 2013, "Stern", sam, 0)
@@ -2169,6 +2244,12 @@ CORE_CLONEDEF(avr, 200, 106, "Avatar Pro (V2.0)", 2013, "Stern", sam, 0)
 //Rolling Stones - ?? Seems ok
 INITGAME(rsn, GEN_SAM, sam_dmd128x32, SAM_0COL, SAM_NOMINI);
 
+SAM_ROMLOAD(rsn_100h, "rsn100h.bin", CRC(7cdb082a) SHA1(2f35057b80ffeec05cdbc62bc86da8a32f859425), 0x1EB50C8)
+SAM_ROMEND
+SAM_ROMLOAD(rsn_103, "rsn103.bin", CRC(2039ac97) SHA1(4cbcc758fc74dd32f5804b9548645fba3431bdce), 0x1D38788)
+SAM_ROMEND
+SAM_ROMLOAD(rsn_105, "rsn105.bin", CRC(58025883) SHA1(7f63bbe98f1151e0276ede1412ed5960ce9b3395), 0x1EB4FC0)
+SAM_ROMEND
 SAM_ROMLOAD(rsn_110, "rsn110.bin", CRC(f4aad67f) SHA1(f5dc335a2b9cc92b3da9a33e24cd0b155c6385aa), 0x01EB4FC4)
 SAM_ROMEND
 SAM_ROMLOAD(rsn_110h, "rsn110h.bin", CRC(f5122852) SHA1(b92461983d7a3b55ac8be4df4def1b4ca12327af), 0x01EB50CC)
@@ -2177,6 +2258,9 @@ SAM_ROMEND
 SAM_INPUT_PORTS_START(rsn, 1) SAM_INPUT_PORTS_END
 
 CORE_GAMEDEF(rsn, 110, "Rolling Stones Pro (V1.1)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(rsn, 103, 110, "Rolling Stones Pro (V1.03)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(rsn, 105, 110, "Rolling Stones Pro (V1.05)", 2011, "Stern", sam, 0)
+CORE_CLONEDEF(rsn, 100h, 110, "Rolling Stones Limited/Premium Edition (V1.0)", 2011, "Stern", sam, 0)
 CORE_CLONEDEF(rsn, 110h, 110, "Rolling Stones Limited/Premium Edition (V1.1)", 2011, "Stern", sam, 0)
 
 //ACDC
@@ -2234,9 +2318,15 @@ INITGAME(acd, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12 | SAM_GAME_ACD
  
 SAM_ROMLOAD_ACDC1(acd_121, "acd_121.bin", CRC(4f5f43e9) SHA1(19045e9cdb2522770013c24c6fed265009278dea), 0x03D8F40C)
 SAM_ROMEND
+SAM_ROMLOAD_ACDC1(acd_125, "acd_125.bin", CRC(0307663f) SHA1(d40e3aaf94d1d314835fa59a177ce0c386399f4c), 0x3E53DEC)
+SAM_ROMEND
 SAM_ROMLOAD_ACDC1(acd_130, "acd_130.bin", CRC(da97014e) SHA1(f0a2684076008b0234c089fea8f95e4f3d8816dd), 0x040C4038)
 SAM_ROMEND
 SAM_ROMLOAD_ACDC1(acd_140, "acd_140.bin", CRC(43bbbf54) SHA1(33e3795ab850dfab1fd8b1b4f6364a696cc62aa9), 0x040C4038)
+SAM_ROMEND
+SAM_ROMLOAD_ACDC1(acd_150, "acd_150.bin", CRC(8b4c0fae) SHA1(d973be4306a7fc1ff9f898145197081cbe823584), 0x41308CC)
+SAM_ROMEND
+SAM_ROMLOAD_ACDC1(acd_150h, "acd_150h.bin", CRC(1b8b823d) SHA1(9cda6a3f609e94d93126e105ac2945151006325b), 0x40F555C)
 SAM_ROMEND
 SAM_ROMLOAD_ACDC1(acd_152, "acd_152.bin", CRC(78cef38c) SHA1(656acabed2241587f512cdd53a095228d9642d1b), 0x04185458)
 SAM_ROMEND
@@ -2267,8 +2357,11 @@ SAM_ROMEND
 SAM_INPUT_PORTS_START(acd, 1) SAM_INPUT_PORTS_END
 
 CORE_GAMEDEF(acd, 121, "AC/DC Pro (V1.21)", 2012, "Stern", sam, 0)
+CORE_CLONEDEF(acd, 125, 121, "AC/DC Pro (V1.25)", 2012, "Stern", sam, 0)
 CORE_CLONEDEF(acd, 130, 121, "AC/DC Pro (V1.3)", 2012, "Stern", sam, 0)
 CORE_CLONEDEF(acd, 140, 121, "AC/DC Pro (V1.4)", 2012, "Stern", sam, 0)
+CORE_CLONEDEF(acd, 150, 121, "AC/DC Pro (V1.5)", 2012, "Stern", sam, 0)
+CORE_CLONEDEF(acd, 150h, 121, "AC/DC Limited Edition (V1.5)", 2012, "Stern", sam, 0)
 CORE_CLONEDEF(acd, 152, 121, "AC/DC Pro (V1.52)", 2012, "Stern", sam, 0)
 CORE_CLONEDEF(acd, 152h, 121, "AC/DC Limited Edition (V1.52)", 2012, "Stern", sam, 0)
 CORE_CLONEDEF(acd, 160, 121, "AC/DC Pro (V1.6)", 2012, "Stern", sam, 0)
