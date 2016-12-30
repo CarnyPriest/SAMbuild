@@ -278,17 +278,18 @@ DRIVERNV(eballch2)      //6803      09/85 Eight Ball Champ (cheap squeak)
 DRIVERNV(beatclck)      //6803-0C70:11/85 Beat the Clock
 DRIVERNV(ladyluck)      //6803-0E34:02/86 Lady Luck
 DRIVERNV(motrdome)      //6803-0E14:05/86 MotorDome
+DRIVERNV(motrdomg)      //6803-0E69:07/86 MotorDome (German)
                         //6803-????:06/86 Karate Fight (Prototype for Black Belt?)
 DRIVERNV(blackblt)      //6803-0E52:07/86 Black Belt
-DRIVERNV(blackbl2)      //6803-0E52:07/86 Black Belt (Squawk & Talk)
+DRIVERNV(blackbl2)      //6803      07/86 Black Belt (Squawk & Talk)
 DRIVERNV(specforc)      //6803-0E47:08/86 Special Force
 DRIVERNV(strngsci)      //6803-0E35:10/86 Strange Science
-DRIVERNV(strngscg)      //6803-0E35:10/86 Strange Science (German)
+DRIVERNV(strngscg)      //6803      10/86 Strange Science (German)
 DRIVERNV(cityslck)      //6803-0E79:03/87 City Slicker
 DRIVERNV(hardbody)      //6803-0E94:02/87 Hardbody
 DRIVERNV(hardbdyg)      //6803      03/87 Hardbody (German)
 DRIVERNV(prtyanim)      //6803-0H01:05/87 Party Animal
-DRIVERNV(prtyanig)      //6803-0H01:05/87 Party Animal (German)
+DRIVERNV(prtyanig)      //6803      05/87 Party Animal (German)
 DRIVERNV(hvymetal)      //6803-0H03:08/87 Heavy Metal Meltdown
 DRIVERNV(dungdrag)      //6803-0H06:10/87 Dungeons & Dragons
 DRIVERNV(esclwrld)      //6803-0H05:12/87 Escape from the Lost World
@@ -1745,7 +1746,7 @@ DRIVER(acd,163h)        //S.A.M.: 01/13 AC/DC Limited Edition - V1.63
 DRIVER(acd,165)         //S.A.M.: 03/13 AC/DC Pro - V1.65
 DRIVER(acd,165h)        //S.A.M.: 03/13 AC/DC Limited Edition - V1.65
 DRIVER(acd,168)         //S.A.M.: 06/14 AC/DC Pro - V1.68
-DRIVER(acd,168c)		// pinball browser colorized using extend memory
+DRIVER(acd,168c)	// pinball browser colorized using extend memory
 DRIVER(acd,168h)        //S.A.M.: 06/14 AC/DC Limited Edition - V1.68
 DRIVER(acd,168hc)       // pinball browser colorized using extend memory
 DRIVER(xmn,100)         //S.A.M.: 0?/12 X-Men - V1.0
@@ -1774,8 +1775,8 @@ DRIVER(avs,140)         //S.A.M.: 02/13 Avengers - V1.4
 DRIVER(avs,140h)        //S.A.M.: 02/13 Avengers Limited Edition - V1.4
 DRIVER(avs,170)         //S.A.M.: 01/16 Avengers - V1.7
 DRIVER(avs,170h)        //S.A.M.: 01/16 Avengers Limited Edition - V1.7
-DRIVER(avs,170c)		// pinball browser colorized using extend memory
-DRIVER(avs,170hc)		// pinball browser colorized using extend memory
+DRIVER(avs,170c)	// pinball browser colorized using extend memory
+DRIVER(avs,170hc)	// pinball browser colorized using extend memory
 //DRIVER(mtl,100)         //S.A.M.: 04/13 Metallica Pro - V1.0
 //DRIVER(mtl,102)         //S.A.M.: 05/13 Metallica Pro - V1.02
 DRIVER(mtl,103)         //S.A.M.: 05/13 Metallica Pro - V1.03
@@ -1803,12 +1804,12 @@ DRIVER(mtl,163)         //S.A.M.: 09/14 Metallica Pro - V1.63
 DRIVER(mtl,163d)        // LED version
 DRIVER(mtl,163h)        //S.A.M.: 09/14 Metallica Limited Edition - V1.63
 DRIVER(mtl,164)         //S.A.M.: 04/15 Metallica Pro - V1.64
-DRIVER(mtl,164c)		// pinball browser colorized using extend memory
+DRIVER(mtl,164c)	// pinball browser colorized using extend memory
 DRIVER(mtl,164h)        //S.A.M.: 04/15 Metallica Limited Edition - V1.64
 DRIVER(mtl,170)         //S.A.M.: 06/16 Metallica Pro - V1.7
 DRIVER(mtl,170h)        //S.A.M.: 06/16 Metallica Limited Edition - V1.7
-DRIVER(mtl,170c)		// pinball browser colorized using extend memory
-DRIVER(mtl,170hc)		// pinball browser colorized using extend memory
+DRIVER(mtl,170c)	// pinball browser colorized using extend memory
+DRIVER(mtl,170hc)	// pinball browser colorized using extend memory
 //DRIVER(st,100)          //S.A.M.: 09/13 Star Trek Pro - V1.0                    
 //DRIVER(st,101)          //S.A.M.: 09/13 Star Trek Pro - V1.01                    
 DRIVER(st,120)          //S.A.M.: 09/13 Star Trek Pro - V1.2                    
@@ -1830,8 +1831,8 @@ DRIVER(st,160)          //S.A.M.: 03/15 Star Trek Pro - V1.6
 DRIVER(st,160h)         //S.A.M.: 03/15 Star Trek Limited Edition - V1.6
 DRIVER(st,161)          //S.A.M.: 03/15 Star Trek Pro - V1.61
 DRIVER(st,161h)         //S.A.M.: 03/15 Star Trek Limited Edition - V1.61
-DRIVER(st,161c)			// pinball browser colorized using extend memory
-DRIVER(st,161hc)		// pinball browser colorized using extend memory
+DRIVER(st,161c)		// pinball browser colorized using extend memory
+DRIVER(st,161hc)	// pinball browser colorized using extend memory
 //DRIVER(mt,100)          //S.A.M.: 03/14 Mustang - V1.0
 //DRIVER(mt,101)          //S.A.M.: 03/14 Mustang - V1.01
 //DRIVER(mt,102)          //S.A.M.: 03/14 Mustang - V1.02
