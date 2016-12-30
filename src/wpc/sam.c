@@ -2354,6 +2354,8 @@ SAM_ROMLOAD_ACDC3(acd_168h, "acd_168h.bin", CRC(5a4246a1) SHA1(725eb666ffaef894d
 SAM_ROMEND
 SAM_ROMLOAD128(acd_168c, "acd_168c.bin", CRC(5a4246a1) SHA1(725eb666ffaef894d2bd694d412658395c7fa7f9), 0x077FFFF0)
 SAM_ROMEND
+SAM_ROMLOAD128(acd_168hc, "acd_168hc.bin", CRC(5a4246a1) SHA1(725eb666ffaef894d2bd694d412658395c7fa7f9), 0x077FFFF0)
+SAM_ROMEND
 SAM_INPUT_PORTS_START(acd, 1) SAM_INPUT_PORTS_END
 
 CORE_GAMEDEF(acd, 121, "AC/DC Pro (V1.21)", 2012, "Stern", sam, 0)
@@ -2375,6 +2377,7 @@ CORE_CLONEDEF(acd, 165h, 121, "AC/DC Limited Edition (V1.65)", 2013, "Stern", sa
 CORE_CLONEDEF(acd, 168, 121, "AC/DC Pro (V1.68)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(acd, 168c, 121, "AC/DC Pro (V1.68) (Colored)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(acd, 168h, 121, "AC/DC Limited Edition (V1.68)", 2014, "Stern", sam, 0)
+CORE_CLONEDEF(acd, 168hc, 121, "AC/DC Limited Edition (V1.68) (Colored)", 2014, "Stern", sam, 0)
 
 //X-Men
 INITGAME(xmn, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL8);
@@ -2445,6 +2448,8 @@ SAM_ROMLOAD(avs_170h, "avs_170h.bin", CRC(07FEB01C) SHA1(25cca6c2f8fc2e3a38a7226
 SAM_ROMEND
 SAM_ROMLOAD(avs_170c, "avs_170c.bin", CRC(ff1a39e5) SHA1(44949f8aca36a8a1896fe253278ef7f146764d79), 0x01FFFFF0)
 SAM_ROMEND
+SAM_ROMLOAD(avs_170hc, "avs_170hc.bin", CRC(ff1a39e5) SHA1(44949f8aca36a8a1896fe253278ef7f146764d79), 0x01FFFFF0)
+SAM_ROMEND
 
 SAM_INPUT_PORTS_START(avs, 1) SAM_INPUT_PORTS_END
 
@@ -2455,6 +2460,7 @@ CORE_CLONEDEF(avs, 140h, 110, "Avengers Limited Edition (V1.4)", 2013, "Stern", 
 CORE_CLONEDEF(avs, 170, 110, "Avengers Pro (V1.7)", 2016, "Stern", sam, 0)
 CORE_CLONEDEF(avs, 170c, 110, "Avengers Pro (V1.7) (Colored)", 2016, "Stern", sam, 0)
 CORE_CLONEDEF(avs, 170h, 110, "Avengers Limited Edition (V1.7)", 2016, "Stern", sam, 0)
+CORE_CLONEDEF(avs, 170hc, 110, "Avengers Limited Edition (V1.7) (Colored)", 2016, "Stern", sam, 0)
 
 //Metallica
 
@@ -2545,6 +2551,8 @@ SAM_ROMLOAD_ACDC3(mtl_170h, "mtl170h.bin", CRC(99d42a4e) SHA1(1983a6d1cd5664cf03
 SAM_ROMEND
 SAM_ROMLOAD_ACDC3(mtl_170c, "mtl170c.bin", CRC(99d42a4e) SHA1(1983a6d1cd5664cf03599b035f520e0c6aa33632), 0x05FFFFF0)
 SAM_ROMEND
+SAM_ROMLOAD_ACDC3(mtl_170hc, "mtl170hc.bin", CRC(99d42a4e) SHA1(1983a6d1cd5664cf03599b035f520e0c6aa33632), 0x05FFFFF0)
+SAM_ROMEND
 
 SAM_INPUT_PORTS_START(mtl, 1) SAM_INPUT_PORTS_END
 
@@ -2575,6 +2583,7 @@ CORE_CLONEDEF(mtl, 164c, 103, "Metallica Pro (V1.64) (Colored)", 2015, "Stern", 
 CORE_CLONEDEF(mtl, 170, 103, "Metallica Pro (V1.7)", 2016, "Stern", sam, 0)
 CORE_CLONEDEF(mtl, 170h, 103, "Metallica Limited Edition (V1.7)", 2016, "Stern", sam, 0)
 CORE_CLONEDEF(mtl, 170c, 103, "Metallica Pro (V1.7) (Colored)", 2016, "Stern", sam, 0)
+CORE_CLONEDEF(mtl, 170hc, 103, "Metallica Limited Edition (V1.7) (Colored)", 2016, "Stern", sam, 0)
 
 //Star Trek
 
@@ -2622,6 +2631,8 @@ SAM_ROMLOAD_ST(st_161h, "st_161h.bin", CRC(74ad8a31) SHA1(18c940d021441ba87854f5
 SAM_ROMEND
 SAM_ROMLOAD_ST(st_161c, "st_161c.bin", CRC(74ad8a31) SHA1(18c940d021441ba87854f5eb6edb84aeffabdaae), 0x037FFFF0)
 SAM_ROMEND
+SAM_ROMLOAD_ST(st_161hc, "st_161hc.bin", CRC(74ad8a31) SHA1(18c940d021441ba87854f5eb6edb84aeffabdaae), 0x037FFFF0)
+SAM_ROMEND
 SAM_INPUT_PORTS_START(st, 1) SAM_INPUT_PORTS_END
 
 CORE_GAMEDEF(st, 120, "Star Trek Pro (V1.2)", 2013, "Stern", sam, 0)
@@ -2637,6 +2648,7 @@ CORE_CLONEDEF(st, 142h, 120, "Star Trek Limited Edition (V1.42)", 2014, "Stern",
 CORE_CLONEDEF(st, 150h, 120, "Star Trek Limited Edition (V1.5)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(st, 160h, 120, "Star Trek Limited Edition (V1.6)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(st, 161h, 120, "Star Trek Limited Edition (V1.61)", 2015, "Stern", sam, 0)
+CORE_CLONEDEF(st, 161hc, 120, "Star Trek Limited Edition (V1.61) (Colored)", 2015, "Stern", sam, 0)
 
 //Mustang
 

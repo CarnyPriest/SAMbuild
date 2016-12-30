@@ -1747,6 +1747,7 @@ DRIVER(acd,165h)        //S.A.M.: 03/13 AC/DC Limited Edition - V1.65
 DRIVER(acd,168)         //S.A.M.: 06/14 AC/DC Pro - V1.68
 DRIVER(acd,168c)		// pinball browser colorized using extend memory
 DRIVER(acd,168h)        //S.A.M.: 06/14 AC/DC Limited Edition - V1.68
+DRIVER(acd,168hc)       // pinball browser colorized using extend memory
 DRIVER(xmn,100)         //S.A.M.: 0?/12 X-Men - V1.0
 DRIVER(xmn,102)         //S.A.M.: 09/12 X-Men Pro - V1.02
 DRIVER(xmn,104)         //S.A.M.: 12/12 X-Men Pro - V1.04
@@ -1774,6 +1775,7 @@ DRIVER(avs,140h)        //S.A.M.: 02/13 Avengers Limited Edition - V1.4
 DRIVER(avs,170)         //S.A.M.: 01/16 Avengers - V1.7
 DRIVER(avs,170h)        //S.A.M.: 01/16 Avengers Limited Edition - V1.7
 DRIVER(avs,170c)		// pinball browser colorized using extend memory
+DRIVER(avs,170hc)		// pinball browser colorized using extend memory
 //DRIVER(mtl,100)         //S.A.M.: 04/13 Metallica Pro - V1.0
 //DRIVER(mtl,102)         //S.A.M.: 05/13 Metallica Pro - V1.02
 DRIVER(mtl,103)         //S.A.M.: 05/13 Metallica Pro - V1.03
@@ -1806,6 +1808,7 @@ DRIVER(mtl,164h)        //S.A.M.: 04/15 Metallica Limited Edition - V1.64
 DRIVER(mtl,170)         //S.A.M.: 06/16 Metallica Pro - V1.7
 DRIVER(mtl,170h)        //S.A.M.: 06/16 Metallica Limited Edition - V1.7
 DRIVER(mtl,170c)		// pinball browser colorized using extend memory
+DRIVER(mtl,170hc)		// pinball browser colorized using extend memory
 //DRIVER(st,100)          //S.A.M.: 09/13 Star Trek Pro - V1.0                    
 //DRIVER(st,101)          //S.A.M.: 09/13 Star Trek Pro - V1.01                    
 DRIVER(st,120)          //S.A.M.: 09/13 Star Trek Pro - V1.2                    
@@ -1828,6 +1831,7 @@ DRIVER(st,160h)         //S.A.M.: 03/15 Star Trek Limited Edition - V1.6
 DRIVER(st,161)          //S.A.M.: 03/15 Star Trek Pro - V1.61
 DRIVER(st,161h)         //S.A.M.: 03/15 Star Trek Limited Edition - V1.61
 DRIVER(st,161c)			// pinball browser colorized using extend memory
+DRIVER(st,161hc)		// pinball browser colorized using extend memory
 //DRIVER(mt,100)          //S.A.M.: 03/14 Mustang - V1.0
 //DRIVER(mt,101)          //S.A.M.: 03/14 Mustang - V1.01
 //DRIVER(mt,102)          //S.A.M.: 03/14 Mustang - V1.02
