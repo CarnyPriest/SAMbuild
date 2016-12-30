@@ -1851,6 +1851,8 @@ DRIVER(mt,140hb)        //S.A.M.: 10/14 Mustang Boss - V1.4
 DRIVER(mt,145)          //S.A.M.: 02/16 Mustang Pro - V1.45
 DRIVER(mt,145h)         //S.A.M.: 02/16 Mustang Limited Edition - V1.45
 DRIVER(mt,145hb)        //S.A.M.: 02/16 Mustang Boss - V1.45
+DRIVER(mt,145c)         // pinball browser colorized using extend memory
+DRIVER(mt,145hc)        // pinball browser colorized using extend memory
 //DRIVER(twd,100)         //S.A.M.: 09/14 Walking Dead, The - V1.0
 //DRIVER(twd,101)         //S.A.M.: 09/14 Walking Dead, The - V1.01
 //DRIVER(twd,103)         //S.A.M.: 09/14 Walking Dead, The - V1.03
@@ -1872,6 +1874,8 @@ DRIVER(twd,153)         //S.A.M.: 11/15 Walking Dead, The - V1.53
 DRIVER(twd,153h)        //S.A.M.: 11/15 Walking Dead, The - V1.53 Limited Edition
 DRIVER(twd,156)         //S.A.M.: 12/15 Walking Dead, The - V1.56
 DRIVER(twd,156h)        //S.A.M.: 12/15 Walking Dead, The - V1.56 Limited Edition
+DRIVER(twd,156c)        // pinball browser colorized using extend memory
+DRIVER(twd,156hc)       // pinball browser colorized using extend memory
 DRIVER(smanve,100)      //S.A.M.: 02/16 Spider-Man - Vault Edition V1.0
 DRIVER(smanve,100c)     // pinball browser colorized using extend memory
 DRIVER(smanve,101)      //S.A.M.: 05/16 Spider-Man - Vault Edition V1.01

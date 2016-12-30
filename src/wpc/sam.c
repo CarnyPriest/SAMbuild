@@ -2672,6 +2672,10 @@ SAM_ROMLOAD(mt_145h, "mt_145h.bin", CRC(20ec78b3) SHA1(95443dd1d545de409a692793a
 SAM_ROMEND
 SAM_ROMLOAD(mt_145hb, "mt_145hb.bin", CRC(91fd5615) SHA1(0dbd7f3fc68218bcb10c893069d35447a445bc11), 0x03C2CCC4)													
 SAM_ROMEND
+SAM_ROMLOAD(mt_145c, "mt_145c.bin", CRC(67a38387) SHA1(31626b54a5b2dd7fbc98c4b97ed84ce1a6705955), 0x037FFFF0)
+SAM_ROMEND
+SAM_ROMLOAD(mt_145hc, "mt_145hc.bin", CRC(20ec78b3) SHA1(95443dd1d545de409a692793ad609ed651cb61d8), 0x03FFFFF0)
+SAM_ROMEND
 
 SAM_INPUT_PORTS_START(mt, 1) SAM_INPUT_PORTS_END
 
@@ -2684,6 +2688,8 @@ CORE_CLONEDEF(mt, 140hb, 120 , "Mustang Boss (V1.4)", 2014, "Stern", sam, 0)
 CORE_CLONEDEF(mt, 145, 120 , "Mustang (V1.45)", 2016, "Stern", sam, 0)
 CORE_CLONEDEF(mt, 145h, 120 , "Mustang Limited Edition (V1.45)", 2016, "Stern", sam, 0)
 CORE_CLONEDEF(mt, 145hb, 120 , "Mustang Boss (V1.45)", 2016, "Stern", sam, 0)
+CORE_CLONEDEF(mt, 145c, 120 , "Mustang (V1.45) (Colored)", 2016, "Stern", sam, 0)
+CORE_CLONEDEF(mt, 145hc, 120 , "Mustang Limited Edition (V1.45) (Colored)", 2016, "Stern", sam, 0)
 
 //Walking Dead
 
@@ -2723,6 +2729,10 @@ SAM_ROMLOAD_ACDC3(twd_156, "twd_156.bin", CRC(4bd62b0f) SHA1(b1d5e7d96f45fb3e076
 SAM_ROMEND
 SAM_ROMLOAD_ACDC3(twd_156h, "twd_156h.bin", CRC(4594a287) SHA1(1e1a3b94bacf54a0c20cfa978db1284008c0e0a1), 0x05C80448)
 SAM_ROMEND
+SAM_ROMLOAD_ACDC3(twd_156c, "twd_156c.bin", CRC(DC6699CF) SHA1(93f0759243c815f55c2e52db8dfc3b3faa94a28d), 0x05FFFFF0)
+SAM_ROMEND
+SAM_ROMLOAD_ACDC3(twd_156hc, "twd_156hc.bin", CRC(4594a287) SHA1(1e1a3b94bacf54a0c20cfa978db1284008c0e0a1), 0x05FFFFF0)
+SAM_ROMEND
 
 SAM_INPUT_PORTS_START(twd, 1) SAM_INPUT_PORTS_END
 
@@ -2743,6 +2753,8 @@ CORE_CLONEDEF(twd, 153, 105, "The Walking Dead (V1.53)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 153h, 105, "The Walking Dead LE (V1.53)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156, 105, "The Walking Dead (V1.56)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156h, 105, "The Walking Dead LE (V1.56)", 2015, "Stern", sam, 0)
+CORE_CLONEDEF(twd, 156c, 105, "The Walking Dead (V1.56) (Colored)", 2015, "Stern", sam, 0)
+CORE_CLONEDEF(twd, 156hc, 105, "The Walking Dead LE (V1.56) (Colored)", 2015, "Stern", sam, 0)
 
 //Spider-Man Vault Edition
 INITGAME(smanve, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_GAME_AUXSOL12);
