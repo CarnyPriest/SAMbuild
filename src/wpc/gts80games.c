@@ -878,15 +878,6 @@ GTS80_ROMEND
 #define input_ports_ravena input_ports_raven
 CORE_CLONEDEFNV(ravena, raven, "Raven (alternate set)",1986,"Gottlieb",gl_mGTS80BS1,0)
 
-GTS80B_2K_ROMSTART(rambo, "prom2a.cpu", CRC(a693785e) SHA1(7c8878f1c3c5205b3ae46a78c881bbd2b722838d),
-                          "prom1.cpu", CRC(51629598) SHA1(a5408fad2baec43633f407665f006fae74f3d9aa))
-GTS80BSSOUND88(           "drom1.snd", CRC(a04bf7d0) SHA1(5be5d445b199e7dc9d42e7ee5e9b31c18dec3881),
-                          "yrom1.snd", CRC(ee5f868b) SHA1(23ef4112b94109ad4d4a6b9bb5215acec20e5e55))
-GTS80_ROMEND
-#define init_rambo init_raven
-#define input_ports_rambo input_ports_raven
-CORE_CLONEDEFNV(rambo, raven, "Rambo (Raven MOD)",1986,"Gottlieb",gl_mGTS80BS1,0)
-
 /*-------------------------------------------------------------------
 / Rock Encore (#704)
 /-------------------------------------------------------------------*/
@@ -1081,10 +1072,6 @@ GTS80_ROMEND
 #define input_ports_robowars input_ports_gts80
 CORE_GAMEDEFNV(robowars, "Robo-War",1988,"Gottlieb",gl_mGTS80BS2,0)
 
-/****************************************/
-/* Start of Generation 3 Sound Hardware */
-/****************************************/
-
 /*-------------------------------------------------------------------
 / Excalibur (#715)
 /-------------------------------------------------------------------*/
@@ -1095,7 +1082,11 @@ GTS80BSSOUND3232(            "drom1.snd", CRC(a4368cd0) SHA1(c48513e56899938dc83
                              "yrom1.snd", CRC(9f194744) SHA1(dbd73b546071c3d4f0dcfe21e3e646da716c5b71))
 GTS80_ROMEND
 #define input_ports_excalibr input_ports_gts80
-CORE_GAMEDEFNV(excalibr, "Excalibur",1988,"Gottlieb",gl_mGTS80BS3,0)
+CORE_GAMEDEFNV(excalibr, "Excalibur",1988,"Gottlieb",gl_mGTS80BS2,0)
+
+/****************************************/
+/* Start of Generation 3 Sound Hardware */
+/****************************************/
 
 /*-------------------------------------------------------------------
 / Bad Girls (#717)
