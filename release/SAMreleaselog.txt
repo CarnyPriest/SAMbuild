@@ -1,3 +1,9 @@
+SAMbuild version 2.8b01
+official rev 4167 (minus r4154 enter new 2.9 cycle)
+S.A.M.
+Add slots for user customized full color LE game code
+Add slots for Mustang Pro and LE/The Walking Dead Pro and LE user customized full color game code
+ ----------------------
 SAMbuild version 2.8b
 official rev 4166 (minus r4154 enter new 2.9 cycle)
  ----------------------
