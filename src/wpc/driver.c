@@ -544,12 +544,14 @@ DRIVERNV(jamesb7b)      //          01/08 James Bond (3/5 Ball, 7-digit conversi
 DRIVERNV(timeline)      //S80-659:  10/80 Time Line
 DRIVERNV(timelin7)      //          01/08 Time Line (7-digit conversion)
 DRIVERNV(forceii)       //S80-661:  02/81 Force II
-DRIVERNV(forceii7)      //          01/08 Force II, 7-digit conversion)
+DRIVERNV(forceii7)      //          01/08 Force II (7-digit conversion)
 DRIVERNV(pnkpnthr)      //S80-664:  03/81 Pink Panther
-DRIVERNV(pnkpntr7)      //          01/08 Pink Panther, 7-digit conversion)
+DRIVERNV(pnkpntr7)      //          01/08 Pink Panther (7-digit conversion)
+DRIVERNV(pnkpntrs)      //          03/81 Pink Panther (sound correction fix)
 DRIVERNV(mars)          //S80-666:  03/81 Mars God of War
-DRIVERNV(marsf)         //S80-666:  03/81 Mars God of War (French speech)
-DRIVERNV(mars7)         //          01/08 Mars God of War, 7-digit conversion)
+DRIVERNV(marsf)         //          03/81 Mars God of War (French speech)
+DRIVERNV(mars7)         //          01/08 Mars God of War (7-digit conversion)
+DRIVERNV(mars_2)        //          03/81 Mars God of War (rev. 2 unofficial MOD) // fixes a potential startup problem
 DRIVERNV(vlcno_ax)      //S80-667:  09/81 Volcano (Sound & Speech)
 DRIVERNV(vlcno_a7)      //          01/08 Volcano (Sound & Speech, 7-digit conversion)
 DRIVERNV(vlcno_1b)      //                Volcano (Sound Only)
@@ -561,9 +563,12 @@ DRIVERNV(blkhole7)      //          01/08 Black Hole (Sound & Speech, Rev 4, 7-d
 DRIVERNV(blkhole2)      //                Black Hole (Sound & Speech, Rev 2)
 DRIVERNV(blkholea)      //                Black Hole (Sound Only)
 DRIVERNV(blkhol7s)      //          01/08 Black Hole (Sound Only, 7-digit conversion)
-DRIVERNV(hh)            //S80-669:  06/82 Haunted House (Rev 2)
-DRIVERNV(hh7)           //          01/08 Haunted House (Rev 2, 7-digit conversion)
-DRIVERNV(hh_1)          //                Haunted House (Rev 1)
+DRIVERNV(hh)            //S80-669:  06/82 Haunted House (rev. 2)
+DRIVERNV(hh7)           //          01/08 Haunted House (rev. 2, 7-digit conversion)
+DRIVERNV(hh_1)          //                Haunted House (rev. 1)
+DRIVERNV(hh_3)          //                Haunted House (rev. 3 unofficial MOD)
+DRIVERNV(hh_3a)         //                Haunted House (rev. 3 unofficial MOD, LED)
+DRIVERNV(hh_3b)         //                Haunted House (rev. 3 unofficial MOD, LED+Secret Tunnel)
 DRIVERNV(eclipse)       //S80-671:  ??/82 Eclipse
 DRIVERNV(eclipse7)      //          01/08 Eclipse (7-digit conversion)
 DRIVERNV(s80tst)        //S80: Text Fixture
@@ -572,6 +577,7 @@ DRIVERNV(dvlsdre)       //S80a-670: 08/82 Devil's Dare (Sound & Speech)
 DRIVERNV(dvlsdre2)      //                Devil's Dare (Sound Only)
 DRIVERNV(caveman)       //S80a-PV810:09/82 Caveman
 DRIVERNV(cavemana)      //                Caveman (set 2)
+DRIVERNV(cavemane)      //                Caveman (Evolution, unofficial MOD)
 DRIVERNV(rocky)         //S80a-672: 09/82 Rocky
 DRIVERNV(spirit)        //S80a-673: 11/82 Spirit
 DRIVERNV(striker)       //S80a-675: 11/82 Striker
@@ -593,39 +599,74 @@ DRIVERNV(touchdn)       //S80a-688: 10/84 Touchdown
 DRIVERNV(icefever)      //S80a-695: 02/85 Ice Fever
 //System 80b
 DRIVERNV(triplay)       //S80b-696: 05/85 Chicago Cubs Triple Play
+DRIVERNV(triplyfp)      //                Chicago Cubs Triple Play (Free Play)
 DRIVERNV(triplaya)      //                Chicago Cubs Triple Play (alternate set)
+DRIVERNV(triplyf1)      //                Chicago Cubs Triple Play (rev. 1 Free Play)
 DRIVERNV(bountyh)       //S80b-694: 07/85 Bounty Hunter
+DRIVERNV(bounthfp)      //                Bounty Hunter (Free Play)
+DRIVERNV(bountgfp)      //                Bounty Hunter (German Free Play)
 DRIVERNV(tagteam)       //S80b-698: 09/85 Tag-Team Pinball
+DRIVERNV(tagtemfp)      //                Tag-Team Pinball (Free Play)
+DRIVERNV(tagtmgfp)      //                Tag-Team Pinball (German Free Play)
 DRIVERNV(tagteam2)      //                Tag-Team Pinball (rev.2)
+DRIVERNV(tagtem2f)      //                Tag-Team Pinball (rev.2 Free Play)
 DRIVERNV(rock)          //S80b-697: 10/85 Rock
+DRIVERNV(rockfp)        //                Rock (Free Play)
+DRIVERNV(rockgfp)       //                Rock (German Free Play)
                         //S80b-700: ??/85 Ace High (never produced, playable whitewood exists)
 DRIVERNV(s80btest)      //S80B: Text Fixture
 DRIVERNV(raven)         //S80b-702: 03/86 Raven
+DRIVERNV(ravenfp)       //                Raven (Free Play)
+DRIVERNV(ravengfp)      //                Raven (German Free Play)
 DRIVERNV(ravena)        //                Raven (alternate set)
+DRIVERNV(ravenafp)      //                Raven (rev. 1 Free Play)
 DRIVERNV(rambo)         //                Rambo (Raven MOD)
 DRIVERNV(rock_enc)      //S80b-704: 04/86 Rock Encore
+DRIVERNV(rock_efp)      //                Rock Encore (Free Play)
 DRIVERNV(hlywoodh)      //S80b-703: 06/86 Hollywood Heat
+DRIVERNV(hlywdhfp)      //                Hollywood Heat (Free Play)
+DRIVERNV(hlywhgfp)      //                Hollywood Heat (German Free Play)
 DRIVERNV(genesis)       //S80b-705: 09/86 Genesis
+DRIVERNV(genesifp)      //                Genesis (Free Play)
 DRIVERNV(goldwing)      //S80b-707: 10/86 Gold Wings
+DRIVERNV(goldwgfp)      //                Gold Wings (Free Play)
 DRIVERNV(mntecrlo)      //S80b-708: 02/87 Monte Carlo
+DRIVERNV(mntecrfp)      //                Monte Carlo (Free Play)
 DRIVERNV(mntecrla)      //                Monte Carlo (alternate set)
+DRIVERNV(mntcrafp)      //                Monte Carlo (rev.1 Free Play)
+DRIVERNV(mntcr2fp)      //                Monte Carlo (rev.2 Free Play)
 DRIVERNV(sprbreak)      //S80b-706: 04/87 Spring Break
+DRIVERNV(sprbrkfp)      //                Spring Break (Free Play)
 DRIVERNV(sprbrka)       //                Spring Break (alternate set)
+DRIVERNV(sprbrafp)      //                Spring Break (rev.1 Free Play)
 DRIVERNV(sprbrks)       //                Spring Break (single ball game)
+DRIVERNV(sprbrsfp)      //                Spring Break (single ball game, Free Play)
 DRIVERNV(amazonh2)      //S80b-684C:05/87 Amazon Hunt II
-DRIVERNV(arena)         //S80b-709: 06/87 Arena 
+DRIVERNV(arena)         //S80b-709: 06/87 Arena
+DRIVERNV(arena_fp)      //                Arena (Free Play)
 DRIVERNV(arenaa)        //                Arena (alternate set)
+DRIVERNV(arenaafp)      //                Arena (rev.1 Free Play)
 DRIVERNV(victory)       //S80b-710: 10/87 Victory
+DRIVERNV(victryfp)      //                Victory (Free Play)
 DRIVERNV(diamond)       //S80b-711: 02/88 Diamond Lady
+DRIVERNV(diamonfp)      //                Diamond Lady (Free Play)
 DRIVERNV(txsector)      //S80b-712: 03/88 TX Sector
+DRIVERNV(txsectfp)      //                TX Sector (Free Play)
 DRIVERNV(robowars)      //S80b-714: 04/88 Robo-War
+DRIVERNV(robowrfp)      //                Robo-War (Free Play)
 DRIVERNV(badgirls)      //S80b-717: 11/88 Bad Girls
+DRIVERNV(badgrlfp)      //                Bad Girls (Free Play)
 DRIVERNV(excalibr)      //S80b-715: 11/88 Excalibur
+DRIVERNV(excalbfp)      //                Excalibur (Free Play)
 DRIVERNV(bighouse)      //S80b-713: 04/89 Big House
+DRIVERNV(bighosfp)      //                Big House (Free Play)
 DRIVERNV(hotshots)      //S80b-718: 04/89 Hot Shots
-DRIVERNV(bonebstr)      //S80b-719: 08/89 Bone Busters Inc
-DRIVERNV(bonebstf)      //S80b-719: 08/89 Bone Busters Inc (French)
-DRIVERNV(nmoves)        //C-103:    11/89 Night Moves (for International Concepts)
+DRIVERNV(hotshtfp)      //                Hot Shots (Free Play)
+DRIVERNV(bonebstr)      //S80b-719: 08/89 Bone Busters Inc.
+DRIVERNV(bonebsfp)      //                Bone Busters Inc. (Free Play)
+DRIVERNV(bonebstf)      //                Bone Busters Inc. (French)
+DRIVERNV(nmoves)        //C-101:    11/89 Night Moves (for International Concepts)
+DRIVERNV(nmovesfp)      //                Night Moves (Free Play) (for International Concepts)
 DRIVERNV(amazonh3)      //S80b-684D:09/91 Amazon Hunt III
 //System 3 Alphanumeric
 DRIVERNV(tt_game)       //S3-7xx    ??/?? Unnamed game (for Toptronic)
