@@ -1081,7 +1081,7 @@ static void HandleMemSingle( data32_t insn )
 
 			//WRITE32(rnv, rd == eR15 ? R15 + 8 : GET_REGISTER(rd));
 			WRITE32(rnv, rd == eR15 ? R15 + 8 + 4 : GET_REGISTER(rd)); //manual says STR rd = PC, +12
-#ifndef _WIN64
+#if JIT_ENABLED
 			// This is to handle code in self-modifying color patches.
 			jit_untranslate(ARM7.jit, rnv);
 #endif

@@ -105,7 +105,7 @@ static void init_code_pages(struct jit_ctl *jit)
 	
 	// allocate the first page for native code storage (use the default length)
 	jit_add_page(jit, 0);
-	
+
 	// reserve space for the boilerplate code
 	p = res = jit_reserve_native(jit, reslen = 16, 0);
 
