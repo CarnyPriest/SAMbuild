@@ -946,11 +946,11 @@ static void sam_LED_hack(int usartno)
 
 	// Several LE games do not transmit data for a really long time.  These are ROM hacks that force the issue to get things moving.  
 	
-	if (_stricmp(gn, "mt_145h")==0)
+	if (_strnicmp(gn, "mt_145h", 7)==0)
 	{
 		cpu_writemem32ledw(0x1061728, 0x00);
 	}
-	else if (_stricmp(gn, "mt_145")==0)
+	else if (_strnicmp(gn, "mt_145", 6)==0)
 	{
 		cpu_writemem32ledw_dword(0x1eb0, 0xe1a00000);
 	}
