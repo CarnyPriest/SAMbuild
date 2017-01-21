@@ -15,6 +15,7 @@ FT_STATUS ftStatus;
 FT_HANDLE ftHandle;
 
 bool isOpen = false;
+static UINT8 oldbuffer[16384] = {};
 //bool doOther;
 bool slowUSB = false;
 
@@ -117,6 +118,11 @@ DMDDEV void PM_GameSettings(const char* GameName, UINT64 HardwareGeneration, con
 
 DMDDEV void Render_4_Shades(UINT16 width, UINT16 height, UINT8 *currbuffer) 
 {
+	if (!memcmp(oldbuffer, currbuffer, width*height)) //check if same frame again
+		return;
+
+	memcpy(oldbuffer, currbuffer, width*height);
+
 	if (isOpen) {
 		int byteIdx=4;
 		UINT8 tempbuffer[128*32]; // for rescale
@@ -210,6 +216,11 @@ DMDDEV void Render_4_Shades(UINT16 width, UINT16 height, UINT8 *currbuffer)
 
 DMDDEV void Render_16_Shades(UINT16 width, UINT16 height, UINT8 *currbuffer) 
 {
+	if (!memcmp(oldbuffer, currbuffer, width*height)) //check if same frame again
+		return;
+
+	memcpy(oldbuffer, currbuffer, width*height);
+
 	if (isOpen) {
 		int byteIdx=4;
 		UINT8 tempbuffer[128*32]; // for rescale
@@ -299,7 +310,7 @@ DMDDEV void Render_PM_Alphanumeric_Frame(layout_t layout, const UINT16 *const se
 {
 	if (isOpen) {	
 		memset(AlphaNumericFrameBuffer,0x00,2048);
-	
+
 		OutputPacketBuffer[0] = 0x81;	// frame sync bytes
 		OutputPacketBuffer[1] = 0xC3;
 		OutputPacketBuffer[2] = 0xE7;
@@ -351,6 +362,11 @@ DMDDEV void Render_PM_Alphanumeric_Frame(layout_t layout, const UINT16 *const se
 			default:
 				break;
 		}
+
+		if (!memcmp(oldbuffer, AlphaNumericFrameBuffer, 2048)) //check if same frame again
+			return;
+
+		memcpy(oldbuffer, AlphaNumericFrameBuffer, 2048);
 
 		memcpy(OutputPacketBuffer+4,AlphaNumericFrameBuffer,2048);
 		DWORD bytes;
