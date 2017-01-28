@@ -1,3 +1,7 @@
+official rev 4196
+Make Mustang LE serial LED speed hack apply to color ROM also [DJRobX]
+Fix color patch ROM crash when JIT in use [DJRobX]
+ ----------------------
 SAMbuild version 2.8b02
 official rev 4168 (minus r4154 enter new 2.9 cycle)
  ----------------------
