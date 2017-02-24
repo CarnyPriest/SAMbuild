@@ -79,6 +79,7 @@ DRVLIBS += $(PINOBJ)/mac.o
 DRVLIBS += $(PINOBJ)/barni.o
 DRVLIBS += $(PINOBJ)/joctronic.o
 DRVLIBS += $(PINOBJ)/lancelot.o
+DRVLIBS += $(PINOBJ)/stargame.o
 #
 # Games
 #
@@ -238,6 +239,7 @@ SOUNDS += SP0256@
 SOUNDS += Y8950@
 SOUNDS += ASTROCADE@
 SOUNDS += YMF262@
+SOUNDS += MEA8000@
 
 OBJDIRS += $(PINOBJ)
 OBJDIRS += $(PINOBJ)/sims
