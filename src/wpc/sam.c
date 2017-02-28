@@ -987,7 +987,8 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 		if (usartno == 1) {
 #ifdef VPINMAME
 			//console messages
-			FwdConsoleData((*data));
+			while(size--)
+				FwdConsoleData((*(data++)));
 #endif
 			return;
 		}
