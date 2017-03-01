@@ -1,3 +1,6 @@
+official rev 4228
+Support multi-character serial writes to DMDExt support. Allows Metallica 1.7 Color to work [DJRobX]
+ ----------------------
 official rev 4196
 Make Mustang LE serial LED speed hack apply to color ROM also [DJRobX]
 Fix color patch ROM crash when JIT in use [DJRobX]
