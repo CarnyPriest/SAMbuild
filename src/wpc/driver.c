@@ -973,6 +973,12 @@ DRIVERNV(lancelot)      // Sir Lancelot (1994)
 DRIVERNV(gamatron)      // Gamatron (December 85)
 
 // ----------------
+// PLAYBAR
+// ----------------
+DRIVERNV(blroller)      // Bloody Roller (1987)
+                        // Cobra (1987)
+
+// ----------------
 // PLAYMATIC
 // ----------------
 DRIVERNV(msdisco)       // ??/?? Miss Disco (bingo machine)
