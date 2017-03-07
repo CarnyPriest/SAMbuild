@@ -922,7 +922,7 @@ DRIVERNV(spctrain)      //Space Train (1987)
 DRIVERNV(spcpnthr)      //Space Panther (1988)
 DRIVERNV(mac_1808)      //Unknown MAC game #1808 (19??)
 DRIVERNV(macjungn)      //New MAC Jungle (1995)
-DRIVERNV(nbamac)        //MBA MAC (1996)
+DRIVERNV(nbamac)        //NBA MAC (1996)
 
 // ----------------
 // MICROPIN GAMES
@@ -1093,13 +1093,13 @@ DRIVER  (godz,090)      //Whitestar: 09/98 Godzilla (0.90)
 DRIVER  (sprk,090)      //Whitestar: 01/99 South Park (0.90)
 DRIVER  (sprk,096)      //Whitestar: 01/99 South Park (0.96)
 DRIVER  (sprk,103)      //Whitestar: 01/99 South Park (1.03)
-DRIVER  (harl,a10)      //Whitestar: 09/99 Harley Davidson (1.03, Display 1.00)
-DRIVER  (harl,a13)      //Whitestar: 10/99 Harley Davidson (1.03, Display 1.04)
-DRIVER  (harl,u13)      //Whitestar: 10/99 Harley Davidson (1.03 English, Display 1.04)
-DRIVER  (harl,f13)      //Whitestar: 10/99 Harley Davidson (1.03 French)
-DRIVER  (harl,g13)      //Whitestar: 10/99 Harley Davidson (1.03 German)
-DRIVER  (harl,i13)      //Whitestar: 10/99 Harley Davidson (1.03 Italian)
-DRIVER  (harl,l13)      //Whitestar: 10/99 Harley Davidson (1.03 Spanish)
+DRIVER  (harl,a10)      //Whitestar: 09/99 Harley-Davidson (Sega, 1.03, Display 1.00)
+DRIVER  (harl,a13)      //Whitestar: 10/99 Harley-Davidson (Sega, 1.03, Display 1.04)
+DRIVER  (harl,u13)      //Whitestar: 10/99 Harley-Davidson (Sega, 1.03 English, Display 1.04)
+DRIVER  (harl,f13)      //Whitestar: 10/99 Harley-Davidson (Sega, 1.03 French)
+DRIVER  (harl,g13)      //Whitestar: 10/99 Harley-Davidson (Sega, 1.03 German)
+DRIVER  (harl,i13)      //Whitestar: 10/99 Harley-Davidson (Sega, 1.03 Italian)
+DRIVER  (harl,l13)      //Whitestar: 10/99 Harley-Davidson (Sega, 1.03 Spanish)
 
 // ----------------
 // SLEIC
@@ -1268,32 +1268,32 @@ DRIVERNV(monoi251)      //Whitestar: 09/01 Monopoly (2.51 Italian display)
 DRIVERNV(monop233)      //Whitestar: 09/01 Monopoly (2.33)
 DRIVERNV(nfl)           //Whitestar: 11/01 NFL
 DRIVERNV(monopred)      //Whitestar: ??/02 Monopoly Redemption (Coin dropper)
-DRIVERNV(playboys)      //Whitestar: 02/02 Playboy (5.00)
-DRIVERNV(playboyg)      //Whitestar: 02/02 Playboy (5.00 German)
-DRIVERNV(playboyl)      //Whitestar: 02/02 Playboy (5.00 Spanish)
-DRIVERNV(playboyf)      //Whitestar: 02/02 Playboy (5.00 French)
-DRIVERNV(playboyi)      //Whitestar: 02/02 Playboy (5.00 Italian)
-DRIVERNV(play401)       //Whitestar: 02/02 Playboy (4.01)
-DRIVERNV(play401g)      //Whitestar: 02/02 Playboy (4.01 German)
-DRIVERNV(play401l)      //Whitestar: 02/02 Playboy (4.01 Spanish)
-DRIVERNV(play401f)      //Whitestar: 02/02 Playboy (4.01 French)
-DRIVERNV(play401i)      //Whitestar: 02/02 Playboy (4.01 Italian)
-DRIVERNV(play303)       //Whitestar: 02/02 Playboy (3.03)
-DRIVERNV(play303g)      //Whitestar: 02/02 Playboy (3.03 German)
-DRIVERNV(play303l)      //Whitestar: 02/02 Playboy (3.03 Spanish)
-DRIVERNV(play303f)      //Whitestar: 02/02 Playboy (3.03 French)
-DRIVERNV(play303i)      //Whitestar: 02/02 Playboy (3.03 Italian)
-DRIVERNV(play302)       //Whitestar: 02/02 Playboy (3.02)
-DRIVERNV(play302g)      //Whitestar: 02/02 Playboy (3.02 German)
-DRIVERNV(play302l)      //Whitestar: 02/02 Playboy (3.02 Spanish)
-DRIVERNV(play302f)      //Whitestar: 02/02 Playboy (3.02 French)
-DRIVERNV(play302i)      //Whitestar: 02/02 Playboy (3.02 Italian)
-DRIVERNV(play300)       //Whitestar: 02/02 Playboy (3.00)
-DRIVERNV(play203)       //Whitestar: 02/02 Playboy (2.03)
-DRIVERNV(play203g)      //Whitestar: 02/02 Playboy (2.03 German)
-DRIVERNV(play203l)      //Whitestar: 02/02 Playboy (2.03 Spanish)
-DRIVERNV(play203f)      //Whitestar: 02/02 Playboy (2.03 French)
-DRIVERNV(play203i)      //Whitestar: 02/02 Playboy (2.03 Italian)
+DRIVERNV(playboys)      //Whitestar: 02/02 Playboy (Stern, 5.00)
+DRIVERNV(playboyg)      //Whitestar: 02/02 Playboy (Stern, 5.00 German)
+DRIVERNV(playboyl)      //Whitestar: 02/02 Playboy (Stern, 5.00 Spanish)
+DRIVERNV(playboyf)      //Whitestar: 02/02 Playboy (Stern, 5.00 French)
+DRIVERNV(playboyi)      //Whitestar: 02/02 Playboy (Stern, 5.00 Italian)
+DRIVERNV(play401)       //Whitestar: 02/02 Playboy (Stern, 4.01)
+DRIVERNV(play401g)      //Whitestar: 02/02 Playboy (Stern, 4.01 German)
+DRIVERNV(play401l)      //Whitestar: 02/02 Playboy (Stern, 4.01 Spanish)
+DRIVERNV(play401f)      //Whitestar: 02/02 Playboy (Stern, 4.01 French)
+DRIVERNV(play401i)      //Whitestar: 02/02 Playboy (Stern, 4.01 Italian)
+DRIVERNV(play303)       //Whitestar: 02/02 Playboy (Stern, 3.03)
+DRIVERNV(play303g)      //Whitestar: 02/02 Playboy (Stern, 3.03 German)
+DRIVERNV(play303l)      //Whitestar: 02/02 Playboy (Stern, 3.03 Spanish)
+DRIVERNV(play303f)      //Whitestar: 02/02 Playboy (Stern, 3.03 French)
+DRIVERNV(play303i)      //Whitestar: 02/02 Playboy (Stern, 3.03 Italian)
+DRIVERNV(play302)       //Whitestar: 02/02 Playboy (Stern, 3.02)
+DRIVERNV(play302g)      //Whitestar: 02/02 Playboy (Stern, 3.02 German)
+DRIVERNV(play302l)      //Whitestar: 02/02 Playboy (Stern, 3.02 Spanish)
+DRIVERNV(play302f)      //Whitestar: 02/02 Playboy (Stern, 3.02 French)
+DRIVERNV(play302i)      //Whitestar: 02/02 Playboy (Stern, 3.02 Italian)
+DRIVERNV(play300)       //Whitestar: 02/02 Playboy (Stern, 3.00)
+DRIVERNV(play203)       //Whitestar: 02/02 Playboy (Stern, 2.03)
+DRIVERNV(play203g)      //Whitestar: 02/02 Playboy (Stern, 2.03 German)
+DRIVERNV(play203l)      //Whitestar: 02/02 Playboy (Stern, 2.03 Spanish)
+DRIVERNV(play203f)      //Whitestar: 02/02 Playboy (Stern, 2.03 French)
+DRIVERNV(play203i)      //Whitestar: 02/02 Playboy (Stern, 2.03 Italian)
 DRIVERNV(rctycn)        //Whitestar: 09/02 RollerCoaster Tycoon (7.02)
 DRIVERNV(rctycng)       //Whitestar: 09/02 RollerCoaster Tycoon (7.02 German)
 DRIVERNV(rctycnl)       //Whitestar: 09/02 RollerCoaster Tycoon (7.02 Spanish)
@@ -1345,11 +1345,11 @@ DRIVERNV(term3_2)       //Whitestar: 06/03 Terminator 3: Rise of the Machines (2
 DRIVERNV(term3l_2)      //Whitestar: 06/03 Terminator 3: Rise of the Machines (2.05 Spanish)
 DRIVERNV(term3f_2)      //Whitestar: 06/03 Terminator 3: Rise of the Machines (2.05 French)
 DRIVERNV(term3i_2)      //Whitestar: 06/03 Terminator 3: Rise of the Machines (2.05 Italian)
-DRIVER  (harl,a18)      //Whitestar: 07/03 Harley Davidson (1.08)
-DRIVER  (harl,f18)      //Whitestar: 07/03 Harley Davidson (1.08 French)
-DRIVER  (harl,g18)      //Whitestar: 07/03 Harley Davidson (1.08 German)
-DRIVER  (harl,i18)      //Whitestar: 07/03 Harley Davidson (1.08 Italian)
-DRIVER  (harl,l18)      //Whitestar: 07/03 Harley Davidson (1.08 Spanish)
+DRIVER  (harl,a18)      //Whitestar: 07/03 Harley-Davidson (Stern, 1.08)
+DRIVER  (harl,f18)      //Whitestar: 07/03 Harley-Davidson (Stern, 1.08 French)
+DRIVER  (harl,g18)      //Whitestar: 07/03 Harley-Davidson (Stern, 1.08 German)
+DRIVER  (harl,i18)      //Whitestar: 07/03 Harley-Davidson (Stern, 1.08 Italian)
+DRIVER  (harl,l18)      //Whitestar: 07/03 Harley-Davidson (Stern, 1.08 Spanish)
 // New CPU/Sound Board with ARM7 CPU + Xilinx FPGA controlling sound
 DRIVERNV(lotr_le)       //Whitestar: ??/08 Lord of the Rings (10.02 Limited Edition)
 DRIVERNV(lotr)          //Whitestar: 10/05 Lord of the Rings (10.00)
@@ -1441,16 +1441,16 @@ DRIVERNV(elv302g)       //Whitestar: 08/04 Elvis (3.02 German)
 DRIVERNV(elv302l)       //Whitestar: 08/04 Elvis (3.02 Spanish)
 DRIVERNV(elv302f)       //Whitestar: 08/04 Elvis (3.02 French)
 DRIVERNV(elv302i)       //Whitestar: 08/04 Elvis (3.02 Italian)
-DRIVER  (harl,a40)      //Whitestar: 10/04 Harley Davidson (4.00)
-DRIVER  (harl,f40)      //Whitestar: 10/04 Harley Davidson (4.00 French)
-DRIVER  (harl,g40)      //Whitestar: 10/04 Harley Davidson (4.00 German)
-DRIVER  (harl,i40)      //Whitestar: 10/04 Harley Davidson (4.00 Italian)
-DRIVER  (harl,l40)      //Whitestar: 10/04 Harley Davidson (4.00 Spanish)
-DRIVER  (harl,a30)      //Whitestar: 10/04 Harley Davidson (3.00)
-DRIVER  (harl,f30)      //Whitestar: 10/04 Harley Davidson (3.00 French)
-DRIVER  (harl,g30)      //Whitestar: 10/04 Harley Davidson (3.00 German)
-DRIVER  (harl,i30)      //Whitestar: 10/04 Harley Davidson (3.00 Italian)
-DRIVER  (harl,l30)      //Whitestar: 10/04 Harley Davidson (3.00 Spanish)
+DRIVER  (harl,a40)      //Whitestar: 10/04 Harley-Davidson (Stern, 4.00)
+DRIVER  (harl,f40)      //Whitestar: 10/04 Harley-Davidson (Stern, 4.00 French)
+DRIVER  (harl,g40)      //Whitestar: 10/04 Harley-Davidson (Stern, 4.00 German)
+DRIVER  (harl,i40)      //Whitestar: 10/04 Harley-Davidson (Stern, 4.00 Italian)
+DRIVER  (harl,l40)      //Whitestar: 10/04 Harley-Davidson (Stern, 4.00 Spanish)
+DRIVER  (harl,a30)      //Whitestar: 10/04 Harley-Davidson (Stern, 3.00)
+DRIVER  (harl,f30)      //Whitestar: 10/04 Harley-Davidson (Stern, 3.00 French)
+DRIVER  (harl,g30)      //Whitestar: 10/04 Harley-Davidson (Stern, 3.00 German)
+DRIVER  (harl,i30)      //Whitestar: 10/04 Harley-Davidson (Stern, 3.00 Italian)
+DRIVER  (harl,l30)      //Whitestar: 10/04 Harley-Davidson (Stern, 3.00 Spanish)
 DRIVERNV(sopranos)      //Whitestar: 02/05 Sopranos, The (5.00)
 DRIVERNV(sopranog)      //Whitestar: 02/05 Sopranos, The (5.00 German)
 DRIVERNV(sopranol)      //Whitestar: 02/05 Sopranos, The (5.00 Spanish)
@@ -1938,7 +1938,7 @@ DRIVER(mtl,170hc)	// pinball browser colorized using extend memory
 DRIVER(st,120)          //S.A.M.: 09/13 Star Trek Pro - V1.2                    
 DRIVER(st,130)          //S.A.M.: 10/13 Star Trek Pro - V1.3                    
 //DRIVER(st,130h)         //S.A.M.: 11/13 Star Trek Limited Edition - V1.3
-DRIVER(st,140)          //S.A.M.: 12/13 Star Trek Pro - V1.4          
+DRIVER(st,140)          //S.A.M.: 12/13 Star Trek Pro - V1.4
 DRIVER(st,140h)         //S.A.M.: 12/13 Star Trek Limited Edition - V1.4
 DRIVER(st,141h)         //S.A.M.: 12/13 Star Trek Limited Edition - V1.41
 DRIVER(st,142h)         //S.A.M.: 02/14 Star Trek Limited Edition - V1.42
@@ -2512,21 +2512,21 @@ DRIVER(tz,f50)          //          ??/??   Twilight Zone (FreeWPC 0.50)
 DRIVER(tz,f86)          //          ??/??   Twilight Zone (FreeWPC 0.86)
 DRIVER(tz,f97)          //          05/10   Twilight Zone (FreeWPC 0.97)
 DRIVER(tz,f100)         //          08/11   Twilight Zone (FreeWPC 1.00)
-DRIVER(ij,p2)           //WPC-517:  07/93 W Indiana Jones (P-2)
-DRIVER(ij,l3)           //WPC-517:  07/93 W Indiana Jones (L-3)
-DRIVER(ij,d3)           //                  Indiana Jones (D-3) LED Ghost Fix
-DRIVER(ij,l4)           //          08/93 W Indiana Jones (L-4)
-DRIVER(ij,d4)           //                  Indiana Jones (D-4) LED Ghost Fix
-DRIVER(ij,l5)           //          09/93 W Indiana Jones (L-5)
-DRIVER(ij,d5)           //                  Indiana Jones (D-5) LED Ghost Fix
-DRIVER(ij,l6)           //          10/93 W Indiana Jones (L-6)
-DRIVER(ij,d6)           //                  Indiana Jones (D-6) LED Ghost Fix
-DRIVER(ij,l7)           //          11/93 W Indiana Jones (L-7)
-DRIVER(ij,d7)           //                  Indiana Jones (D-7) LED Ghost Fix
-DRIVER(ij,lg7)          //          11/93 W Indiana Jones (LG-7)
-DRIVER(ij,dg7)          //                  Indiana Jones (DG-7) LED Ghost Fix
-DRIVER(ij,h1)           //                  Indiana Jones (HK-1) Family no hate speech version
-DRIVER(ij,i1)           //                  Indiana Jones (I-1) Family no hate LED Ghost Fix
+DRIVER(ij,p2)           //WPC-517:  07/93 W Indiana Jones: The Pinball Adventure (P-2)
+DRIVER(ij,l3)           //WPC-517:  07/93 W Indiana Jones: The Pinball Adventure (L-3)
+DRIVER(ij,d3)           //                  Indiana Jones: The Pinball Adventure (D-3) LED Ghost Fix
+DRIVER(ij,l4)           //          08/93 W Indiana Jones: The Pinball Adventure (L-4)
+DRIVER(ij,d4)           //                  Indiana Jones: The Pinball Adventure (D-4) LED Ghost Fix
+DRIVER(ij,l5)           //          09/93 W Indiana Jones: The Pinball Adventure (L-5)
+DRIVER(ij,d5)           //                  Indiana Jones: The Pinball Adventure (D-5) LED Ghost Fix
+DRIVER(ij,l6)           //          10/93 W Indiana Jones: The Pinball Adventure (L-6)
+DRIVER(ij,d6)           //                  Indiana Jones: The Pinball Adventure (D-6) LED Ghost Fix
+DRIVER(ij,l7)           //          11/93 W Indiana Jones: The Pinball Adventure (L-7)
+DRIVER(ij,d7)           //                  Indiana Jones: The Pinball Adventure (D-7) LED Ghost Fix
+DRIVER(ij,lg7)          //          11/93 W Indiana Jones: The Pinball Adventure (LG-7)
+DRIVER(ij,dg7)          //                  Indiana Jones: The Pinball Adventure (DG-7) LED Ghost Fix
+DRIVER(ij,h1)           //                  Indiana Jones: The Pinball Adventure (HK-1) Family no hate speech version
+DRIVER(ij,i1)           //                  Indiana Jones: The Pinball Adventure (I-1) Family no hate LED Ghost Fix
 DRIVER(jd,l1)           //WPC-220:  10/93 B Judge Dredd (L-1)
 DRIVER(jd,d1)           //                  Judge Dredd (D-1) LED Ghost Fix
 DRIVER(jd,l4)           //          10/93 B Judge Dredd (L-4)
