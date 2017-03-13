@@ -1,3 +1,5 @@
+official rev 4245
+ ----------------------
 official rev 4228
 Support multi-character serial writes to DMDExt support. Allows Metallica 1.7 Color to work [DJRobX]
  ----------------------
