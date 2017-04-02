@@ -691,12 +691,15 @@ LABEL_176:
 				// the solenoid bank.  The safest way is to apply the solenoid when the target column is written here.
 				// However, this makes the 8 port bank "backwards" compared to previous 
 				// versions, and makes the solenoid IDs go over 64 which is undesirable
-				// for the VPM core.   Swap them for 8 port aux boards. 
+				// for the VPM core.   Swap them for 8 port aux boards.
+				// ACDC LE seems to use 7 of 8 ports, but on the second bank ID.  Just check
+				// all 8 bits for now.  Todo: Would be better to treat ACDC correctly here instead of 
+				// setting it as an aux 12 board. 
 				
 				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL12) && (~bank & 0x20)) ||
 					(core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL8) && (~bank & 0x10))
 				{
-					for (ii = 0; ii <= ((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL8) ? 7 : 5); ii++)
+					for (ii = 0; ii <= 7; ii++)
 					{
 						core_update_modulated_light(&samlocals.solenoidbits[ii + CORE_FIRSTCUSTSOL - 1], samlocals.last_aux_line_6 & (1 << ii));
 					}
