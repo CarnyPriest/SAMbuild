@@ -1,3 +1,7 @@
+official rev 4253
+Fix AC/DC LE solenoid 47 [DJRobX]
+Fix SHA1 checksums for fg_700af and bdk_240 
+ ----------------------
 official rev 4245
  ----------------------
 official rev 4228
