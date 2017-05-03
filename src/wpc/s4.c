@@ -170,6 +170,8 @@ void update_proc_coils(UINT8 cur_data, UINT8 last_data, int coil_index) {
 /* REGULAR SOLENOIDS #1-8 */
 /**************************/
 static WRITE_HANDLER(s4_sol1_8_w) {
+  // sol #8 also used for sound command on some System 3 / 4
+  if (!(core_gameData->gen & GEN_S3C)) sndbrd_0_ctrl_w(0, ~data);
 #ifdef PROC_SUPPORT
   if (coreGlobals.p_rocEn) {
     static UINT8 last_data = 0;
@@ -406,7 +408,7 @@ static MACHINE_INIT(s4) {
   pia_config(S4_PIA2, PIA_STANDARD_ORDERING, &s4_pia[2]);
   pia_config(S4_PIA3, PIA_STANDARD_ORDERING, &s4_pia[3]);
   if (!(core_gameData->gen & GEN_S3C))
-    sndbrd_0_init(SNDBRD_S67S, 1, NULL, NULL, NULL);
+    sndbrd_0_init(core_gameData->hw.soundBoard ? core_gameData->hw.soundBoard : SNDBRD_S67S, 1, NULL, NULL, NULL);
   s4locals.vblankCount = 1;
 }
 static MACHINE_RESET(s4) {
@@ -445,7 +447,7 @@ MEMORY_END
 MACHINE_DRIVER_START(s4)
   MDRV_IMPORT_FROM(PinMAME)
   MDRV_CORE_INIT_RESET_STOP(s4,s4,s4)
-  MDRV_CPU_ADD(M6800, 3580000/4)
+  MDRV_CPU_ADD(M6800, 3579545/4)
   MDRV_CPU_MEMORY(s4_readmem, s4_writemem)
   MDRV_CPU_VBLANK_INT(s4_vblank, 1)
   MDRV_CPU_PERIODIC_INT(s4_irq, S4_IRQFREQ)
@@ -453,6 +455,12 @@ MACHINE_DRIVER_START(s4)
   MDRV_DIPS(8+16)
   MDRV_SWITCH_UPDATE(s4)
   MDRV_DIAGNOSTIC_LEDV(2)
+MACHINE_DRIVER_END
+
+/*-- S3 with sound board --*/
+MACHINE_DRIVER_START(s3S)
+  MDRV_IMPORT_FROM(s4)
+  MDRV_IMPORT_FROM(wmssnd_s67s)
 MACHINE_DRIVER_END
 
 /*-- S4 with sound board --*/
