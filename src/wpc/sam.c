@@ -699,7 +699,7 @@ LABEL_176:
 				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL12) && (~bank & 0x20)) ||
 					(core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL8) && (~bank & 0x10))
 				{
-					for (ii = 0; ii <= 7; ii++)
+				for (ii = 0; ii <= ((core_gameData->hw.gameSpecific1 & (SAM_GAME_AUXSOL8|SAM_GAME_ACDC_FLAMES)) ? 7 : 5); ii++)
 					{
 						core_update_modulated_light(&samlocals.solenoidbits[ii + CORE_FIRSTCUSTSOL - 1], samlocals.last_aux_line_6 & (1 << ii));
 					}
