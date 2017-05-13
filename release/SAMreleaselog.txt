@@ -1,3 +1,6 @@
+official rev 4277
+Bring back 8 port AUX board check; hopefully will enable Metallica LE AUX board for coffin magnet
+ ----------------------
 official rev 4253
 Fix AC/DC LE solenoid 47 [DJRobX]
 Fix SHA1 checksums for fg_700af and bdk_240 
