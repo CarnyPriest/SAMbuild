@@ -1,3 +1,5 @@
+official rev 4284
+ ----------------------
 official rev 4277
 Bring back 8 port AUX board check; hopefully will enable Metallica LE AUX board for coffin magnet
  ----------------------
