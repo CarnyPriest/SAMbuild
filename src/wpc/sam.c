@@ -940,6 +940,7 @@ static SWITCH_UPDATE(sam) {
 
 
 int at91_receive_serial(int usartno, data8_t *buf, int size);
+int LED_hack_send_garbage = 0;
 
 static void sam_LED_hack(int usartno)
 {
@@ -959,10 +960,7 @@ static void sam_LED_hack(int usartno)
 	}
 	else //if (stricmp(gn, "twd_156h")==0)  // The default implementation is to blast some data at it.  This seems to work for Walking Dead and at least speeds up others. 
 	{
-		data8_t buf[256];
-		memset(buf, 0xff, sizeof(buf)-1);
-		buf[255]=0;
-		at91_receive_serial(0,buf, 40);
+		LED_hack_send_garbage = 1;
 	}
 }
 
@@ -995,7 +993,15 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 #endif
 			return;
 		}
-
+		// Walking Dead LE is waiting for some sort of non-zero response
+		// from the led string.  Continue sending a block of garbage in response until we see
+		// a valid LED string.   Mustang has the same issue, but we have a hack in place that skips the check.
+		if (LED_hack_send_garbage)
+		{
+			data8_t tmp[0x40];
+			memset(tmp, 0x01, sizeof(tmp));
+			at91_receive_serial(0, &tmp, sizeof(tmp));
+		}
 		if (sam_led_row == -1)		
 		{
 			// Looking for the header.
@@ -1014,10 +1020,11 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 			// Walking Dead LE
 			if (((*data) == 0x80 || (*data)==0xa0) && sam_prev_ch1 == 0x23 && (sam_prev_ch2 == 0x83 || sam_prev_ch2 == 0x88))
 			{
-				// TWD sends garbage data in the led string sometimes.   Only accept if it was framed proeprly. 
+				// TWD sends garbage data in the led string sometimes.   Only accept if it was framed properly. 
 				if (sam_serchar_waiting==2)
 				{
 					memcpy(&sam_ext_leds[(sam_target_row * sam_leds_per_string)], &sam_tmp_leds[0], sam_leds_per_string);
+					LED_hack_send_garbage = 0;
 				}
 				sam_leds_per_string = sam_prev_ch1;
 				sam_led_row = (sam_prev_ch2 == 0x83) ? ((*data) == 0x80) ? 0 : 2 : ((*data) == 0x80) ? 1 : 3;
