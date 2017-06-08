@@ -18,7 +18,7 @@ Fix some GTS3 DMD animations running too fast
 Improved DMD brightness level mapping (again :)) for Gottlieb GTS3 & Alvin G.
 Added extra display segments for some LTD-games, changed flipper enable for Sistema III
 Improve Stern SB100 sound module tone frequencies
-Some support for auxiliary lamps / LEDs on Scared Stiff rev. D0.1R
+Support for auxiliary lamps / LEDs on Scared Stiff rev. D.01R
 
 Change some more of the timing for the idle/throttle speed code
 Fix a problem when using altsound packages (like the PinSound ones) and changing the machine volume (which resulted in doubled sounds from both emulation and altsound)
@@ -54,6 +54,7 @@ Stargame: Slalom Code 0.3
 
 Correct Dumps:
 Bally: Flash Gordon (prototype rev. 1): Missing U10 dump was rediscovered
+Inder: Metal Man (corrected one music ROM)
 LTD: Columbia (previously supported was in fact one ROM from pecmen)
 Taito: Lady Luck (sound dumps were the ones from Vegas before)
        Volley (formerly known as Voley Ball and also was missing main CPU dumps)
@@ -76,6 +77,7 @@ Bad Girls (French)
 Bad Girls (French Free Play) (enabled by setting the maximum number of credits to 20 (both DIP 15 and 16 ON))
 Bad Girls (German)
 Bad Girls (German Free Play) (enabled by setting the maximum number of credits to 20 (both DIP 15 and 16 ON))
+Beat the Clock (with flasher support)
 Big House (Free Play)
 Big House (French)
 Big House (French Free Play)
