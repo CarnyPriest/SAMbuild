@@ -1,20 +1,11 @@
-official rev 4285
- ----------------------
-official rev 4284
- ----------------------
-official rev 4277
+SAMBuild version 2.9
+official rev 4317
+S.A.M.
+Additional revisions to make an ugly hack prettier [DJRobX]
 Bring back 8 port AUX board check; hopefully will enable Metallica LE AUX board for coffin magnet
- ----------------------
-official rev 4253
 Fix AC/DC LE solenoid 47 [DJRobX]
 Fix SHA1 checksums for fg_700af and bdk_240 
- ----------------------
-official rev 4245
- ----------------------
-official rev 4228
 Support multi-character serial writes to DMDExt support. Allows Metallica 1.7 Color to work [DJRobX]
- ----------------------
-official rev 4196
 Make Mustang LE serial LED speed hack apply to color ROM also [DJRobX]
 Fix color patch ROM crash when JIT in use [DJRobX]
  ----------------------
