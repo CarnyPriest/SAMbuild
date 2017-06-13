@@ -1,6 +1,7 @@
 SAMBuild version 2.9
 official rev 4317
 S.A.M.
+Correct typo
 Additional revisions to make an ugly hack prettier [DJRobX]
 Bring back 8 port AUX board check; hopefully will enable Metallica LE AUX board for coffin magnet
 Fix AC/DC LE solenoid 47 [DJRobX]

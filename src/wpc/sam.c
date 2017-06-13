@@ -1000,7 +1000,7 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 		{
 			data8_t tmp[0x40];
 			memset(tmp, 0x01, sizeof(tmp));
-			at91_receive_serial(0, &tmp, sizeof(tmp));
+			at91_receive_serial(0, tmp, sizeof(tmp));
 		}
 		if (sam_led_row == -1)		
 		{
