@@ -27,8 +27,7 @@
 // we generate new JIT code, because we have to make a couple of Windows API calls to change
 // the memory protection for the memory holding the generated code (to make it writable, then
 // set it back to execute-only).
-#define BASE_CODEPAGE_MODE  PAGE_EXECUTE_READ
-#define DbgVirtualProtect(addr, len, mode, pOldMode) VirtualProtect(addr, len, mode, pOldMode)
+#define DbgVirtualProtect(addr, len, mode, pOldMode) { BOOL VPres = VirtualProtect(addr, len, mode, pOldMode); assert(VPres != 0); }
 
 #else
 //
@@ -43,7 +42,6 @@
 // code pages to stray pointer overwrites.  That's only a problem if there are bugs, and
 // release code *should* be bug-free, so...
 #define DbgVirtualProtect(addr, len, mode, pOldMode) (*(pOldMode) = 0)
-#define BASE_CODEPAGE_MODE  PAGE_EXECUTE_READWRITE
 
 #endif // JIT_DEBUG
 
@@ -178,7 +176,8 @@ static byte *rtlookup_patch(struct jit_ctl *jit, data32_t addr, byte *caller)
 	if (nat != jit->pEmulate && nat != jit->pPending)
 	{
 		DWORD prvPro;
-		
+		BOOL res;
+
 		// back up the caller address to the MOV instruction
 		caller -= 10;
 		ASSERT(caller[0] == 0xB8 && caller[5] == 0xE8);  // MOV, CALL
@@ -191,7 +190,11 @@ static byte *rtlookup_patch(struct jit_ctl *jit, data32_t addr, byte *caller)
 		*(UINT32 *)&caller[1] = (UINT32)(nat - (caller+5));
 
 		// restore the old page protection
-		DbgVirtualProtect(caller, 5, prvPro, &prvPro);
+		DbgVirtualProtect(caller, 10, prvPro, &prvPro);
+
+		// flush the CPU instruction cache for the area where the new code resides
+		res = FlushInstructionCache(GetCurrentProcess(), caller, 10);
+		ASSERT(res != 0);
 	}
 
 	// return the native address to invoke
@@ -314,7 +317,8 @@ static void delete_code_pages(struct jit_ctl *jit)
 		struct jit_page *nxt = p->nxt;
 
 		// free the code space
-		VirtualFree(p->b, 0, MEM_RELEASE);
+		BOOL res = VirtualFree(p->b, 0, MEM_RELEASE);
+		ASSERT(res != 0);
 
 		// free the page descriptor
 		free(p);
@@ -411,6 +415,8 @@ void jit_untranslate(struct jit_ctl *jit, data32_t addr)
 	p = JIT_NATIVE(jit, addr);
 	if (p != jit->pEmulate && p != jit->pPending)
 	{
+		BOOL res;
+
 		// Replace the code with MOV EAX,<emulator address>, RETN.
 		// This will return to the emulator and resume emulation at the
 		// replaced code address.
@@ -426,7 +432,8 @@ void jit_untranslate(struct jit_ctl *jit, data32_t addr)
 		jit->native[(addr - jit->minAddr) >> jit->rshift] = jit->pEmulate;
 
 		// flush the instruction cache for this section of code
-		FlushInstructionCache(GetCurrentProcess(), p, 128);
+		res = FlushInstructionCache(GetCurrentProcess(), p, 128); //!! 128?!
+		ASSERT(res != 0);
 	}
 }
 
@@ -491,6 +498,8 @@ byte *jit_store_native(struct jit_ctl *jit, const byte *code, int len)
 	// copy the data, if any
 	if (len != 0)
 	{
+		BOOL res;
+
 		// store the instruction data
 		memcpy(dst, code, len);
 
@@ -498,7 +507,8 @@ byte *jit_store_native(struct jit_ctl *jit, const byte *code, int len)
 		pg->ofsFree += len;
 		
 		// flush the CPU instruction cache for the area where the new code resides
-		FlushInstructionCache(GetCurrentProcess(), dst, len);
+		res = FlushInstructionCache(GetCurrentProcess(), dst, len);
+		ASSERT(res != 0);
 	}
 
 	// return the new code address
@@ -510,6 +520,8 @@ void jit_store_native_from_reserved(struct jit_ctl *jit, const byte *code, int l
 	// copy the data, if any
 	if (len != 0)
 	{
+		BOOL res;
+
 		// store the instruction data
 		memcpy(dst, code, len);
 
@@ -517,7 +529,8 @@ void jit_store_native_from_reserved(struct jit_ctl *jit, const byte *code, int l
 		pg->ofsFree += len;
 		
 		// flush the CPU instruction cache for the area where the new code resides
-		FlushInstructionCache(GetCurrentProcess(), dst, len);
+		res = FlushInstructionCache(GetCurrentProcess(), dst, len);
+		ASSERT(res != 0);
 	}
 }
 
@@ -526,6 +539,7 @@ static struct jit_page *jit_add_page(struct jit_ctl *jit, int min_siz)
 	DWORD prvPro;
 	int siz;
 	struct jit_page *p;
+	BOOL res;
 
 	// Figure the page size.  Allocate at least the minimum size requested
 	// (plus the header structure overhead), or a default minimum if they didn't
@@ -545,10 +559,16 @@ static struct jit_page *jit_add_page(struct jit_ctl *jit, int min_siz)
 	jit->pages = p;
 
 	// allocate the code space
-	p->b = (byte *)VirtualAlloc(0, siz, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	p->b = (byte *)VirtualAlloc(0, siz, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	ASSERT(p->b != NULL);
 
-	// make the code space executable
-	VirtualProtect(p->b, siz, BASE_CODEPAGE_MODE, &prvPro);
+#if JIT_DEBUG
+	res = FlushInstructionCache(GetCurrentProcess(), p->b, siz);
+	ASSERT(res != 0);
+
+	// make the code space non-accessable (jit_reserve_native will redo it later-on on its own) 
+	DbgVirtualProtect(p->b, siz, PAGE_NOACCESS, &prvPro);
+#endif
 
 	// return the new page pointer
 	jit->mem_count+=siz;

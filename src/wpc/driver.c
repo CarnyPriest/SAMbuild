@@ -280,7 +280,8 @@ DRIVERNV(bigbat)        //BY35-848: ??/84 Big Bat
 //MPU-6803
 DRIVERNV(eballchp)      //6803-0B38:09/85 Eight Ball Champ
 DRIVERNV(eballch2)      //6803      09/85 Eight Ball Champ (cheap squeak)
-DRIVERNV(beatclck)      //6803-0C70:11/85 Beat the Clock
+DRIVERNV(beatclck)      //6803-0C70:10/85 Beat the Clock
+DRIVERNV(beatclc2)      //          11/85 Beat the Clock (with flasher support)
 DRIVERNV(ladyluck)      //6803-0E34:02/86 Lady Luck
 DRIVERNV(motrdome)      //6803-0E14:05/86 MotorDome
 DRIVERNV(motrdomg)      //6803-0E69:07/86 MotorDome (German)
@@ -576,6 +577,9 @@ DRIVERNV(hh_1)          //                Haunted House (rev. 1)
 DRIVERNV(hh_3)          //                Haunted House (rev. 3 unofficial MOD)
 DRIVERNV(hh_3a)         //                Haunted House (rev. 3 unofficial MOD, LED)
 DRIVERNV(hh_3b)         //                Haunted House (rev. 3 unofficial MOD, LED+Secret Tunnel)
+DRIVERNV(hh_4)          //                Haunted House (rev. 4 unofficial Votrax speech MOD)
+DRIVERNV(hh_4a)         //                Haunted House (rev. 4 unofficial Votrax speech MOD, LED)
+DRIVERNV(hh_4b)         //                Haunted House (rev. 4 unofficial Votrax speech MOD, LED+Secret Tunnel)
 DRIVERNV(eclipse)       //S80-671:  ??/82 Eclipse
 DRIVERNV(eclipse7)      //          01/08 Eclipse (7-digit conversion)
 DRIVERNV(s80tst)        //S80: Text Fixture
@@ -2275,6 +2279,7 @@ DRIVER(esha,l4c)        //          06/16 W Earthshaker LA-4C
 DRIVER(esha,ma3)        //                  Earthshaker LA-3 (Metallica)
 DRIVER(esha,pr4)        //          02/89 W Earthshaker Family version
 DRIVER(bk2k,pu1)        //S11-563:  04/89 W Black Knight 2000 (PU-1)
+DRIVER(bk2k,pf1)        //          04/89 W Black Knight 2000 (PF-1)
 DRIVER(bk2k,lg1)        //          04/89 W Black Knight 2000 (LG-1)
 DRIVER(bk2k,lg3)        //          04/89 W Black Knight 2000 (LG-3)
 DRIVER(bk2k,l4)         //          04/89 W Black Knight 2000 (L-4)
