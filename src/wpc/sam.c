@@ -560,7 +560,7 @@ LABEL_6:
 						// VPM mech only supports a dual stepper motor.   OR 5 and 7 to 4 and 6 so we never miss these pulses.
 						// Need to put state into pulsedSolState for mech handling to see it.
 
-						coreGlobals.pulsedSolState = bank | ((bank & ((1 << 5) | (1 << 7))) >> 1);
+						coreGlobals.pulsedSolState = bank | ((bank & ((1 << 4) | (1 << 6))) >> 1);
 					}
 
 					for (ii = 0; ii <= 7; ii++)
@@ -1852,8 +1852,8 @@ CORE_CLONEDEF(sman, 261, 130af, "Spider-Man (V2.61)", 2014, "Stern", sam, 0)
 #define WOF_WHEEL_SOL2 6
 
 static mech_tInitData mechwofWheel = {
-	WOF_WHEEL_SOL1, WOF_WHEEL_SOL2, MECH_CIRCLE | MECH_LINEAR | MECH_TWOSTEPSOL | MECH_FAST,200,360,
-	{ { WOF_WHEEL_OPTO_SW, 2, 27 } }
+	WOF_WHEEL_SOL1, WOF_WHEEL_SOL2, MECH_CIRCLE | MECH_LINEAR | MECH_TWOSTEPSOL | MECH_FAST, 398, 360,
+	{ { WOF_WHEEL_OPTO_SW, 358, 360 } }
 };
 
 static void wof_handleMech(int mech) {
