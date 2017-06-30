@@ -6,6 +6,7 @@
 #include "cpu/at91/at91.h"
 #include "sndbrd.h"
 #include "dmddevice.h"
+#include "mech.h"
 //#include <assert.h>
 
 // Defines
@@ -31,7 +32,7 @@
 #define SAM_NOMINI	 0x00
 #define SAM_MINIDMD  0x01
 #define SAM_NOMINI2  0x02
-#define SAM_MINIDMD3 0x04
+#define SAM_WOF 0x04
 #define SAM_NOMINI3	 0x08
 #define SAM_NOMINI4	 0x10
 #define SAM_GAME_TRON	 0x20
@@ -553,6 +554,15 @@ LABEL_6:
 				sam_bank[1]++;
 				if (sam_bank[1] == 1)
 				{
+					if (core_gameData->hw.gameSpecific1 & SAM_WOF)
+					{
+						// Special case for Wheel of Fortune.   It has a 4-way stepper motor that goes 4,6,5,7 ... but 
+						// VPM mech only supports a dual stepper motor.   OR 5 and 7 to 4 and 6 so we never miss these pulses.
+						// Need to put state into pulsedSolState for mech handling to see it.
+
+						coreGlobals.pulsedSolState = bank | ((bank & ((1 << 5) | (1 << 7))) >> 1);
+					}
+
 					for (ii = 0; ii <= 7; ii++)
 					{
 						core_update_modulated_light(&samlocals.solenoidbits[ii], bank & (1 << ii));
@@ -723,7 +733,7 @@ LABEL_176:
 					for (ii = 0; ii < 8; ii++)
 						sam_ext_leds[70 + ii] = (samlocals.last_aux_line_6 & (1 << ii) ? 255 : 0);
 				}
-				if ( core_gameData->hw.gameSpecific1 & SAM_MINIDMD3 )
+				if ( core_gameData->hw.gameSpecific1 & SAM_WOF )
 				{
 					if ( (bank & ~lastbank11) & 8 )
 						dword_105E0AFC = 0;
@@ -1000,7 +1010,7 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 		{
 			data8_t tmp[0x40];
 			memset(tmp, 0x01, sizeof(tmp));
-			at91_receive_serial(0, &tmp, sizeof(tmp));
+			at91_receive_serial(0, tmp, sizeof(tmp));
 		}
 		if (sam_led_row == -1)		
 		{
@@ -1833,7 +1843,38 @@ CORE_CLONEDEF(sman, 260, 130af, "Spider-Man (V2.6)", 2010, "Stern", sam, 0)
 CORE_CLONEDEF(sman, 261, 130af, "Spider-Man (V2.61)", 2014, "Stern", sam, 0)
 
 //Wheel Of Fortune - good - complete
-INITGAME(wof, GEN_SAM, sammini2_dmd128x32, SAM_8COL, SAM_MINIDMD3);
+
+#define WOF_WHEEL_OPTO_SW 47
+// WOF wheel actually goes 4,6,5,7 ... we will do a special mapping
+// in solenoid code to map 5 to 4 and 7 to 6 so we get all pulses, and avoid
+// needing to re-do mech code. 
+#define WOF_WHEEL_SOL1 4
+#define WOF_WHEEL_SOL2 6
+
+static mech_tInitData mechwofWheel = {
+	WOF_WHEEL_SOL1, WOF_WHEEL_SOL2, MECH_CIRCLE | MECH_LINEAR | MECH_TWOSTEPSOL | MECH_FAST,200,360,
+	{ { WOF_WHEEL_OPTO_SW, 2, 27 } }
+};
+
+static void wof_handleMech(int mech) {
+}
+
+static int wof_getMech(int mechNo) {
+	return mech_getPos(mechNo);
+}
+static void wof_drawMech(BMTYPE **line) {
+	core_textOutf(30, 10, BLACK, "Wheel Pos   : %3d", wof_getMech(0));
+}
+
+static core_tGameData wofGameData = { 
+	GEN_SAM, sammini2_dmd128x32, {FLIP_SW(FLIP_L) | FLIP_SOL(FLIP_L), 0, SAM_8COL, 16, 0, 0, SAM_WOF ,0, sam_getSol, wof_handleMech, wof_getMech, wof_drawMech}
+};
+	
+static void init_wof(void) { 
+	core_gameData = &wofGameData; 
+	mech_add(0, &mechwofWheel);
+}
+
 
 SAM_ROMLOAD(wof_100, "wof0100a.bin", CRC(f3b80429) SHA1(ab1c9752ea74b5950b51aabc6dbca4f405705240), 0x01C7DF60)
 SAM_ROMEND
