@@ -1,3 +1,7 @@
+official rev 4329
+Improve smoothness of WOF wheel [DJRobX]
+Mech for wheel of fortune wheel [DJRobX]
+ ----------------------
 SAMBuild version 2.9
 official rev 4317
 S.A.M.
