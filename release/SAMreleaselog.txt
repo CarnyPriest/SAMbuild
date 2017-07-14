@@ -1,3 +1,6 @@
+official rev 4330
+Add support for IJ4 aux board [DJRobX]
+ ----------------------
 official rev 4329
 Improve smoothness of WOF wheel [DJRobX]
 Mech for wheel of fortune wheel [DJRobX]
