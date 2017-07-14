@@ -40,6 +40,7 @@
 #define SAM_GAME_AUXSOL12    0x80
 #define SAM_GAME_METALLICA_MAGNET  0x100
 #define SAM_GAME_ACDC_FLAMES  0x200
+#define SAM_GAME_IJ4_SOL3   0x400
 
 #define SAM_0COL 0x00
 #define SAM_2COL 0x02
@@ -707,7 +708,8 @@ LABEL_176:
 				// setting it as an aux 12 board. 
 				
 				if (((core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL12) && (~bank & 0x20)) ||
-					(core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL8) && (~bank & 0x10))
+					(core_gameData->hw.gameSpecific1 & SAM_GAME_AUXSOL8) && (~bank & 0x10) ||
+					(core_gameData->hw.gameSpecific1 & SAM_GAME_IJ4_SOL3) && (~bank & 0x40))
 				{
 				for (ii = 0; ii <= ((core_gameData->hw.gameSpecific1 & (SAM_GAME_AUXSOL8|SAM_GAME_ACDC_FLAMES)) ? 7 : 5); ii++)
 					{
@@ -1958,7 +1960,7 @@ CORE_GAMEDEF(shr, 130, "Shrek (V1.3)", 2008, "Stern", sam, 0)
 CORE_CLONEDEF(shr, 141, 130, "Shrek (V1.41)", 2008, "Stern", sam, 0)
 
 //Indiana Jones - good - bugged - complete
-INITGAME(ij4, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_NOMINI);
+INITGAME(ij4, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_IJ4_SOL3);
 
 SAM_ROMLOAD(ij4_113, "ij4_113.bin", CRC(aa2bdf3e) SHA1(71fd1c970fe589cec5124237684facaae92cbf09), 0x01C6D98C)
 SAM_ROMEND
