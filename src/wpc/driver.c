@@ -927,8 +927,8 @@ DRIVERNV(tricksht)      //Trick Shooter
 // MAC GAMES
 // ----------------
 DRIVERNV(macgalxy)      //MAC Galaxy (1986)
+DRIVERNV(macjungl)      //MAC Jungle (1986)
 DRIVERNV(spctrain)      //Space Train (1987)
-//DRIVERNV(macjungl)    //MAC Jungle (1987)
 DRIVERNV(spcpnthr)      //Space Panther (1988)
 DRIVERNV(mac_1808)      //Unknown MAC game #1808 (19??)
 DRIVERNV(macjungn)      //New MAC Jungle (1995)
@@ -1239,10 +1239,11 @@ DRIVERNV(dragfist)      //MPU-200: 01/82 Dragonfist
 DRIVERNV(dragfifp)      //MPU-200: 01/82 Dragonfist (Free Play)
 DRIVERNV(dragfisb)      //MPU-200: 01/82 Dragonfist (Bootleg - modified to match instruction card/manual)
 DRIVERNV(dragfib2)      //MPU-200: 01/82 Dragonfist (Bootleg 2 - modified to match instruction card/manual)
-DRIVERNV(orbitor1)      //MPU-200: 04/82 Orbitor One
-DRIVERNV(orbitofp)      //MPU-200: 04/82 Orbitor One (Free Play)
-DRIVERNV(orbitora)      //MPU-200: 04/82 Orbitor One (Bootleg)
-DRIVERNV(orbitorb)      //MPU-200: 04/82 Orbitor One (Bootleg Free Play)
+DRIVERNV(orbitor1)      //MPU-200: 04/82 Orbitor 1
+DRIVERNV(orbitofp)      //MPU-200: 04/82 Orbitor 1 (Free Play)
+DRIVERNV(orbitora)      //MPU-200: 04/82 Orbitor 1 (Bootleg)
+DRIVERNV(orbitorb)      //MPU-200: 04/82 Orbitor 1 (Bootleg Free Play)
+DRIVERNV(orbitorc)      //MPU-200: 04/82 Orbitor 1 (Bootleg No Timed Game)
 DRIVERNV(cue)           //MPU-200: ??/82 Cue            (Proto - Never released)
 DRIVERNV(blbeauty)      //MPU-200: 09/84 Black Beauty (Shuffle)
 DRIVERNV(lazrlord)      //MPU-200: 10/84 Lazer Lord     (Proto - Never released)
@@ -2668,6 +2669,7 @@ DRIVER(ts,lm6)          //          05/95 B Shadow, The (LM-6) Mild
 DRIVER(ts,dm6)          //                  Shadow, The (DM-6) Mild LED Ghost Fix
 DRIVER(dh,lx2)          //WPC-530:  01/95 W Dirty Harry (LX-2)
 DRIVER(dh,dx2)          //                  Dirty Harry (DX-2) LED Ghost Fix
+DRIVER(dh,lf2)          //                  Dirty Harry (LF-2)
 DRIVER(tom,06)          //WPC-539:  03/95 B Theatre of Magic (0.6A)
 DRIVER(tom,061)         //                  Theatre of Magic (0.61A) LED Ghost Fix
 DRIVER(tom,10f)         //          04/95 B Theatre of Magic (1.0 French)

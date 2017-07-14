@@ -1,10 +1,21 @@
 Version 3.0 (X X, 2017) - ""
 ------------------------------------------------------------------------------
 
-*** ROM SUPPORT *** Thanks to ipdb.org, Effect
+*** CORE/CPU ***
+Correct SP0256 speech for IDSA games (needs additional sp0256-al2.bin file to work)
+
+*** ROM SUPPORT *** Thanks to ipdb.org, Effect, Juan
+New:
+MAC: MAC Jungle
+
 Correct Dumps:
 Bally: Judge Dredd (use L3 Sound ROMs for corrected Deadworld sounds on machines without working/modified lock)
 Joctronic: Punky Willy
+
+Clones:
+Dirty Harry (LF-2)
+Orbitor 1 (No Timed Game)
+
 
 
 Version 2.9 (June 11th, 2017) - "Attack of the clones"
@@ -360,8 +371,6 @@ Barni: Red Baron (not working yet)
 CICPlay: Galaxy Play 2,
          Kidnap
 Data East: King Kong 1.0
-IDSA: Basket Ball,
-      V-1 (speech not working yet)
 Inder: Centaur
 Joctronic: Punky Willy (not working yet, incomplete dumps),
            Walkyria (not working yet)
