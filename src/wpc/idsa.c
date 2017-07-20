@@ -8,7 +8,7 @@
 		IO:      DMA, AY8910 ports
 		DISPLAY: bsktball: 7-digit 7-segment panels with PROM-based 5-bit BCD data (allowing a simple alphabet)
 		         v1: 6-digit 7-segment panels with BCD decoding
-		SOUND:	 2 x AY8910 @ 2 MHz plus SP0256 @ 3.58 Mhz (schematics says 3.12 MHz) on board
+		SOUND:	 2 x AY8910 @ 2 MHz plus SP0256 @ 3.12 MHz on board
  ************************************************************************************************/
 
 #include "driver.h"
@@ -136,7 +136,7 @@ static void lrq_callback(int state) {
 }
 struct sp0256_interface IDSA_sp0256Int = {
   100, /* volume */
-  3579545, /* clock */
+  3120000, /* clock */
   lrq_callback,
   NULL,
   REGION_SOUND1
@@ -263,8 +263,12 @@ MACHINE_DRIVER_START(idsa)
   MDRV_SOUND_ATTRIBUTES(SOUND_SUPPORTS_STEREO)
 MACHINE_DRIVER_END
 
-// need to reset the program counter because reset calls NMI routine and halts the CPU
+// we need to "reset" the CPU manually as game reset calls the NMI routine and halts the CPU
 static void v1_reset_timer(int dummy) {
+  cpunum_set_reg(0, Z80_R, 0);
+  cpunum_set_reg(0, Z80_HALT, 0);
+  cpunum_set_reg(0, Z80_AF, 0x0040);
+  cpunum_set_reg(0, Z80_SP, 0);
   cpunum_set_reg(0, Z80_PC, 0);
 }
 
