@@ -545,7 +545,7 @@ static struct jit_page *jit_add_page(struct jit_ctl *jit, int min_siz)
 	// (plus the header structure overhead), or a default minimum if they didn't
 	// request more.
 	min_siz += sizeof(struct jit_page);
-	// Make code page larger to avoid unsafe jumps and memory references later.
+	//!! Make code page (artifically by *17) larger to avoid unsafe jumps and memory references later.
 	siz = 128*1024*17;
 	if (siz < min_siz)
 		siz = min_siz;
