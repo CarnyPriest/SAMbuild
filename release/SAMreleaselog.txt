@@ -1,3 +1,6 @@
+official rev 4355
+Allocate larger chunks of memory to avoid crashing issues. Fixes TWD + DMDDevice.dll crash in some maybe more cases [DJRobX]
+ ----------------------
 official rev 4330
 Add support for IJ4 aux board [DJRobX]
  ----------------------
