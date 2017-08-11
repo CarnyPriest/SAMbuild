@@ -32,7 +32,7 @@
 #define SAM_NOMINI	 0x00
 #define SAM_MINIDMD  0x01
 #define SAM_NOMINI2  0x02
-#define SAM_WOF 0x04
+#define SAM_GAME_WOF 0x04
 #define SAM_NOMINI3	 0x08
 #define SAM_NOMINI4	 0x10
 #define SAM_GAME_TRON	 0x20
@@ -46,6 +46,8 @@
 #define SAM_2COL 0x02
 #define SAM_3COL 0x03
 #define SAM_8COL 0x08
+
+#define WOF_MINIDMD_MAX 175
 
 #if (!defined(_WIN64) && defined(_DEBUG))
 
@@ -88,8 +90,8 @@ struct {
 	INT16 bank;
 	char minidata[226];
 	UINT32 solenoidbits[CORE_MODSOL_MAX];
-	UINT32 modulated_lights[6];
-	UINT8 modulated_lights_prev_levels[6];
+	UINT32 modulated_lights[WOF_MINIDMD_MAX];  // Also used by Tron ramps
+	UINT8 modulated_lights_prev_levels[WOF_MINIDMD_MAX];
 	UINT8 last_aux_line_6; 
 } samlocals;
 
@@ -466,9 +468,9 @@ static int sam_led(UINT32 bank)
 static int led[] =
 	{ 5, 8, 7, 6, 9, 1, 2, 3, 4, 0, 10, 11, 12, 13};
 static char lastbank11;
-static int minidmdx;
-static int minidmdy;
-static int dword_105E0AFC;
+static int minidmdrow;
+static int minidmdcol;
+static int wof_minidmdflag;
 static int led_target;
 
 static WRITE32_HANDLER(sambank_w)
@@ -555,7 +557,7 @@ LABEL_6:
 				sam_bank[1]++;
 				if (sam_bank[1] == 1)
 				{
-					if (core_gameData->hw.gameSpecific1 & SAM_WOF)
+					if (core_gameData->hw.gameSpecific1 & SAM_GAME_WOF)
 					{
 						// Special case for Wheel of Fortune.   It has a 4-way stepper motor that goes 4,6,5,7 ... but 
 						// VPM mech only supports a dual stepper motor.   OR 5 and 7 to 4 and 6 so we never miss these pulses.
@@ -593,27 +595,27 @@ LABEL_6:
 			case 6:
 				if ( core_gameData->hw.gameSpecific1 & 1 )
 				{
-					if ( minidmdx == 1 )
+					if ( minidmdrow == 1 )
 					{
-						minidmdy = led[sam_led(bank & 0x7F | ((samlocals.last_aux_line_6 & 0x7F) << 7))];
+						minidmdcol = led[sam_led(bank & 0x7F | ((samlocals.last_aux_line_6 & 0x7F) << 7))];
 					}
 					else
 					{
-						if ( minidmdx > 1 )
-							samlocals.minidata[16 * minidmdy + minidmdx] = bank & 0x7F;
-						if ( minidmdx >= 17 )
+						if ( minidmdrow > 1 )
+							samlocals.minidata[16 * minidmdcol + minidmdrow] = bank & 0x7F;
+						if ( minidmdrow >= 17 )
 						{
 LABEL_157:
 							if ( (~samlocals.last_aux_line_6 & bank) >= 0x80)
 							{
 								samlocals.last_aux_line_6 = bank;
-								minidmdx = 0;
+								minidmdrow = 0;
 								return;
 							}
 							goto LABEL_176;
 						}
 					}
-					minidmdx++;
+					minidmdrow++;
 					goto LABEL_157;
 				}
 				if ( core_gameData->hw.gameSpecific1 & 2 )
@@ -622,54 +624,65 @@ LABEL_157:
 					test = bank & ~samlocals.last_aux_line_6;
 					if (!((test < 0x80) && (test >= 0)))
 					{
-						minidmdx = 0;
+						minidmdrow = 0;
 						samlocals.last_aux_line_6 = bank;
-						minidmdy = sam_led(bank & 3);
+						minidmdcol = sam_led(bank & 3);
 						return;
 					}
-					if ( minidmdx < 3 )
+					if ( minidmdrow < 3 )
 					{
-			            coreGlobals.tmpLampMatrix[minidmdy + minidmdx + 2 * minidmdy + 10] = bank & 0x7F;
+			            coreGlobals.tmpLampMatrix[minidmdcol + minidmdrow + 2 * minidmdcol + 10] = bank & 0x7F;
 						samlocals.last_aux_line_6 = bank;
-			            coreGlobals.lampMatrix[minidmdy + minidmdx + 2 * minidmdy + 10] = bank & 0x7F;
-						minidmdx++;
+			            coreGlobals.lampMatrix[minidmdcol + minidmdrow + 2 * minidmdcol + 10] = bank & 0x7F;
+						minidmdrow++;
 			            return;
 					}
 				}
-				if ( core_gameData->hw.gameSpecific1 & 4 )
+				if ( core_gameData->hw.gameSpecific1 & SAM_GAME_WOF )
 				{
 					int test;
 					test = bank & ~samlocals.last_aux_line_6;
 					if ( (test < 0x80) && (test >= 0) )
 					{
-						minidmdx++;
+						minidmdrow++;
 					}
 					else
 					{
-						dword_105E0AFC = dword_105E0AFC == 0;
-						minidmdx = 0;
+						wof_minidmdflag = wof_minidmdflag == 0;
+						minidmdrow = 0;
+						if (options.usemodsol) // To protect the VP9 table from an onslaught of extra lights. 
+						{
+							for (int i = 0; i < WOF_MINIDMD_MAX; i++)
+							{
+								coreGlobals.RGBlamps[i + 60] = core_calc_modulated_light(samlocals.modulated_lights[i], 8, &samlocals.modulated_lights_prev_levels[i]);
+							}
+						}
 					}
-					if ( dword_105E0AFC )
+					if ( wof_minidmdflag )
 					{
-						if ( minidmdx == 1 )
+						if ( minidmdrow == 1 )
 						{
 							samlocals.last_aux_line_6 = bank;
-							minidmdy = sam_led(bank & 0x1F);
+							minidmdcol = sam_led(bank & 0x1F);
 							return;
 						}
-						if ( minidmdx > 1 && minidmdx < 7 )
+						if ( minidmdrow > 1 && minidmdrow < 7 )
 						{
 							samlocals.last_aux_line_6 = bank;
-							samlocals.minidata[16 * minidmdy + minidmdx] = bank & 0x7F;
+							samlocals.minidata[16 * minidmdcol + minidmdrow] = bank & 0x7F;
+							for (int i = 0; i < 7; i++)
+							{
+								core_update_modulated_light(&samlocals.modulated_lights[(35 * minidmdcol) + ((minidmdrow-2)*7)+i], bank & (1 << (6-i)));
+							}
 							return;
 						}
 					}
 					else
 					{
-						if ( minidmdx < 6 )
+						if ( minidmdrow < 6 )
 						{
-							coreGlobals.tmpLampMatrix[minidmdx + 10] = bank & 0x7F;
-							coreGlobals.lampMatrix[minidmdx + 10] = bank & 0x7F;
+							coreGlobals.tmpLampMatrix[minidmdrow + 10] = bank & 0x7F;
+							coreGlobals.lampMatrix[minidmdrow + 10] = bank & 0x7F;
 						}
 					}
 				}
@@ -735,12 +748,12 @@ LABEL_176:
 					for (ii = 0; ii < 8; ii++)
 						sam_ext_leds[70 + ii] = (samlocals.last_aux_line_6 & (1 << ii) ? 255 : 0);
 				}
-				if ( core_gameData->hw.gameSpecific1 & SAM_WOF )
+				if ( core_gameData->hw.gameSpecific1 & SAM_GAME_WOF )
 				{
 					if ( (bank & ~lastbank11) & 8 )
-						dword_105E0AFC = 0;
+						wof_minidmdflag = 0;
 					else if ( (bank & ~lastbank11) & 0x10 )
-						dword_105E0AFC = 1;
+						wof_minidmdflag = 1;
 				}
 				if ( core_gameData->hw.gameSpecific1 & SAM_NOMINI3 && ~bank & 0x08 )
 					coreGlobals.lampMatrix[10] = coreGlobals.tmpLampMatrix[10] = core_revbyte(samlocals.last_aux_line_6);
@@ -1097,6 +1110,10 @@ static INTERRUPT_GEN(sam_vblank) {
 			coreGlobals.RGBlamps[i+20] = core_calc_modulated_light(samlocals.modulated_lights[i], 15, &samlocals.modulated_lights_prev_levels[i]);
 		}
 		break;
+	case SAM_GAME_WOF:
+		//!
+		break;
+
 	default:
 		memcpy(coreGlobals.RGBlamps, sam_ext_leds, SAM_LEDS_MAX * sizeof(data8_t));
 		break;
@@ -1277,11 +1294,23 @@ PINMAME_VIDEO_UPDATE(samminidmd2_update) {
     tDMDDot dotCol;
     int ii,jj,kk,bits;
 
-    for (jj = 0; jj < 5; jj++)
-        for (ii = 0, bits = 0x40; ii < 7; ii++, bits >>= 1)
-            for (kk = 0; kk < 5; kk++)
-                dotCol[kk+1][ii+(jj*7)] = samlocals.minidata[(kk << 4) + jj + 2] & bits ? 3 : 0;
-
+	if (options.usemodsol)
+	{
+		for (jj = 0; jj < 5; jj++)
+			for (ii = 0, bits = 0x40; ii < 7; ii++, bits >>= 1)
+				for (kk = 0; kk < 5; kk++)
+				{
+					int target = (kk * 35) + (jj * 7) + ii;
+					dotCol[kk + 1][ii + (jj * 7)] = coreGlobals.RGBlamps[target + 60] >> 4;
+				}
+	}
+	else
+	{
+		for (jj = 0; jj < 5; jj++)
+			for (ii = 0, bits = 0x40; ii < 7; ii++, bits >>= 1)
+				for (kk = 0; kk < 5; kk++)
+					dotCol[kk + 1][ii + (jj * 7)] = samlocals.minidata[(kk << 4) + jj + 2] & bits ? 15 : 0;
+	}
     for (ii = 0; ii < 35; ii++) {
         bits = 0;
         for (kk = 0; kk < 5; kk++)
@@ -1869,7 +1898,7 @@ static void wof_drawMech(BMTYPE **line) {
 }
 
 static core_tGameData wofGameData = { 
-	GEN_SAM, sammini2_dmd128x32, {FLIP_SW(FLIP_L) | FLIP_SOL(FLIP_L), 0, SAM_8COL, 16, 0, 0, SAM_WOF ,0, sam_getSol, wof_handleMech, wof_getMech, wof_drawMech}
+	GEN_SAM, sammini2_dmd128x32, {FLIP_SW(FLIP_L) | FLIP_SOL(FLIP_L), 0, SAM_8COL, 16, 0, 0, SAM_GAME_WOF ,0, sam_getSol, wof_handleMech, wof_getMech, wof_drawMech}
 };
 	
 static void init_wof(void) { 
