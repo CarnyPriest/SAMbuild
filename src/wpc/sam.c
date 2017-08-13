@@ -2257,7 +2257,7 @@ CORE_CLONEDEF(trn, 17402, 160, "Tron: Legacy Pro (V1.7402)", 2013, "Stern", sam,
 CORE_CLONEDEF(trn, 174h, 160, "Tron: Legacy Limited Edition (V1.74)", 2013, "Stern", sam, 0)
 
 //Transformers - ?? seems ok
-INITGAME(tf, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_NOMINI4);
+INITGAME(tf, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_GAME_AUXSOL12);
 
 SAM_ROMLOAD(tf_088h, "tf088h.bin", CRC(a79ca893) SHA1(8f1228727422f5f99a20d60968eeca6c64f6c253), 0x1EB4CE8)
 SAM_ROMEND
