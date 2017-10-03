@@ -1,3 +1,6 @@
+official rev 4381
+Set Transformers to 12-port aux board to enable LE solenoids [DJRobX]
+ ----------------------
 official rev 4360
 Apply modulated light code to WOF Mini-DMD lights and send through RGBLed channel [DJRobX]
  ----------------------
