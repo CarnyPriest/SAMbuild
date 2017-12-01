@@ -2816,6 +2816,14 @@ SAM_ROMLOAD_ACDC3(twd_156c, "twd_156c.bin", CRC(DC6699CF) SHA1(93f0759243c815f55
 SAM_ROMEND
 SAM_ROMLOAD_ACDC3(twd_156hc, "twd_156hc.bin", CRC(4594a287) SHA1(1e1a3b94bacf54a0c20cfa978db1284008c0e0a1), 0x05FFFFF0)
 SAM_ROMEND
+SAM_ROMLOAD_ACDC3(twd_160, "twd_160.bin", CRC(44409cd9) SHA1(cace8725771e9fc09720a7a79f95abac44325232), 0x05C80448)
+SAM_ROMEND
+SAM_ROMLOAD_ACDC3(twd_160h, "twd_160h.bin", CRC(1ed7b80a) SHA1(1fbaa077ec834ff9d289008ef1169e0e7fd68271), 0x05C80448)
+SAM_ROMEND
+SAM_ROMLOAD_ACDC3(twd_160c, "twd_160c.bin", CRC(44409cd9) SHA1(cace8725771e9fc09720a7a79f95abac44325232), 0x05FFFFF0)
+SAM_ROMEND
+SAM_ROMLOAD_ACDC3(twd_160hc, "twd_160hc.bin", CRC(1ed7b80a) SHA1(1fbaa077ec834ff9d289008ef1169e0e7fd68271), 0x05FFFFF0)
+SAM_ROMEND
 
 SAM_INPUT_PORTS_START(twd, 1) SAM_INPUT_PORTS_END
 
@@ -2838,6 +2846,10 @@ CORE_CLONEDEF(twd, 156, 105, "The Walking Dead (V1.56)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156h, 105, "The Walking Dead LE (V1.56)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156c, 105, "The Walking Dead (V1.56) (Colored)", 2015, "Stern", sam, 0)
 CORE_CLONEDEF(twd, 156hc, 105, "The Walking Dead LE (V1.56) (Colored)", 2015, "Stern", sam, 0)
+CORE_CLONEDEF(twd, 160, 105, "The Walking Dead (V1.60.0)", 2017, "Stern", sam, 0)
+CORE_CLONEDEF(twd, 160h, 105, "The Walking Dead LE (V1.60.0)", 2017, "Stern", sam, 0)
+CORE_CLONEDEF(twd, 160c, 105, "The Walking Dead (V1.60.0) (Colored)", 2017, "Stern", sam, 0)
+CORE_CLONEDEF(twd, 160hc, 105, "The Walking Dead LE (V1.60.0) (Colored)", 2017, "Stern", sam, 0)
 
 //Spider-Man Vault Edition
 INITGAME(smanve, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_GAME_AUXSOL12);

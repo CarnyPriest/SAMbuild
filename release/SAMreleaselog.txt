@@ -1,3 +1,6 @@
+official rev 4395
+Added The Walking Dead V1.60.0 Pro and LE 
+ ----------------------
 official rev 4381
 Set Transformers to 12-port aux board to enable LE solenoids [DJRobX]
  ----------------------

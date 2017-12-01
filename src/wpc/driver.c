@@ -2022,6 +2022,10 @@ DRIVER(twd,156)         //S.A.M.: 12/15 Walking Dead, The - V1.56
 DRIVER(twd,156h)        //S.A.M.: 12/15 Walking Dead, The - V1.56 Limited Edition
 DRIVER(twd,156c)        // pinball browser colorized using extend memory
 DRIVER(twd,156hc)       // pinball browser colorized using extend memory
+DRIVER(twd,160)         //S.A.M.: 11/17 Walking Dead, The - V1.60.0
+DRIVER(twd,160h)        //S.A.M.: 11/17 Walking Dead, The - V1.60.0 Limited Edition
+DRIVER(twd,160c)        // pinball browser colorized using extend memory
+DRIVER(twd,160hc)       // pinball browser colorized using extend memory
 DRIVER(smanve,100)      //S.A.M.: 02/16 Spider-Man - Vault Edition V1.0
 DRIVER(smanve,100c)     // pinball browser colorized using extend memory
 DRIVER(smanve,101)      //S.A.M.: 05/16 Spider-Man - Vault Edition V1.01
