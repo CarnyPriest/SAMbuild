@@ -1,3 +1,6 @@
+official rev 4432
+Added slots for X-Men 151 and 151 LE colored DMD mod
+ ----------------------
 official rev 4395
 Added The Walking Dead V1.60.0 Pro and LE 
  ----------------------
