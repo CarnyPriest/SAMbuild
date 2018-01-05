@@ -479,6 +479,7 @@ BY50_SOUNDROM(            "729-51_3.123",CRC(6e7d3e8b) SHA1(7a93d82a05213ffa6eac
 BY35_ROMEND
 #define input_ports_hglbtrtb input_ports_hglbtrtr
 CORE_CLONEDEFNV(hglbtrtb,hglbtrtr,"Harlem Globetrotters (7-digit conversion)",2004,"Bally / Oliver",by35_mBY35_50S,0) // rev. 90
+<<<<<<< HEAD
 
 INITGAME(penthouse,GEN_BY35,dispBy7,FLIP_SW(FLIP_L),0,SNDBRD_BY50,0)
 BY35_ROMSTARTx00(penthouse,"harl2732.u2", CRC(f70a2981) SHA1(dd3e6448efa0dff49ed84c1f586d3b817598fa31),
@@ -487,6 +488,8 @@ BY50_SOUNDROM(            "729-51_3.123",CRC(6e7d3e8b) SHA1(7a93d82a05213ffa6eac
 BY35_ROMEND
 #define input_ports_penthouse input_ports_hglbtrtr
 CORE_CLONEDEFNV(penthouse,hglbtrtr,"Penthouse - clone of hglbtrtb",2002,"Bally / Oliver",by35_mBY35_50S,0)
+=======
+>>>>>>> master
 
 /*--------------------------------
 / Dolly Parton

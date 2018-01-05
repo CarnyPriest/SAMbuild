@@ -1,7 +1,12 @@
 **************************************************************************************
                     Visual PinMAME
+<<<<<<< HEAD
                      Version 3.0
                  (December 24th, 2017)
+=======
+                     Version 3.1
+                 (X X, 2018)
+>>>>>>> master
                 http://www.pinmame.com
 **************************************************************************************
 
@@ -66,12 +71,21 @@ NOTE: If you do not know what to pick, leave every setting at its default value!
 
  Cabinet Mode: The output window can be placed more freely (e.g. a second/third monitor) and skips the disclaimer screens
 
+<<<<<<< HEAD
 
  Show DMD/Display Window: En/Disable the standard output window
 
  Use external DMD (dll): If properly setup (e.g. a dmddevice.dll supporting PinDMD or similar, is placed inside the PinMAME folder), will use an external dll to drive an output window OR even an external hardware DMD (see 'External/Hardware DMD support')
 
 
+=======
+
+ Show DMD/Display Window: En/Disable the standard output window
+
+ Use external DMD (dll): If properly setup (e.g. a dmddevice.dll supporting PinDMD or similar, is placed inside the PinMAME folder), will use an external dll to drive an output window OR even an external hardware DMD (see 'External/Hardware DMD support')
+
+
+>>>>>>> master
  Sound Samplerate: Samplerate that is used for outputting sound. This was previously also influencing the internal emulation quality, but not anymore since 2.8
 
  Resampling Quality: Audiophiles can pick 1 instead of 0, but will pay with lower performance
@@ -106,6 +120,21 @@ NOTE: If you do not know what to pick, leave every setting at its default value!
  Otherwise one can set one color and 4 intensity percentages from full (100%) to not at all lit
 
 
+<<<<<<< HEAD
+=======
+ Note that games that emulate a 'standard' (like a TV) display (Granny and the Gators, Baby Pac-Man, Dakar, etc) can also enable fake scanlines/masks via the 'effect' registry setting
+ Values:
+  none         no effect (this is the default)
+  scan25       25% scanlines
+  scan50       50% scanlines
+  scan75       75% scanlines
+  rgb3         a certain "monitor mask"
+  rgb4         another one
+  rgb6         another one
+  rgb16        another one. Choose the one you like best.
+
+
+>>>>>>> master
 External/Hardware DMD support
 -----------------------------
 Visual PinMAME in addition offers generalized external DMD handling via a separate dmddevice.dll (see 'Use external DMD (dll)' option).
