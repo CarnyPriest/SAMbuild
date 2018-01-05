@@ -1,22 +1,14 @@
-official rev 4432
+official rev r4450
+ ----------------------
+SAMBuild version 3.0
+official rev 4445
+S.A.M. ---> To official VPinMAME build
 Added slots for X-Men 151 and 151 LE colored DMD mod
- ----------------------
-official rev 4395
 Added The Walking Dead V1.60.0 Pro and LE 
- ----------------------
-official rev 4381
 Set Transformers to 12-port aux board to enable LE solenoids [DJRobX]
- ----------------------
-official rev 4360
 Apply modulated light code to WOF Mini-DMD lights and send through RGBLed channel [DJRobX]
- ----------------------
-official rev 4355
--->TO OFF VPM--Allocate larger chunks of memory to avoid crashing issues. Fixes TWD + DMDDevice.dll crash in some maybe more cases [DJRobX]
- ----------------------
-official rev 4330
+Allocate larger chunks of memory to avoid crashing issues. Fixes TWD + DMDDevice.dll crash in some maybe more cases [DJRobX]
 Add support for IJ4 aux board [DJRobX]
- ----------------------
-official rev 4329
 Improve smoothness of WOF wheel [DJRobX]
 Mech for wheel of fortune wheel [DJRobX]
  ----------------------

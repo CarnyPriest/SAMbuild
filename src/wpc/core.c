@@ -977,12 +977,6 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
       int char_width = locals.segData[layout->type & 0x0f].cols+1;
 #endif
 
-#ifdef PROC_SUPPORT
-		static UINT16 proc_top[16];
-		static UINT16 proc_bottom[16];
-		int char_width = locals.segData[layout->type & 0x0f].cols+1;
-#endif
-
       if (step < 0) { seg += ii-1; lastSeg += ii-1; }
       while (ii--) {
         UINT16 tmpSeg = *seg;
