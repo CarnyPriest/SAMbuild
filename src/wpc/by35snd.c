@@ -124,8 +124,7 @@ static struct {
 
 
 static int by32_sh_start(const struct MachineSound *msound)  {
-  int mixing_levels[1] = {0};
-  mixer_allocate_channels(1, mixing_levels);
+  mixer_allocate_channel(0);
   return 0;
 }
 
@@ -500,18 +499,18 @@ static const struct pia6821_interface snt_pia[] = {{
   /*irq: A/B           */ snt_irq, snt_irq
 }};
 
-extern void tms5200_set_reverb(int delay, float force);
-
 static void snt_init(struct sndbrdData *brdData) {
   int i;
   sntlocals.brdData = *brdData;
   pia_config(SNT_PIA0, PIA_STANDARD_ORDERING, &snt_pia[0]);
   pia_config(SNT_PIA1, PIA_STANDARD_ORDERING, &snt_pia[1]);
-//  tms5220_reset();
+  tms5220_reset();
   tms5220_set_variant(TMS5220_IS_5200);
   for (i=0; i < 0x80; i++) memory_region(BY61_CPUREGION)[i] = 0xff;
   if (core_gameData->hw.gameSpecific1 & BY35GD_REVERB) {
-    tms5200_set_reverb(1500, core_getDip(4) * 0.05);
+    tms5220_set_reverb_filter(0.25f, (float)core_getDip(4) * 0.05f);
+    AY8910_set_reverb_filter(0, 0.25f, (float)core_getDip(4) * 0.05f);
+    DAC_set_reverb_filter(0, 0.25f, (float)core_getDip(4) * 0.05f);
   }
 }
 static void snt_diag(int button) {

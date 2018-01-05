@@ -314,7 +314,7 @@ MACHINE_DRIVER_END
 #define SNS_PIA1 1
 #define SNS_PIA2 2
 
-#define TMS11178_IRQFREQ 3579545.0/8192.0
+#define TMS11178_IRQFREQ (3579545.0/8192.0)
 
 #define SW_TRUE 1
 
@@ -459,6 +459,7 @@ static struct {
   UINT8 s_ensynca,s_ensawb,s_entrigb,s_enpwma,s_ensawa,s_entriga,s_refsel,s_dacsh; // output from ls259 3h
   UINT8 s_inh4,s_inh3,s_inh2,s_inh1,s_envca,s_ensyncb; // output from ls259 3I
   int vcrfreq,rescntl,levchb,pwmb,freqb,levcha,pwma,freqa,r500cmd,w500cmd;
+  int tmsPitch;
 } snslocals;
 
 static const UINT8 triangleWave[] = {
@@ -582,7 +583,7 @@ static void sns_init(struct sndbrdData *brdData) {
   pia_config(SNS_PIA2, PIA_STANDARD_ORDERING, &sns_pia[2]);
   if (core_gameData->hw.soundBoard & 0x02) { // true for all 11178
     UpdateZACSoundLED(1, 1);
-// allocate channels
+    // allocate channels
     snslocals.channel = mixer_allocate_channels(4, mixing_levels);
     mixer_set_name  (snslocals.channel+0, "CEM 3374 A TR");
     mixer_set_volume(snslocals.channel+0,0);
@@ -592,13 +593,14 @@ static void sns_init(struct sndbrdData *brdData) {
     mixer_set_volume(snslocals.channel+2,0);
     mixer_set_name  (snslocals.channel+3, "CEM 3374 B SA");
     mixer_set_volume(snslocals.channel+3,0);
-// reset tms5220
-//    tms5220_reset();
   }
+  // reset tms5220
+  snslocals.tmsPitch = -1;
+  tms5220_reset();
   if (core_gameData->hw.soundBoard == SNDBRD_ZAC1370 || core_gameData->hw.soundBoard == SNDBRD_ZAC11178_13181) {
     tms5220_set_variant(TMS5220_IS_5200);
   } else {
-    tms5220_set_variant(TMS5220_IS_5220); //!! 5220C ?
+    tms5220_set_variant(TMS5220_IS_5220); //!! 5220C (also see below) ?
   }
 }
 
@@ -759,7 +761,16 @@ static WRITE_HANDLER(sns_pia2ca2_w) {
 } // diag led
 
 static WRITE_HANDLER(sns_data_w) {
-  if ((core_gameData->hw.gameSpecific2 & 1) && (data & 0x80)) tms5220_reset(); // some of the speech would be garbled otherwise!
+  if ((core_gameData->hw.gameSpecific2 & 1) && (data & 0x80)) // some of the speech would be garbled otherwise!
+  {
+      tms5220_reset();
+      if (core_gameData->hw.soundBoard == SNDBRD_ZAC1370 || core_gameData->hw.soundBoard == SNDBRD_ZAC11178_13181) {
+        tms5220_set_variant(TMS5220_IS_5200);
+      }
+      else {
+        tms5220_set_variant(TMS5220_IS_5220); //!! 5220C (also see above) ?
+      }
+  }
   if (core_gameData->hw.soundBoard == SNDBRD_ZAC1370)
     pia_set_input_cb1(SNS_PIA0, data & 0x80 ? 1 : 0);
   if (core_gameData->hw.soundBoard == SNDBRD_ZAC13136)
@@ -815,8 +826,8 @@ static void sns_irq1b(int state) {
 }
 
 static void sns_5220Irq(int state) {
-  static int oldSpeed = 6;  // default voice clock set to 640 kHz
-  if ((core_getDip(0) >> 4) != oldSpeed) tms5220_set_frequency((93 + (oldSpeed = (core_getDip(0) >> 4))) * 6666.666);
+  if ((core_getDip(0) >> 4) != snslocals.tmsPitch)
+    tms5220_set_frequency((93 + (snslocals.tmsPitch = (core_getDip(0) >> 4))) * 6666.66666666666); // 0:620kHz .. 15:720kHz
   if (core_gameData->hw.soundBoard == SNDBRD_ZAC1370 || core_gameData->hw.soundBoard == SNDBRD_ZAC13136)
     pia_set_input_cb1(SNS_PIA1, !state);
   logerror("sns_5220Irq: state=%x\n",state);

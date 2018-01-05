@@ -4,6 +4,19 @@
 #pragma once
 #endif
 
+/*
+AY-3-8910A: 2 I/O ports
+AY-3-8912A: 1 I/O port
+AY-3-8913A: 0 I/O port
+AY8930: upper compatible with 8910.
+In extended mode, it has higher resolution and duty ratio setting
+YM2149: higher resolution
+YM3439: same as 2149
+YMZ284: 0 I/O port, different clock divider
+YMZ294: 0 I/O port
+*/
+
+
 #define MAX_8910 5
 #define ALL_8910_CHANNELS -1
 
@@ -24,6 +37,9 @@ void AY8910_reset(int chip);
 void AY8910_set_clock(int chip,int _clock);
 void AY8910_set_volume(int chip,int channel,int volume);
 
+#ifdef PINMAME
+void AY8910_set_reverb_filter(int chip, float delay, float force);
+#endif
 
 void AY8910Write(int chip,int a,int data);
 int AY8910Read(int chip);

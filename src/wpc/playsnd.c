@@ -90,7 +90,7 @@ static void play2s_init(struct sndbrdData *brdData) {
 static WRITE_HANDLER(play2s_data_w) {
   sndlocals.freq = data;
   if (mixer_is_sample_playing(sndlocals.channel)) {
-    mixer_set_sample_frequency(sndlocals.channel, 2950000.0 / 4 / (sndlocals.freq + 1));
+    mixer_set_sample_frequency(sndlocals.channel, 2950000 / 4 / (sndlocals.freq + 1));
   }
 }
 
@@ -98,7 +98,7 @@ static WRITE_HANDLER(play2s_ctrl_w) {
   if (!sndlocals.enSn && (data & 1)) { // sound on to full volume
     timer_adjust(sndlocals.timer, TIME_NEVER, 0, 0);
     if (!mixer_is_sample_playing(sndlocals.channel)) {
-      mixer_play_sample(sndlocals.channel, (signed char *)squareWave, sizeof(squareWave), 2950000.0 / 4 / (sndlocals.freq + 1), 1);
+      mixer_play_sample(sndlocals.channel, (signed char *)squareWave, sizeof(squareWave), 2950000 / 4 / (sndlocals.freq + 1), 1);
     }
     sndlocals.volume = 100;
     mixer_set_volume(sndlocals.channel, sndlocals.volume);
@@ -212,9 +212,6 @@ const struct sndbrdIntf play1sIntf = {
 const struct sndbrdIntf play2sIntf = {
   "PLAY2", play2s_init, NULL, NULL, play2s_man_w, play2s_data_w, NULL, play2s_ctrl_w, NULL, SNDBRD_NODATASYNC|SNDBRD_NOCTRLSYNC
 };
-const struct sndbrdIntf playzsIntf = {
-  "PLAYZ", play2s_init, NULL, NULL, play3s_ctrl_w, play2s_data_w, NULL, play3s_ctrl_w, NULL, SNDBRD_NODATASYNC|SNDBRD_NOCTRLSYNC
-};
 const struct sndbrdIntf play3sIntf = {
   "PLAY3", play3s_init, NULL, NULL, play3s_ctrl_w, play2s_data_w, NULL, play3s_ctrl_w, NULL, SNDBRD_NODATASYNC|SNDBRD_NOCTRLSYNC
 };
@@ -310,7 +307,7 @@ static void snd_q(int data) {
 static CDP1802_CONFIG playsound_config3 =
 {
 	snd_mode,	// MODE
-	snd_ef3,		// EF
+	snd_ef3,	// EF
 	NULL,		// SC
 	snd_q,		// Q
 	NULL,		// DMA read
@@ -346,21 +343,17 @@ MACHINE_DRIVER_END
 
 static WRITE_HANDLER(ay8910_0_porta_w)	{
   int volume = 100 - 25 * (data >> 6);
-  AY8910_set_volume(0, 0, volume);
-  AY8910_set_volume(0, 1, volume);
-  AY8910_set_volume(0, 2, volume);
+  AY8910_set_volume(0, ALL_8910_CHANNELS, volume);
   // TODO bits 1 to 6 control a slight reverb effect!?
 }
 static WRITE_HANDLER(ay8910_1_porta_w)	{
   int volume = 100 - 25 * (data >> 6);
-  AY8910_set_volume(1, 0, volume);
-  AY8910_set_volume(1, 1, volume);
-  AY8910_set_volume(1, 2, volume);
+  AY8910_set_volume(1, ALL_8910_CHANNELS, volume);
   // TODO bits 1 to 6 control a slight reverb effect!?
 }
 struct AY8910interface play4s_8910Int = {
 	2,			/* 2 chips */
-	3579545.0/2,	/* 1.79 MHz */
+	(int)(3579545.0/2.),	/* 1.79 MHz */
 	{ MIXER(50,MIXER_PAN_LEFT), MIXER(50,MIXER_PAN_RIGHT) },	/* Volume */
 	{ 0, 0 },
 	{ 0, 0 },
@@ -401,7 +394,7 @@ static void snd_sc(int data) {
 static CDP1802_CONFIG playsound_config4 =
 {
 	snd_mode,	// MODE
-	snd_ef4,		// EF
+	snd_ef4,	// EF
 	snd_sc,		// SC
 	NULL,		// Q
 	NULL,		// DMA read
@@ -473,7 +466,7 @@ static void play5s_msmIrq(int data) {
 static struct MSM5205interface play5s_msm5205Int = {
 	1,					//# of chips
 	384000,				//384Khz Clock Frequency?
-	{play5s_msmIrq},		//VCLK Int. Callback
+	{play5s_msmIrq},	//VCLK Int. Callback
 	{MSM5205_S48_4B},	//Sample Mode
 	{100}				//Volume
 };
@@ -514,46 +507,39 @@ MACHINE_DRIVER_START(PLAYMATICS5)
 MACHINE_DRIVER_END
 
 
+/* Zira sound board */
+
 static READ_HANDLER(in_snd_z) {
   return (~sndlocals.sndCmd >> 4) & 0x07;
 }
 
 static WRITE_HANDLER(ay_data_w) {
   sndlocals.aydata = data;
-//printf("d:%x:%02x\n", sndlocals.ayctrl, sndlocals.aydata);
 }
 
 static WRITE_HANDLER(ay_ctrl_w) {
   sndlocals.ayctrl = data & 3;
   switch (sndlocals.ayctrl) {
     case 1: AY8910_write_port_0_w(0, sndlocals.aydata); break;
-    case 2:
+    case 2: sndlocals.aydata = AY8910Read(0);
     case 3: AY8910_control_port_0_w(0, sndlocals.aydata); break;
   }
-//printf("c:%x:%02x\n", sndlocals.ayctrl, sndlocals.aydata);
 }
 
 static READ_HANDLER(ay_data_r) {
-  static int readcnt;
-  UINT8 data = AY8910Read(0);
-//printf("r:%x:%02x\n", sndlocals.ayctrl, data);
-  if (++readcnt > 750) { // to avoid CPU getting stuck forever, reset it
-    readcnt = 0;
-    cop420_reset(0);
-  }
-  return data;
+  return sndlocals.aydata;
 }
 
 static WRITE_HANDLER(ay8910_z_porta_w)	{
-  coreGlobals.lampMatrix[8] = data;
+  coreGlobals.lampMatrix[8] = coreGlobals.tmpLampMatrix[8] = ~data;
 }
 static WRITE_HANDLER(ay8910_z_portb_w)	{
-  coreGlobals.solenoids2 = data;
+  coreGlobals.lampMatrix[9] = coreGlobals.tmpLampMatrix[9] = ~data;
 }
 struct AY8910interface playzs_8910Int = {
 	1,			/* 1 chip */
-	2000000,	/* 2.01216 MHz quartz on pic! */
-	{ 25 },	/* Volume */
+	2012160,	/* 2.01216 MHz quartz on pic! */
+	{ 25 },		/* Volume */
 	{ 0 },
 	{ 0 },
 	{ ay8910_z_porta_w },
@@ -561,13 +547,11 @@ struct AY8910interface playzs_8910Int = {
 };
 
 static WRITE_HANDLER(romsel_w) {
-  if (data & 0x08) {
-    logerror("Selecting 2nd ROM bank!\n");
-  }
+  cpu_setbank(1, memory_region(PLAYMATIC_MEMREG_SCPU) + ((data & 8) ? 0x400 : 0));
 }
 
 static MEMORY_READ_START(playsound_readmemz)
-  {0x0000,0x03ff, MRA_ROM},
+  {0x0000, 0x03ff, MRA_BANKNO(1)},
 MEMORY_END
 
 static MEMORY_WRITE_START(playsound_writememz)
@@ -584,11 +568,23 @@ static PORT_WRITE_START(playsound_writeportz)
   {COP400_PORT_D, COP400_PORT_D, romsel_w },
 MEMORY_END
 
+static void playzs_init(struct sndbrdData *brdData) {
+  cpu_setbank(1, memory_region(PLAYMATIC_MEMREG_SCPU));
+  memset(&sndlocals, 0, sizeof sndlocals);
+}
+
+static WRITE_HANDLER(playzs_ctrl_w) {
+  sndlocals.sndCmd = data;
+}
+
+const struct sndbrdIntf playzsIntf = {
+  "PLAYZ", playzs_init, NULL, NULL, playzs_ctrl_w, NULL, NULL, playzs_ctrl_w, NULL, SNDBRD_NODATASYNC|SNDBRD_NOCTRLSYNC
+};
+
 MACHINE_DRIVER_START(PLAYMATICSZ)
-  MDRV_CPU_ADD_TAG("scpu", COP420, 2000000 / COP400_CLOCK_DIVIDER)
+  MDRV_CPU_ADD_TAG("scpu", COP420, 2012160 / 16)
   MDRV_CPU_FLAGS(CPU_AUDIO_CPU)
   MDRV_CPU_MEMORY(playsound_readmemz, playsound_writememz)
   MDRV_CPU_PORTS(playsound_readportz, playsound_writeportz)
-  MDRV_SOUND_ADD(CUSTOM, play2s_custInt)
   MDRV_SOUND_ADD(AY8910, playzs_8910Int)
 MACHINE_DRIVER_END

@@ -8,13 +8,11 @@
  *
  *   Modifications for PINMAME by Steve Ellenoff & Martin Adrian & Carsten Waechter
  *
- *             - TODO: 1)Certain effects are missing (sound played when BSMT DMD animation comes on in stereo games)
- *             -       2)Batman,ST25th and Hook set Mode 0 (after setting Mode 1), but seem to still want to use Mode 1
- *             -       3)Remove DE Rom loading flag & fix in the drivers themselves.
- *             -       4)Fix bsmt interface to handle reverse left/right stereo channels rather than in emulation here
- *             -       5)Are the 6e and 70 commands in ADPCM handling correct like-is?
- *             -       6)command 77 could be the sample rate/'pitch' for ADPCM
- *             -       7)Monopoly and RCT do never set the left volume, thus a special hack is necessary
+ *             - TODO: 1)Batman,ST25th and Hook set Mode 0 (after setting Mode 1), but still use reg mapping of Mode 1
+ *             -       2)Remove DE Rom loading flag & fix in the drivers themselves.
+ *             -       3)Fix bsmt interface to handle reverse left/right stereo channels rather than in emulation here
+ *             -       4)Command 0x77 could be the sample rate/'pitch' for ADPCM? Or volume like it is now implemented (e.g. sound played when BSMT DMD animation comes on in stereo games: https://www.youtube.com/watch?v=2FtzLzbapZs)
+ *             - DONE: 5)Monopoly and RCT do never set the right volume (as these are mono only), thus a special hack is necessary to make up for that (right_volume_set)
  **********************************************************************************************/
 
 #include <stdio.h>
@@ -22,6 +20,10 @@
 #include <math.h>
 
 #include "driver.h"
+
+#ifndef MIN
+ #define MIN(x,y) ((x)<(y)?(x):(y))
+#endif
 
 /**********************************************************************************************
 
@@ -37,19 +39,22 @@
 static const UINT8 regmap[8][7] = {
     { 0x00, 0x18, 0x24, 0x30, 0x3c, 0x48, 0xff }, // last one (stereo/leftvol) unused, set to max for mapping
     { 0x00, 0x16, 0x21, 0x2c, 0x37, 0x42, 0x4d },
-    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, // mode 2 non existing?
-    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, // mode 3 non existing?
-    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, // mode 4 non existing?
+    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, // mode 2 only a testmode left channel
+    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, // mode 3 only a testmode right channel
+    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, // mode 4 only a testmode left channel
     { 0x00, 0x18, 0x24, 0x30, 0x3c, 0x54, 0x60 },
     { 0x00, 0x10, 0x18, 0x20, 0x28, 0x38, 0x40 },
     { 0x00, 0x12, 0x1b, 0x24, 0x2d, 0x3f, 0x48 } };
 
-/* NOTE: the original chip did not support interpolation, but it sounds */
-/* nicer if you enable it. For accuracy's sake, we leave it off by default. */
-#define ENABLE_INTERPOLATION    0
+/* NOTE: the original chip did not support interpolation, but music usually sounds */
+/* nicer if you enable it. For accuracy's sake, we leave it off by default, also sound effects sound clearer without it. */
+#define ENABLE_INTERPOLATION 0
+
+// Whacky ADPCM interpolation, better leave off for now
+#define ENABLE_ADPCM_INTERPOLATION 0
 
 #ifdef PINMAME
-#define	LOG_COMPRESSED_ONLY		0
+#define	LOG_COMPRESSED_ONLY	0
 #endif
 
 //#define VERBOSE
@@ -105,9 +110,10 @@ struct BSMT2000Chip
     struct BSMT2000Voice voice[MAX_VOICES];	/* the voices */
 
 #ifdef PINMAME
+    UINT16      adpcm_77;
     int         use_de_rom_banking;     /* Flag to turn on Rom Banking support for Data East Games */
-	int			shift_data;				/* Shift integer to apply to samples for changing volume - this is most likely done external to the bsmt chip in the real hardware */
-    UINT8       left_volume_set;        /* Monopoly, RCT do never set left volume although its supposed to be stereo */
+    //int         shift_data;             /* Shift integer to apply to samples for changing volume - this is most likely done external to the bsmt chip in the real hardware */
+    UINT8       right_volume_set;       /* Monopoly, RCT do never set right volume although its supposed to be stereo */
 #endif
 };
 
@@ -119,7 +125,7 @@ struct BSMT2000Chip
 ***********************************************************************************************/
 
 static struct BSMT2000Chip bsmt2000[MAX_BSMT2000];
-static INT32 *scratch;
+static INT64 *scratch;
 
 /***************************************************************************************************
 
@@ -130,6 +136,7 @@ static void reset_compression_flags(struct BSMT2000Chip *chip)
 {
     struct BSMT2000Voice *voice = &chip->voice[ADPCM_VOICE];
     voice->reg[REG_RATE] = 0;
+    voice->reg[REG_BANK] = 0xFE;
 }
 
 /**************************************************
@@ -146,7 +153,8 @@ static void set_mode(struct BSMT2000Chip *chip, int i)
     default: // 119 happens sometimes
         break;
 
-#ifndef PINMAME // disabled, as Batman,ST25th and Hook set this (after setting Mode 1), but actually always seem to use Mode 1
+		//BATMAN,ST25TH,Hook trigger sequence: mode 1 set, 0x7F,0x7E,0x7D,0x7C,0x7B,0x7A,..,0x6D, then mode 0 set but definetly use reg mapping of mode 1
+#ifndef PINMAME
         /* mode 0: 24kHz, 12 channel PCM, 1 channel ADPCM, mono */
     case 0:
         chip->sample_rate = chip->clock / 1000;
@@ -165,6 +173,9 @@ static void set_mode(struct BSMT2000Chip *chip, int i)
         chip->adpcm = 1;
         chip->mode = 1;
         break;
+
+    // mode 2+4 test left channel output
+    // mode 3 tests right channel output (similar to mode 2)
 
         /* mode 5: 24kHz, 12 channel PCM, stereo */
     case 5:
@@ -196,6 +207,7 @@ static void set_mode(struct BSMT2000Chip *chip, int i)
 
     /* update the sample rate */
     stream_set_sample_rate(chip->stream, chip->sample_rate);
+    stream_set_sample_rate(chip->stream+1, chip->sample_rate);
 
 	LOG(("BSMT#%d last reg. prior to reset: %d\n", i, chip->last_register));
 }
@@ -209,7 +221,7 @@ static void set_mode(struct BSMT2000Chip *chip, int i)
 static void bsmt2000_update(int num, INT16 **buffer, int length)
 {
 	struct BSMT2000Chip *chip = &bsmt2000[num];
-	INT32 *left, *right;
+	INT64 *left, *right;
 	INT16 *ldest = buffer[0];
 	INT16 *rdest = buffer[1];
     struct BSMT2000Voice *voice;
@@ -224,8 +236,120 @@ static void bsmt2000_update(int num, INT16 **buffer, int length)
 	memset(left, 0, length * sizeof(left[0]));
 	memset(right, 0, length * sizeof(right[0]));
 
-	/* loop over voices */
-    for (voicenum = 0; voicenum < chip->voices; voicenum++)
+	/* compressed voice */
+	voice = &chip->voice[ADPCM_VOICE];
+	if (chip->adpcm && voice->reg[REG_BANK] < chip->total_banks && voice->reg[REG_RATE])
+	{
+		INT8 *base = &chip->region_base[voice->reg[REG_BANK] * 0x10000];
+		INT32 rvol = voice->reg[REG_RIGHTVOL];
+		INT32 lvol = chip->stereo ? voice->reg[REG_LEFTVOL] : rvol;
+		UINT32 pos = voice->reg[REG_CURRPOS];
+		UINT32 frac = voice->fraction;
+#ifdef PINMAME
+		if (chip->stereo && !chip->right_volume_set) // Monopoly and RCT feature stereo hardware, but only ever set the left volume
+			rvol = lvol;
+#endif
+		/* loop while we still have samples to generate & decompressed samples to play */
+		for (samp = 0; samp < length; samp++)
+		{
+			/* apply volumes and add */
+			left[samp]  = chip->adpcm_current * (lvol * 2); // ADPCM voice gets added twice to ACC (2x APAC)
+			right[samp] = chip->adpcm_current * (rvol * 2);
+
+			/* update position */
+			frac++;
+			if (frac == 6)
+			{
+				pos++;
+				frac = 0;
+			}
+
+			/* every 3 samples, we update the ADPCM state */
+			if (frac == 1 || frac == 4)
+			{
+				static const INT32 delta_tab[16] = { 154, 154, 128, 102, 77, 58, 58, 58, 58, 58, 58, 58, 77, 102, 128, 154 };
+				INT32 delta, value;
+
+				if(pos >= voice->reg[REG_LOOPEND])
+					break;
+
+				// extract corresponding nibble and convert to full integer
+				value = base[pos];
+				if (frac == 1)
+					value >>= 4;
+				value &= 0xF;
+				if (value & 0x8)
+					value |= 0xFFFFFFF0;
+
+				/* compute the delta for this sample */
+				delta = chip->adpcm_delta_n * value;
+				if (value > 0)
+					delta += chip->adpcm_delta_n >> 1;
+				else
+					delta -= chip->adpcm_delta_n >> 1;
+
+				/* add and clamp against the sample */
+				chip->adpcm_current += delta;
+				if (chip->adpcm_current > 32767) //!! ??
+					chip->adpcm_current = 32767;
+				else if (chip->adpcm_current < -32768)
+					chip->adpcm_current = -32768;
+
+				/* adjust the delta multiplier */
+				chip->adpcm_delta_n = (chip->adpcm_delta_n * delta_tab[value+8]) >> 6;
+				if (chip->adpcm_delta_n > 2000) //!! ??
+					chip->adpcm_delta_n = 2000;
+				else if (chip->adpcm_delta_n < 1)
+					chip->adpcm_delta_n = 1;
+			}
+		}
+
+#if ENABLE_ADPCM_INTERPOLATION
+		pos = voice->reg[REG_CURRPOS];
+		frac = voice->fraction;
+		// interpolate each package of three same samples that the ADPCM generated
+		for (samp = 0; samp < length && pos < voice->reg[REG_LOOPEND]; samp++)
+		{
+			int samp_c;
+			switch (frac)
+			{
+			case 0:
+			case 3:
+				samp_c = MIN(samp + 1, length-1);
+				left[samp]  = (left [samp] * (INT64)3334 + left [samp_c] * (INT64)6666) / (INT64)10000;
+				right[samp] = (right[samp] * (INT64)3334 + right[samp_c] * (INT64)6666) / (INT64)10000;
+				break;
+			case 1:
+			case 4:
+				break;
+			case 2:
+			case 5:
+				samp_c = MIN(samp + 2, length-1);
+				left[samp]  = (left [samp] * (INT64)6666 + left [samp_c] * (INT64)3334) / (INT64)10000;
+				right[samp] = (right[samp] * (INT64)6666 + right[samp_c] * (INT64)3334) / (INT64)10000;
+				break;
+			}
+
+			/* update position */
+			frac++;
+			if (frac == 6)
+			{
+				pos++;
+				frac = 0;
+			}
+		}
+#endif
+		/* update the position */
+		voice->reg[REG_CURRPOS] = (UINT16)pos;
+		voice->fraction = (UINT16)frac;
+
+		/* "rate" is a control register; clear it to 0 when done */
+		if (pos >= voice->reg[REG_LOOPEND])
+			voice->reg[REG_RATE] = 0;
+	}
+
+	/* loop over normal voices (8bit, 8kHz mono samples) */
+	for (voicenum = 0; voicenum < chip->voices; voicenum++)
 	{
 		voice = &chip->voice[voicenum];
 
@@ -233,43 +357,33 @@ static void bsmt2000_update(int num, INT16 **buffer, int length)
 		if (voice->reg[REG_BANK] < chip->total_banks)
 		{
 			INT8 *base = &chip->region_base[voice->reg[REG_BANK] * 0x10000];
-            UINT32 rate = voice->reg[REG_RATE];
-            INT32 rvol = voice->reg[REG_RIGHTVOL];
-            INT32 lvol = (chip->stereo
+			UINT32 rate = voice->reg[REG_RATE];
+			INT32 rvol = voice->reg[REG_RIGHTVOL];
+			INT32 lvol = chip->stereo ? voice->reg[REG_LEFTVOL] : rvol;
+			UINT32 pos = voice->reg[REG_CURRPOS];
+			UINT32 frac = voice->fraction;
 #ifdef PINMAME
-                && chip->left_volume_set
+			if (chip->stereo && !chip->right_volume_set) // Monopoly and RCT feature stereo hardware, but only ever set the left volume
+				rvol = lvol;
 #endif
-                ) ? voice->reg[REG_LEFTVOL] : rvol;
-            UINT16 pos = voice->reg[REG_CURRPOS];
-            UINT16 frac = voice->fraction;
+			if (chip->adpcm_77 > 0 && rvol == 0 && lvol == 0) //!! is this really correct?
+			{
+				rvol = lvol = chip->adpcm_77;
+			}
 
 			/* loop while we still have samples to generate */
             for (samp = 0; samp < length; samp++)
             {
-                INT32 sample;
+                INT32 val1 = base[pos];
+                // sample is shifted by 8, as accumulator expects everything in 16bit*16bit (sampledata*volume), and then cuts that down to 16bit in the end
 #if ENABLE_INTERPOLATION
-                INT32 val1 = base[pos];
-                INT32 val2 = base[pos+1];
-#if 0//def PINMAME // not needed anymore it seems due to improved emulation
-                //Shift ROM data if interface specifies this
-                if (chip->shift_data)
-                {
-                    val1 = val1 << chip->shift_data;
-                    val2 = val2 << chip->shift_data;
-                }
-#endif
-                sample = (val1 * (0x800 - frac) + (val2 * frac)) >> 11;
+                INT32 val2 = base[MIN(pos + 1, (UINT32)voice->reg[REG_LOOPEND]-1)];
+                INT32 sample = (val1 * (INT32)(0x800 - frac) + (val2 * (INT32)frac)) >> 3; // (... >> 11) << 8
 #else
-                INT32 val1 = base[pos];
-#if 0//def PINMAME // not needed anymore it seems due to improved emulation
-                //Shift ROM data if interface specifies this
-                if (chip->shift_data)
-                    val1 = val1 << chip->shift_data;
-#endif
-                sample = val1;
+                INT32 sample = val1 << 8;
 #endif
 				/* apply volumes and add */
-				left[samp] += sample * lvol;
+				left[samp]  += sample * lvol;
 				right[samp] += sample * rvol;
 
                 /* update position */
@@ -279,101 +393,38 @@ static void bsmt2000_update(int num, INT16 **buffer, int length)
 
 				/* check for loop end */
                 if (pos >= voice->reg[REG_LOOPEND])
-                    pos += voice->reg[REG_LOOPSTART] - voice->reg[REG_LOOPEND];
+                {
+                    pos += voice->reg[REG_LOOPSTART] - voice->reg[REG_LOOPEND]; // looks whacky, but it seems to be correct like this
+                    frac = 0;
+                }
 			}
 
 			/* update the position */
-            voice->reg[REG_CURRPOS] = pos;
-            voice->fraction = frac;
+            voice->reg[REG_CURRPOS] = (UINT16)pos;
+            voice->fraction = (UINT16)frac;
         }
 	}
 
-  	/* compressed voice */
-    voice = &chip->voice[ADPCM_VOICE];
-    if (chip->adpcm && voice->reg[REG_BANK] < chip->total_banks && voice->reg[REG_RATE])
-  	{
-        INT8 *base = &chip->region_base[voice->reg[REG_BANK] * 0x10000];
-        INT32 rvol = voice->reg[REG_RIGHTVOL];
-        INT32 lvol = (chip->stereo
-#ifdef PINMAME
-            && chip->left_volume_set
-#endif
-            ) ? voice->reg[REG_LEFTVOL] : rvol;
-        UINT32 pos = voice->reg[REG_CURRPOS];
-        UINT32 frac = voice->fraction;
-
-		/* loop while we still have samples to generate & decompressed samples to play */
-        for (samp = 0; samp < length && pos < voice->reg[REG_LOOPEND]; samp++)
-        {
-            /* apply volumes and add */
-#if 0//def PINMAME // not needed anymore it seems due to improved emulation
-            /* adjust volumes to balance better with non-compressed voices - just a guess on this, but seems ok */
-            left[samp] += (chip->adpcm_current * lvol) >> 13;
-            right[samp] += (chip->adpcm_current * rvol) >> 13;
-#else        
-            left[samp] += (chip->adpcm_current * lvol) >> 8;
-            right[samp] += (chip->adpcm_current * rvol) >> 8;
-#endif
-            /* update position */
-            frac++;
-            if (frac == 6)
-            {
-                pos++;
-                frac = 0;
-            }
-            
-            /* every 3 samples, we update the ADPCM state */
-            if (frac == 1 || frac == 4)
-            {
-                static const UINT8 delta_tab[] = { 58, 58, 58, 58, 77, 102, 128, 154 };
-                int nibble = base[pos] >> ((frac == 1) ? 4 : 0);
-                int value = (INT8)(nibble << 4) >> 4;
-                int delta;
-
-                /* compute the delta for this sample */
-                delta = chip->adpcm_delta_n * value;
-                if (value > 0)
-                    delta += chip->adpcm_delta_n >> 1;
-                else
-                    delta -= chip->adpcm_delta_n >> 1;
-
-                /* add and clamp against the sample */
-                chip->adpcm_current += delta;
-                if (chip->adpcm_current >= 32767)
-                    chip->adpcm_current = 32767;
-                else if (chip->adpcm_current <= -32768)
-                    chip->adpcm_current = -32768;
-
-                /* adjust the delta multiplier */
-                chip->adpcm_delta_n = (chip->adpcm_delta_n * delta_tab[abs(value)]) >> 6;
-                if (chip->adpcm_delta_n > 2000)
-                    chip->adpcm_delta_n = 2000;
-                else if (chip->adpcm_delta_n < 1)
-                    chip->adpcm_delta_n = 1;
-            }
-        }
-
-        /* update the position */
-        voice->reg[REG_CURRPOS] = pos;
-        voice->fraction = frac;
-
-        /* "rate" is a control register; clear it to 0 when done */
-        if (pos >= voice->reg[REG_LOOPEND])
-            voice->reg[REG_RATE] = 0;
-    }
-
     /* reduce the overall gain */
+    /* which is a simple SACH opcode on the TMS, so this copies the upper 16bit to the output, thus a shift by 16 */
+
+#if 0//def PINMAME // different shifts to 'simulate' external amplifiers and other hardware
+    INT32 bsmt_shift_data = 16 - chip->shift_data;
+#else
+    #define bsmt_shift_data 16
+#endif
+
     for (samp = 0; samp < length; samp++)
     {
-        INT32 l = (left[samp] >> 9);
-        INT32 r = (right[samp] >> 9);
-        if (l >= 32767)
+        INT64 l = (left[samp] >> bsmt_shift_data);
+        INT64 r = (right[samp] >> bsmt_shift_data);
+        if (l > 32767) // this overflow check happens after each voices accumulation on the TMS (as it only has a 32bit ACC with saturation enabled), but this way we are more accurately mixing (not with respect to the actual HW though)
             l = 32767;
-        else if (l <= -32768)
+        else if (l < -32768)
             l = -32768;
-        if (r >= 32767)
+        if (r > 32767)
             r = 32767;
-        else if (r <= -32768)
+        else if (r < -32768)
             r = -32768;
         ldest[samp] = (INT16)l;
         rdest[samp] = (INT16)r;
@@ -430,8 +481,9 @@ int BSMT2000_sh_start(const struct MachineSound *msound)
 		vol[1 - intf->reverse_stereo] = MIXER(intf->mixing_level[i], MIXER_PAN_RIGHT);
 		//Capture other interface flags we need later
 		bsmt2000[i].use_de_rom_banking = intf->use_de_rom_banking;
-		bsmt2000[i].shift_data = intf->shift_data;
-        bsmt2000[i].left_volume_set = 0;
+		//bsmt2000[i].shift_data = intf->shift_data;
+        bsmt2000[i].right_volume_set = 0;
+		bsmt2000[i].adpcm_77 = 0;
 #else
 		vol[0] = MIXER(intf->mixing_level[i], MIXER_PAN_LEFT);
 		vol[1] = MIXER(intf->mixing_level[i], MIXER_PAN_RIGHT);
@@ -451,7 +503,7 @@ int BSMT2000_sh_start(const struct MachineSound *msound)
 
 		/* initialize the regions */
 		bsmt2000[i].region_base = (INT8 *)memory_region(intf->region[i]);
-		bsmt2000[i].total_banks = memory_region_length(intf->region[i]) / 0x10000;
+		bsmt2000[i].total_banks = (int)(memory_region_length(intf->region[i]) / 0x10000);
 
 		/* init the voices */
 		init_all_voices(&bsmt2000[i]);
@@ -549,8 +601,11 @@ static void bsmt2000_reg_write(struct BSMT2000Chip *chip, offs_t offset, data16_
 		    voice->reg[REG_BANK] = temp;
 	    }
 
-        if (regindex == REG_LEFTVOL)
-            chip->left_volume_set = 1;
+        if (regindex == REG_RIGHTVOL)
+            chip->right_volume_set = 1;
+
+		if (regindex == REG_CURRPOS)
+			voice->fraction = 0;
 #endif
     }
     else if(chip->adpcm) /* update parameters for compressed voice */
@@ -567,14 +622,6 @@ static void bsmt2000_reg_write(struct BSMT2000Chip *chip, offs_t offset, data16_
  				COMBINE_DATA(&voice->reg[REG_LOOPEND]);
                 LOG(("REG_LOOPEND=%04X\n", voice->reg[REG_LOOPEND]));
  				break;
-
-#if 0//def PINMAME // seems like some SEGA games use this as volume control for already playing ADPCM, others just set to 0
-			//STOP PLAYING LEFT/RIGHT CHANNELS?
-			case 0x6e:
-			case 0x70:
-				reset_compression_flags(chip);
-				break;
-#endif
 
  			//ROM BANK
  			case 0x6f:
@@ -593,20 +640,23 @@ static void bsmt2000_reg_write(struct BSMT2000Chip *chip, offs_t offset, data16_
 			case 0x73:
 				COMBINE_DATA(&voice->reg[REG_RATE]);
 #ifdef PINMAME
-				if(voice->reg[REG_RATE] == 1) //!! check for 1 explicitly or != 0 ??
+				if(voice->reg[REG_RATE] != 0)
 #endif
                 {
 					/* reset adpcm values also */
 					chip->adpcm_current = 0;
 					chip->adpcm_delta_n = 10;
 				}
-	    		break;
+				break;
 
 			//RIGHT CHANNEL VOLUME
 #ifdef PINMAME
-            case 0x6e: // seems like some SEGA games use this as volume control for already playing ADPCM, others just set to 0
+            case 0x6e: // main right channel volume control, used when ADPCM is alreay playing
 #endif
-			case 0x74:
+			case 0x74: // right channel volume control, copied on start to 0x6e
+#ifdef PINMAME
+				chip->right_volume_set = 1;
+#endif
  				COMBINE_DATA(&voice->reg[REG_RIGHTVOL]);
 				LOG(("REG_RIGHTVOL=%04X\n", voice->reg[REG_RIGHTVOL]));
  				break;
@@ -615,28 +665,29 @@ static void bsmt2000_reg_write(struct BSMT2000Chip *chip, offs_t offset, data16_
  			case 0x75:
  				COMBINE_DATA(&voice->reg[REG_CURRPOS]);
                 LOG(("REG_CURRPOS=%04X voice->loop_stop_position=%08X\n", voice->reg[REG_CURRPOS], voice->reg[REG_LOOPEND]));
- 				break;
+				voice->fraction = 0;
+				break;
+
+ 			case 0x77:
+				//for example MONOPOLY & RCT (and no other ADPCM commands it seems), STAR WARS, APOLLO13 trigger a lot of: 0x77 (data = 0)?
+				//for example ID4 uses 0x77 also with increasing/decreasing data input (1280 up to 32000), so maybe sample rate/'pitch' for ADPCM? Or really volume?
+				//Tommy even uses 0x77 without using any other ADPCM commands
+				COMBINE_DATA(&chip->adpcm_77);
+				LOG(("REG_ADPCM77=%04X\n", chip->adpcm_77));
+				break;
 
 			//LEFT CHANNEL VOLUME
-            case 0x76:
-#ifdef PINMAME // seems like this was simply wrong before (78 instead of 76), but games trigger this after setting the right channel volume (and NOT 76)!
-            case 0x78:
+#ifdef PINMAME
+			case 0x70: // main left channel volume control, used when ADPCM is alreay playing
 
-            case 0x70: // seems like some SEGA games use this as volume control for already playing ADPCM, others just set to 0
+			case 0x78: // left channel volume control, copied on start to 0x70
 #endif
                 if (chip->stereo)
                 {
-#ifdef PINMAME
-                    chip->left_volume_set = 1;
-#endif
                     COMBINE_DATA(&voice->reg[REG_LEFTVOL]);
                     LOG(("REG_LEFTVOL=%04X\n", voice->reg[REG_LEFTVOL]));
                 }
  				break;
-
-            //for example MONOPOLY (and no other ADPCM commands it seems), STAR WARS, APOLLO13 trigger a lot of: 0x77 (data = 0)?
-            //for example ID4 uses 0x77 also with increasing/decreasing data input (1280 up to 32000), so maybe sample rate/'pitch' for ADPCM?
-            //for example BATMAN,ST25TH trigger sequence: mode 1 set, 0x7F,0x7E,0x7D,0x7C,0x7B,0x7A,..,0x6D, then mode 0 set but continue to set ADPCM commands and use reg mapping of mode 1
         }
 	}
 }

@@ -205,7 +205,7 @@ struct GameOptions
 
 	int		samplerate;		/* sound sample playback rate, in Hz */
 	int		use_samples;	/* 1 to enable external .wav samples */
-	int		use_filter;		/* 1 to enable FIR filter on final mixer output */
+	//int		use_filter;		/* 1 to enable FIR filter on final mixer output */
 
 	float	brightness;		/* brightness of the display */
 	float	pause_bright;		/* additional brightness when in pause */
@@ -232,6 +232,9 @@ struct GameOptions
 	int		debug_width;	/* requested width of debugger bitmap */
 	int		debug_height;	/* requested height of debugger bitmap */
 	int		debug_depth;	/* requested depth of debugger bitmap */
+
+	int		at91jit;
+	int		usemodsol; 
 
 	#ifdef MESS
 	UINT32 ram;

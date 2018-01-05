@@ -108,8 +108,8 @@ void mixer_set_lowpass_frequency(int ch, int freq);
 
 /* private functions for user interface only - don't call them from drivers! */
 void mixer_set_mixing_level(int channel,int level);
-int mixer_get_mixing_level(int level);
-int mixer_get_default_mixing_level(int level);
+int mixer_get_mixing_level(int channel);
+int mixer_get_default_mixing_level(int channel);
 
 /* configuration functions */
 
@@ -125,5 +125,11 @@ void mixer_read_config(mame_file *f);
 void mixer_write_config(mame_file *f);
 
 void mixer_set_stereo_volume(int ch, int l_vol, int r_vol );
+
+#ifdef PINMAME
+void mixer_set_reverb_filter(int ch, float delay, float force);
+#endif
+
+void mixer_set_channel_legacy_resample(int ch, int enable);
 
 #endif

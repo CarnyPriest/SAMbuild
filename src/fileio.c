@@ -39,11 +39,6 @@
 	CONSTANTS
 ***************************************************************************/
 
-#define PLAIN_FILE				0
-#define RAM_FILE				1
-#define ZIPPED_FILE				2
-#define UNLOADED_ZIPPED_FILE	3
-
 #define FILEFLAG_OPENREAD		0x01
 #define FILEFLAG_OPENWRITE		0x02
 #define FILEFLAG_HASH			0x04
@@ -55,25 +50,6 @@
 #ifdef MAME_DEBUG
 #define DEBUG_COOKIE			0xbaadf00d
 #endif
-
-/***************************************************************************
-	TYPE DEFINITIONS
-***************************************************************************/
-
-struct _mame_file
-{
-#ifdef DEBUG_COOKIE
-	UINT32 debug_cookie;
-#endif
-	osd_file *file;
-	UINT8 *data;
-	UINT64 offset;
-	UINT64 length;
-	UINT8 eof;
-	UINT8 type;
-	char hash[HASH_BUF_SIZE];
-};
-
 
 
 /***************************************************************************
@@ -105,6 +81,9 @@ mame_file *mame_fopen(const char *gamename, const char *filename, int filetype, 
 		case FILETYPE_HISTORY:
 		case FILETYPE_LANGUAGE:
 		case FILETYPE_INI:
+#if defined(PINMAME) && defined(PROC_SUPPORT)
+		case FILETYPE_PROC_YAML:
+#endif /* PINMAME && PROC_SUPPORT */
 			if (openforwrite)
 			{
 				logerror("mame_fopen: type %02x write not supported\n", filetype);
@@ -115,7 +94,7 @@ mame_file *mame_fopen(const char *gamename, const char *filename, int filetype, 
 		/* write-only cases */
 		case FILETYPE_SCREENSHOT:
 #ifdef PINMAME
-                case FILETYPE_WAVE:
+		case FILETYPE_WAVE:
 #endif /* PINMAME */
 
 			if (!openforwrite)
@@ -182,7 +161,7 @@ mame_file *mame_fopen(const char *gamename, const char *filename, int filetype, 
 		/* screenshot files */
 		case FILETYPE_SCREENSHOT:
 #ifdef PINMAME
-                case FILETYPE_WAVE:
+		case FILETYPE_WAVE:
 #endif /* PINMAME */
 
 			return generic_fopen(filetype, NULL, filename, 0, FILEFLAG_OPENWRITE);
@@ -206,6 +185,12 @@ mame_file *mame_fopen(const char *gamename, const char *filename, int filetype, 
 		/* game specific ini files */
 		case FILETYPE_INI:
 			return generic_fopen(filetype, NULL, gamename, 0, FILEFLAG_OPENREAD);
+
+#if defined(PINMAME) && defined(PROC_SUPPORT)
+		/* P-ROC YAML files */
+		case FILETYPE_PROC_YAML:
+			return generic_fopen(filetype, gamename, filename, 0, FILEFLAG_OPENREAD);	// filename???
+#endif /* PINMAME && PROC_SUPPORT */
 
 		/* anything else */
 		default:
@@ -359,6 +344,26 @@ UINT32 mame_fwrite(mame_file *file, const void *buffer, size_t length)
 	{
 		case PLAIN_FILE:
 			return osd_fwrite(file->file, buffer, length);
+		case RAM_FILE:
+			if (!file->data || (file->offset + length > file->length))
+			{
+				if (!file->data)
+					file->data = malloc(length);
+				else
+					file->data = realloc(file->data, file->offset + length);
+				memcpy(file->data + file->offset, buffer, length);
+				file->offset += length;
+				file->length = file->offset;
+				file->eof = 1;
+				return length;
+			}
+			else
+			{
+				memcpy(file->data + file->offset, buffer, length);
+				file->offset += length;
+				return length;
+			}
+			break;
 	}
 
 	return 0;
@@ -799,10 +804,15 @@ static const char *get_extension_for_filetype(int filetype)
 			extension = "ini";
 			break;
 #ifdef PINMAME
-		// wavefiles
-		case FILETYPE_WAVE:
+		case FILETYPE_WAVE:			/* wavefiles */
 			extension = "wav";
 			break;
+
+#ifdef PROC_SUPPORT
+		case FILETYPE_PROC_YAML:	/* P-ROC YAML files */
+			extension = "yaml";
+			break;
+#endif /* PROC_SUPPORT */
 #endif /* PINMAME */
 	}
 	return extension;

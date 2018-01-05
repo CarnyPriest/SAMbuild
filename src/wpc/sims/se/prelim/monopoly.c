@@ -57,7 +57,7 @@ extern struct {
 	int    lastgiaux, miniidx, miniframe;
 	int    minidata[7], minidmd[4][3][8];
 	/* trace ram related */
-#if SUPPORT_TRACERAM
+#if defined(SUPPORT_TRACERAM) && SUPPORT_TRACERAM
 	UINT8 *traceRam;
 #endif
 	UINT8  curBank;                   /* current bank select */
@@ -470,7 +470,7 @@ static sim_tSimData monopolySimData = {
 /----------------------*/
 static struct core_dispLayout dispMonopoly[] = {
   { 0, 0,32,128,CORE_DMD, (genf *)dedmd32_update, NULL},
-  {34,10, 7, 15,CORE_DMD|CORE_DMDNOAA, (genf *)seminidmd2_update, NULL},
+  {34,10, 7, 15,CORE_DMD|CORE_DMDNOAA| CORE_NODISP, (genf *)seminidmd2_update, NULL},
   {0}
 };
 static core_tGameData monopolyGameData = {

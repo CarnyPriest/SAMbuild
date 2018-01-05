@@ -118,11 +118,11 @@ void snd_cmd_exit(void) {
   wave_exit();
 
 #ifdef VPINMAME_ALTSOUND
-  if (pmoptions.sound_mode == 1)
+  if (options.samplerate != 0 && pmoptions.sound_mode == 1)
     alt_sound_exit();
 #endif
 #ifdef VPINMAME_PINSOUND
-  if (pmoptions.sound_mode == 2 || pmoptions.sound_mode == 3)
+  if (options.samplerate != 0 && (pmoptions.sound_mode == 2 || pmoptions.sound_mode == 3))
     pinsound_exit();
 #endif
 }
@@ -306,7 +306,7 @@ void reinit_pinSound(void)
 	BOOL	response;
 	char	buffer_msg[100];
 
-	if (!(pmoptions.sound_mode == 2 || pmoptions.sound_mode == 3))
+	if (!(pmoptions.sound_mode == 2 || pmoptions.sound_mode == 3) || options.samplerate == 0) // if not internal or external pinsound enabled, or if sound in general is disabled -> return
 		return;
 
 	init_pinsound = FALSE;
@@ -340,14 +340,15 @@ void reinit_pinSound(void)
 
 		if(responseValue == 1)
 		{
-			int	ch;
+			//int	ch;
 
 			pinsound_studio_enabled = TRUE;
 			
 			// force internal PinMAME volume mixer to 0 to mute emulated sounds & musics
-			for(ch = 0; ch < MIXER_MAX_CHANNELS; ch++) 
-				if(mixer_get_name(ch) != NULL)
-					mixer_set_volume(ch, 0);
+			//for(ch = 0; ch < MIXER_MAX_CHANNELS; ch++)
+			//	if(mixer_get_name(ch) != NULL)
+			//		mixer_set_volume(ch, 0);
+			mixer_sound_enable_global_w(0);
 
 			LOG(("PinSound: PinSound Studio audio engine is ready to play the ROM requested. \n"));
 		}
@@ -435,15 +436,16 @@ void pinsound_handle(const int boardNo, const int cmd)
 		if (!(sys11_patch && sys11_counter))
 		{
 			// send current sound cmd to PSStudio
-			int	ch;
+			//int	ch;
 			TCHAR cmd_to_pinsound_studio[100];
 			_stprintf( cmd_to_pinsound_studio, _T("%02x"), cmd );
 
 			// force internal PinMAME volume mixer to 0 to mute emulated sounds & musics
 			// required for WPC89 sound board
-			for (ch = 0; ch < MIXER_MAX_CHANNELS; ch++) 
-				if (mixer_get_name(ch) != NULL)
-					mixer_set_volume(ch, 0);
+			//for (ch = 0; ch < MIXER_MAX_CHANNELS; ch++) 
+			//	if (mixer_get_name(ch) != NULL)
+			//		mixer_set_volume(ch, 0);
+			mixer_sound_enable_global_w(0);
 
 			sendToSlot(hFilePinSound, cmd_to_pinsound_studio);
 
@@ -467,11 +469,11 @@ void reinit_pinSound() {}
 /-----------------*/
 void snd_cmd_log(int boardNo, int cmd) {
 #ifdef VPINMAME_ALTSOUND
-  if (pmoptions.sound_mode == 1)
+  if (options.samplerate != 0 && pmoptions.sound_mode == 1)
     alt_sound_handle(boardNo, cmd);
 #endif
 #ifdef VPINMAME_PINSOUND
-  if (pmoptions.sound_mode == 2 || pmoptions.sound_mode == 3)
+  if (options.samplerate != 0 && (pmoptions.sound_mode == 2 || pmoptions.sound_mode == 3))
     pinsound_handle(boardNo, cmd);
 #endif
 

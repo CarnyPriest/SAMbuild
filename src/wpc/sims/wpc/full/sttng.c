@@ -578,6 +578,7 @@ DCS_SOUNDROM7x("ng_u2_s.l1",CRC(c3bd7bf5) SHA1(2476ff90232a52d667a407fac81ee4db0
 
 WPC_ROMSTART(sttng,l7,"trek_lx7.rom",0x80000,CRC(d439fdbb) SHA1(12d1c72cd6cc18db53e51ebb4c1e55ca9bcf9908)) ST_SND WPC_ROMEND
 WPC_ROMSTART(sttng,d7,"trek_dx7.rom",0x80000,CRC(e0894fab) SHA1(673695d9a0533cccdc842489e875223fcd8ccbd9)) ST_SND WPC_ROMEND
+WPC_ROMSTART(sttng,l7c,"trek_lx7c.rom",0x80000,CRC(da2b5082) SHA1(7f87d89e04f284e6050b7a3fbbf48e1db40cb804)) ST_SND WPC_ROMEND
 
 WPC_ROMSTART(sttng,x7,"trek_x7.rom",0x80000,CRC(4e71c9c7) SHA1(8a7ec42dfb4a6902ba745548b40e84de5305c295))
 DCS_SOUNDROM7x("ngs_u2.rom",CRC(e9fe68fe) SHA1(3d7631aa5ddd52f7c3c00cd091e212430faea249),
@@ -634,6 +635,7 @@ WPC_ROMSTART(sttng,l3,"trek_lx3.rom",0x80000,CRC(400e7887) SHA1(23d5e9796f0c3c66
 /---------------*/
 CORE_GAMEDEF(sttng,l7,"Star Trek: The Next Generation (LX-7)",1994,"Williams",wpc_mDCSS,0)
 CORE_CLONEDEF(sttng,d7,l7,"Star Trek: The Next Generation (DX-7 LED Ghost Fix)",1994,"Williams",wpc_mDCSS,0)
+CORE_CLONEDEF(sttng,l7c,l7,"Star Trek: The Next Generation (LX-7C Competition MOD)",2017,"Williams",wpc_mDCSS,0)
 CORE_CLONEDEF(sttng,x7,l7,"Star Trek: The Next Generation (LX-7 Special)",1994,"Williams",wpc_mDCSS,0)
 CORE_CLONEDEF(sttng,dx,l7,"Star Trek: The Next Generation (DX-7 Special LED Ghost Fix)",1994,"Williams",wpc_mDCSS,0)
 CORE_CLONEDEF(sttng,p4,l7,"Star Trek: The Next Generation (P-4)",1993,"Williams",wpc_mDCSS,0)
@@ -689,8 +691,7 @@ static core_tGameData sttngGameData = {
 /----------------*/
 /*-- patched memory read function to handle the 9th switch column --*/
 READ_HANDLER(sttng_swRowRead) {
-//  if ((wpc_data[WPC_EXTBOARD1] && 0x80) > 0) /* 9th column enabled */
-  if (wpc_data[WPC_EXTBOARD1] == 0x80) /* 9th column enabled */
+  if ((wpc_data[WPC_EXTBOARD1] & 0x80) > 0) /* 9th column enabled */
     return coreGlobals.swMatrix[CORE_CUSTSWCOL];
   else
     return wpc_r(WPC_SWROWREAD);
@@ -698,6 +699,7 @@ READ_HANDLER(sttng_swRowRead) {
 
 static void init_sttng(void) {
   core_gameData = &sttngGameData;
+  wpc_set_modsol_aux_board(1);
   install_mem_read_handler(WPC_CPUNO, WPC_SWROWREAD+WPC_BASE, WPC_SWROWREAD+WPC_BASE,
                          sttng_swRowRead);
 }

@@ -581,6 +581,20 @@ rgb_t debugger_palette[] = {
 
 #include "dbgfonts/m0813fnt.c"
 
+int stringcasecmp(const char *s1, const char *s2) {
+	while (*s1 != 0 && tolower(*s1) == tolower(*s2)) {
+		++s1;
+		++s2;
+	}
+
+	return
+		(*s2 == 0)
+		? (*s1 != 0)
+		: (*s1 == 0)
+		? -1
+		: (tolower(*s1) - tolower(*s2));
+}
+
 struct GfxElement *build_debugger_font(void)
 {
 	struct GfxElement *font;
@@ -1617,7 +1631,7 @@ static unsigned get_register_id( char **parg, int *size )
 	for( i = 0; i < DBGREGS.count; i++ )
 	{
 		l = strlen( DBGREGS.name[i] );
-		if( l > 0 && !_strnicmp( *parg, DBGREGS.name[i], l ) )
+		if( l > 0 && !stringcasecmp( *parg, DBGREGS.name[i] ) )
 		{
 			if( !isalnum( (*parg)[l] ) )
 			{
@@ -1760,7 +1774,11 @@ static void trace_output( void )
 		for( i = count = 0; i < MAX_LOOPS; i++ )
 			if( TRACE.last_pc[i] == pc )
 				count++;
-		if( count > 1 )
+#ifdef CONFIG_FOR_FREEWPC
+		if( count > 32)
+#else
+		if( count > 1)
+#endif
 		{
 			TRACE.loops++;
 		}
@@ -1775,6 +1793,9 @@ static void trace_output( void )
 			}
 			if( TRACE.regs[0] )
 			{
+#ifdef CONFIG_FOR_FREEWPC
+				dst += sprintf (dst, "#%u ", activecpu_gettotalcycles ());
+#endif
 				for( i = 0; i < MAX_REGS && TRACE.regs[i]; i++ )
 					dst += sprintf( dst, "%s ", activecpu_dump_reg(TRACE.regs[i]) );
 			}
@@ -1782,6 +1803,7 @@ static void trace_output( void )
 			activecpu_dasm( dst, pc );
 			strcat( dst, "\n" );
 			fprintf( TRACE.file, "%s", buffer );
+			fflush(TRACE.file);
 			memmove(
 				&TRACE.last_pc[0],
 				&TRACE.last_pc[1],

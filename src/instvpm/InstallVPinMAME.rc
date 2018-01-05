@@ -7,7 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include "winres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -72,7 +72,7 @@ BEGIN
             VALUE "FileDescription", "InstallVPinMAME"
             VALUE "FileVersion", "1.42"
             VALUE "InternalName", "InstallVPinMAME"
-            VALUE "LegalCopyright", "Copyright © 2001-2016 Steve Ellenoff, Tom Haukap, Martin Adrian, Gerrit Volkenborn"
+            VALUE "LegalCopyright", "Copyright © 2001-2018 Steve Ellenoff, Tom Haukap, Martin Adrian, Gerrit Volkenborn"
             VALUE "OriginalFilename", "InstallVPinMAME.exe"
             VALUE "ProductName", "Visual PinMAME Installer"
             VALUE "ProductVersion", "1.42"

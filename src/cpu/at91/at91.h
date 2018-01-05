@@ -90,5 +90,10 @@ extern void at91_init_jit(int min_addr, int max_addr);
 extern void at91_cs_callback_r(offs_t start, offs_t end, READ32_HANDLER((*callback)));
 extern void at91_cs_callback_w(offs_t start, offs_t end, WRITE32_HANDLER((*callback)));
 extern void at91_ready_irq_callback_w(WRITE32_HANDLER((*callback)));
+extern void at91_set_transmit_serial(void (*fp)(int usartno, data8_t *data, int size));
+extern void at91_set_serial_receive_ready(void(*fp)(int usartno));
+extern void at91_fire_irq(int irqline);
+
+void at91_usart_read(int usartno, int addr, data32_t *pData);
 
 #endif /* AT91_H */

@@ -7,10 +7,14 @@
 #include "snd_cmd.h"
 #include "mech.h"
 #include "core.h"
+#include "video.h"
 
+#ifdef PROC_SUPPORT
+ #include "p-roc/p-roc.h"
+#endif
 #ifdef VPINMAME
  #include <windows.h>
- #include "../pindmd/pindmd.h"
+ #include "dmddevice.h"
 
  UINT8  g_raw_dmdbuffer[DMD_MAXY*DMD_MAXX];
  UINT32 g_raw_colordmdbuffer[DMD_MAXY*DMD_MAXX];
@@ -36,14 +40,15 @@ void vp_setDIP(int bank, int value) { }
   #include "vpintf.h"
   extern int g_fPause;
   extern int g_fHandleKeyboard, g_fHandleMechanics;
+  extern char g_fShowWinDMD;
   extern char g_fShowPinDMD; /* pinDMD */
   extern int time_to_reset;  /* pinDMD */
   extern int g_fDumpFrames;
   extern void OnSolenoid(int nSolenoid, int IsActive);
   extern void OnStateChange(int nChange);
 #else /* VPINMAME */
-  #define g_fHandleKeyboard  (TRUE)
-  #define g_fHandleMechanics (0xff)
+  int g_fHandleKeyboard = 1;
+  int g_fHandleMechanics = 0xff;
   #define OnSolenoid(nSolenoid, IsActive)
   #define OnStateChange(nChange)
   #define vp_getSolMask64() ((UINT64)(-1))
@@ -551,7 +556,12 @@ static tSegRow segSize2S[1][12] = { /* 16 segment displays without commas but sp
 
 static tSegData segData[2][18] = {{
   {20,15,&segSize1C[0][0]},/* SEG16 */
-  {20,15,&segSize1C[3][0]},/* SEG16R*/
+#ifdef PROC_SUPPORT	//TODO/PROC: Will this work in normal PinMAME build too?
+  /* Use segSize2C for P-ROC's alpha_on_dmd functionality as it maps better to the DMD. */
+  {20,15,&segSize2C[0][0]},/* SEG16R */
+#else
+  {20,15,&segSize1C[3][0]},/* SEG16R */
+#endif
   {20,15,&segSize1C[2][0]},/* SEG10 */
   {20,15,&segSize1[2][0]}, /* SEG9 */
   {20,15,&segSize1C[1][0]},/* SEG8 */
@@ -570,7 +580,7 @@ static tSegData segData[2][18] = {{
   {20,15,&segSize1C[5][0]} /* SEG16D */
 },{
   {12,11,&segSize2C[0][0]},/* SEG16 */
-  {12,11,&segSize2C[3][0]},/* SEG16R*/
+  {12,11,&segSize2C[3][0]},/* SEG16R */
   {12,11,&segSize2C[2][0]},/* SEG10 */
   {12,11,&segSize2[2][0]}, /* SEG9 */
   {12,11,&segSize2C[1][0]},/* SEG8 */
@@ -671,17 +681,17 @@ static PALETTE_INIT(core) {
   tmpPalette[COL_SEGAAOFF2][2] = bStart * perc0 * 33 / 10000;
 
   /*-- generate 16 shades of the segment color for all antialiased segments --*/
-  diff = (float)(100 - perc0) / 15.0;
+  diff = (float)(100 - perc0) / 15.0f;
   for (ii = 0; ii < 16; ii++) {
-    tmpPalette[palSize-16+ii][0]  = rStart * (perc0 + diff * ii) / 100;
-    tmpPalette[palSize-16+ii][1]  = gStart * (perc0 + diff * ii) / 100;
-    tmpPalette[palSize-16+ii][2]  = bStart * (perc0 + diff * ii) / 100;
-    tmpPalette[palSize-32+ii][0]  = rStart * (perc0 + diff * ii) * 72 / 10000;
-    tmpPalette[palSize-32+ii][1]  = gStart * (perc0 + diff * ii) * 72 / 10000;
-    tmpPalette[palSize-32+ii][2]  = bStart * (perc0 + diff * ii) * 72 / 10000;
-    tmpPalette[palSize-48+ii][0]  = rStart * (perc0 + diff * ii) * 33 / 10000;
-    tmpPalette[palSize-48+ii][1]  = gStart * (perc0 + diff * ii) * 33 / 10000;
-    tmpPalette[palSize-48+ii][2]  = bStart * (perc0 + diff * ii) * 33 / 10000;
+    tmpPalette[palSize-16+ii][0] = (unsigned char)(rStart * (perc0 + diff * ii) / 100);
+    tmpPalette[palSize-16+ii][1] = (unsigned char)(gStart * (perc0 + diff * ii) / 100);
+    tmpPalette[palSize-16+ii][2] = (unsigned char)(bStart * (perc0 + diff * ii) / 100);
+    tmpPalette[palSize-32+ii][0] = (unsigned char)(rStart * (perc0 + diff * ii) * 72 / 10000);
+    tmpPalette[palSize-32+ii][1] = (unsigned char)(gStart * (perc0 + diff * ii) * 72 / 10000);
+    tmpPalette[palSize-32+ii][2] = (unsigned char)(bStart * (perc0 + diff * ii) * 72 / 10000);
+    tmpPalette[palSize-48+ii][0] = (unsigned char)(rStart * (perc0 + diff * ii) * 33 / 10000);
+    tmpPalette[palSize-48+ii][1] = (unsigned char)(gStart * (perc0 + diff * ii) * 33 / 10000);
+    tmpPalette[palSize-48+ii][2] = (unsigned char)(bStart * (perc0 + diff * ii) * 33 / 10000);
   }
 
 //for (int i = 0; i < palSize; i++) printf("Col %d: %02x %02x %02x\n", i, tmpPalette[i][0],tmpPalette[i][1],tmpPalette[i][2]);
@@ -725,21 +735,24 @@ static PALETTE_INIT(core) {
 /    Generic DMD display handler
 /------------------------------------*/
 void video_update_core_dmd(struct mame_bitmap *bitmap, const struct rectangle *cliprect, tDMDDot dotCol, const struct core_dispLayout *layout) {
+
   UINT32 *dmdColor = &CORE_COLOR(COL_DMDOFF);
   UINT32 *aaColor  = &CORE_COLOR(COL_DMDAA);
   BMTYPE **lines = ((BMTYPE **)bitmap->line) + (layout->top*locals.displaySize);
   int noaa = !pmoptions.dmd_antialias || (layout->type & CORE_DMDNOAA);
   int ii, jj;
 
+  // prepare all brightness & color/palette tables for mappings from internal DMD representation:
+  const int shade_16_enabled = ((core_gameData->gen == GEN_SAM) ||
+	  // extended handling also for some GTS3 games (SMB, SMBMW and CBW):
+	  (_strnicmp(Machine->gamedrv->name, "smb", 3) == 0) || (_strnicmp(Machine->gamedrv->name, "cueball", 7) == 0) ||
+	  (core_gameData->gen == GEN_ALVG_DMD2));
+
 #ifdef VPINMAME
   static UINT8 buffer1[DMD_MAXY*DMD_MAXX];
   static UINT8 buffer2[DMD_MAXY*DMD_MAXX];
   static UINT8 *currbuffer = buffer1;
   static UINT8 *oldbuffer = NULL;
-
-  UINT8 dumpframe = 1;
-
-  // prepare all brightness & color/palette tables for mappings from internal DMD representation:
 
   const UINT8 perc0 = (pmoptions.dmd_perc0  > 0) ? pmoptions.dmd_perc0  : 20;
   const UINT8 perc1 = (pmoptions.dmd_perc33 > 0) ? pmoptions.dmd_perc33 : 33;
@@ -748,7 +761,7 @@ void video_update_core_dmd(struct mame_bitmap *bitmap, const struct rectangle *c
 
   static const int levelgts3[16] = {0/*5*/, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100}; // GTS3 and AlvinG brightness seems okay
   static const int levelsam[16]  = {0/*5*/, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100}; // SAM brightness seems okay
-  
+
   const int * const level = (core_gameData->gen == GEN_SAM) ? levelsam : levelgts3;
 
   const UINT8 raw_4[4]   = {perc0,perc1,perc2,perc3};
@@ -823,11 +836,14 @@ void video_update_core_dmd(struct mame_bitmap *bitmap, const struct rectangle *c
 		const int offs = (ii-1)*layout->length + jj;
 		currbuffer[offs] = col;
 		if(layout->length >= 128) { // Capcom hack
-			g_raw_dmdbuffer[offs] = (col >= 63) ? raw_16[col-63] : raw_4[col];
-			g_raw_colordmdbuffer[offs] = (col >= 63) ? palette32_16[col-63] : palette32_4[col];
+			g_raw_dmdbuffer[offs] = shade_16_enabled ? raw_16[col] : raw_4[col];
+			g_raw_colordmdbuffer[offs] = shade_16_enabled ? palette32_16[col] : palette32_4[col];
 		}
 #endif
-        *line++ = dmdColor[col];
+		if (shade_16_enabled)
+			*line++ = dmdColor[col+63];
+		else
+			*line++ = dmdColor[col];
         if (locals.displaySize > 1 && jj < layout->length-1)
           *line++ = noaa ? 0 : aaColor[col + dotCol[ii][jj+1]];
       }
@@ -849,70 +865,64 @@ void video_update_core_dmd(struct mame_bitmap *bitmap, const struct rectangle *c
                  (layout->left+layout->length)*locals.displaySize,(layout->top+layout->start)*locals.displaySize);
 
 #ifdef VPINMAME
-  if(oldbuffer != NULL) {
-	  dumpframe = 0;
-	  for(jj = 0; jj < layout->start; jj++)
-		  for(ii = 0; ii < layout->length; ii++)
+
+  if ((layout->length == 128) || (layout->length == 192) || (layout->length == 256)) { // filter 16x8 output from Flipper Football
+
+	  //external dmd
+	  if (g_fShowPinDMD)
+		  renderDMDFrame(core_gameData->gen, layout->length, layout->start, currbuffer, g_fDumpFrames, Machine->gamedrv->name);
+
+	  if (oldbuffer != NULL) {	  // detect if same frame again
+		  if (memcmp(oldbuffer, currbuffer, (layout->length * layout->start)))
 		  {
-			  const int offs = jj*layout->length + ii;
-			  if ((currbuffer[offs] != oldbuffer[offs]) &&
-				  ((currbuffer[offs] < 4) || (core_gameData->gen == GEN_SAM) || (core_gameData->gen == GEN_GTS3) || (core_gameData->gen == GEN_ALVG_DMD2))) {
-				  dumpframe = 1;
-				  break;
+			  g_needs_DMD_update = 1;
+
+			  if ((g_fShowPinDMD && g_fShowWinDMD) || g_fDumpFrames)	// output dump frame to .txt
+			  {
+				  FILE *f;
+				  char *ptr;
+				  char* DumpFilename = (char*)malloc(MAX_PATH);
+
+#ifndef _WIN64
+				  const HINSTANCE hInst = GetModuleHandle("VPinMAME.dll");
+#else
+				  const HINSTANCE hInst = GetModuleHandle("VPinMAME64.dll");
+#endif
+				  GetModuleFileName(hInst, DumpFilename, MAX_PATH);
+				  ptr = strrchr(DumpFilename, '\\');
+				  strcpy_s(ptr + 1, 11, "DmdDump\\");
+				  strcat_s(DumpFilename, MAX_PATH, Machine->gamedrv->name);
+				  strcat_s(DumpFilename, MAX_PATH, ".txt");
+
+				  f = fopen(DumpFilename, "a");
+				  free(DumpFilename);
+				  if (f) {
+					  const DWORD tick = GetTickCount();
+					  fprintf(f, "0x%08x\n", tick);
+					  for (jj = 0; jj < layout->start; jj++) {
+						  for (ii = 0; ii < layout->length; ii++)
+						  {
+							  const UINT8 col = currbuffer[jj*layout->length + ii];
+							  fprintf(f, "%01x", col);
+						  }
+						  fprintf(f, "\n");
+					  }
+					  fprintf(f, "\n");
+					  fclose(f);
+				  }
 			  }
 		  }
-  }
+	  }
 
-  if(dumpframe)
-	  g_needs_DMD_update = 1;
-
-  if(g_fShowPinDMD || g_fDumpFrames) {
-    if(dumpframe) {
-	    //usb dmd
-	    if((layout->length == 128) || (layout->length == 192) || (layout->length == 256))
-		{
-	      if(g_fShowPinDMD)
-		    renderDMDFrame(core_gameData->gen, layout->length, layout->start, currbuffer, g_fDumpFrames);
-		  if(g_fDumpFrames)
-		  {
-			static const char* const dump_ext = "_dump.txt";
-			const unsigned int DumpFilenamel = strlen(Machine->gamedrv->name) + strlen(dump_ext) + 1;
-			char* const DumpFilename = (char*)malloc(DumpFilenamel);
-			FILE *f;
-
-			strcpy_s(DumpFilename, DumpFilenamel, Machine->gamedrv->name);
-			strcat_s(DumpFilename, DumpFilenamel, dump_ext);
-
-			f = fopen(DumpFilename,"a");
-			free(DumpFilename);
-			if(f) {
-				const DWORD tick = GetTickCount();
-				fprintf(f,"0x%08x\n", tick);
-				for(jj = 0; jj < layout->start; jj++) {
-					for(ii = 0; ii < layout->length; ii++)
-					{
-						const UINT8 col = currbuffer[jj*layout->length + ii];
-						fprintf(f,"%01x",(col >= 63) ? col-63 : col);
-					}
-					fprintf(f,"\n");
-				}
-				fprintf(f,"\n");
-				fclose(f);
-			}
-		  }
-		}
-	}
-
-	if(g_fShowPinDMD)
-	    frameClock();
-  }
-
-  if (currbuffer == buffer1) {
-	  currbuffer = buffer2;
-	  oldbuffer = buffer1;
-  } else {
-	  currbuffer = buffer1;
-	  oldbuffer = buffer2;
+	  // swap buffers
+	  if (currbuffer == buffer1) {
+		  currbuffer = buffer2;
+		  oldbuffer = buffer1;
+	  }
+	  else {
+		  currbuffer = buffer1;
+		  oldbuffer = buffer2;
+	  }
   }
 #endif
 }
@@ -929,8 +939,8 @@ INLINE int inRect(const struct rectangle *r, int left, int top, int width, int h
 /  Generic segment display handler
 /------------------------------------*/
 static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cliprect,
-                          const struct core_dispLayout *layout, int *pos) {
-
+                          const struct core_dispLayout *layout, int *pos)
+{
 #ifdef VPINMAME
   static UINT16 seg_data[50];
   static UINT8 disp_lens[50];
@@ -958,7 +968,13 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
       int step     = (layout->type & CORE_SEGREV) ? -1 : 1;
 
 #ifdef VPINMAME
-  	  disp_lens[total_disp++] = ii;
+      disp_lens[total_disp++] = ii;
+#endif
+
+#ifdef PROC_SUPPORT
+      static UINT16 proc_top[16];
+      static UINT16 proc_bottom[16];
+      int char_width = locals.segData[layout->type & 0x0f].cols+1;
 #endif
 
       if (step < 0) { seg += ii-1; lastSeg += ii-1; }
@@ -967,8 +983,8 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
         int tmpType = layout->type & CORE_SEGMASK;
 
 #ifdef VPINMAME
-		//SJE: Force an update of the segments ALWAYS in VPM - corrects Pause Display Bugs
-		if(1) {
+        //SJE: Force an update of the segments ALWAYS in VPM - corrects Pause Display Bugs
+        if(1) {
 #else
         if ((tmpSeg != *lastSeg) ||
             inRect(cliprect,left,top,locals.segData[layout->type & CORE_SEGALL].cols,locals.segData[layout->type & CORE_SEGALL].rows)) {
@@ -976,6 +992,7 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
           tmpSeg >>= (layout->type & CORE_SEGHIBIT) ? 8 : 0;
 
           switch (tmpType) {
+
           case CORE_SEG87: case CORE_SEG87F:
             if ((ii > 0) && (ii % 3 == 0)) { // Handle Comma
               if ((tmpType == CORE_SEG87F) && tmpSeg) tmpSeg |= 0x80;
@@ -995,18 +1012,45 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
             tmpSeg |= (tmpSeg & 0x100)<<1;
             break;
           }
-
 #ifdef VPINMAME
-  		  seg_data[idx++] = tmpSeg;
+		  seg_data[idx++] = tmpSeg;
 #endif
-		  if (!pmoptions.dmd_only || !(layout->fptr || layout->lptr))
+		  if (!pmoptions.dmd_only || !(layout->fptr || layout->lptr)) {
+
             drawChar(bitmap,  top, left, tmpSeg, tmpType, coreGlobals.segDim[*pos] > 15 ? 15 : coreGlobals.segDim[*pos]);
+#ifdef PROC_SUPPORT
+					if (coreGlobals.p_rocEn) {
+                                                if ((core_gameData->gen & (GEN_WPCALPHA_1 | GEN_WPCALPHA_2 | GEN_ALLS11)) &&
+						    (!pmoptions.alpha_on_dmd)) {
+                                                    switch (top) {
+                                                        case 0: proc_top[left/char_width + (doubleAlpha == 0)] = tmpSeg; break;
+                                                        case 21:  // This is the ball/credit display if fitted, so work out which position
+                                                            if (left == 12) proc_bottom[0] = tmpSeg;
+                                                            else if (left == 24) proc_bottom[8] = tmpSeg;
+                                                            else if (left == 48) proc_top[0] = tmpSeg;
+                                                            else proc_top[8] = tmpSeg;
+                                                        break;
+                                                        default: proc_bottom[left/char_width + (doubleAlpha == 0)] = tmpSeg; break;
+							} 
+						}
+					}
+#endif
+          }
           coreGlobals.drawSeg[*pos] = tmpSeg;
         }
 		(*pos)++;
         left += locals.segData[layout->type & CORE_SEGALL].cols+1;
         seg += step; lastSeg += step;
       }
+#ifdef PROC_SUPPORT
+        		if (coreGlobals.p_rocEn) {
+				if ((core_gameData->gen & (GEN_WPCALPHA_1 | GEN_WPCALPHA_2 | GEN_ALLS11)) &&
+				    (!pmoptions.alpha_on_dmd)) {
+					procUpdateAlphaDisplay(proc_top, proc_bottom);
+
+				}
+			}
+#endif 
     }
   }
 
@@ -1019,8 +1063,26 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
 
 VIDEO_UPDATE(core_gen) {
   int count = 0;
+#ifdef PROC_SUPPORT
+	int alpha = core_gameData->gen & GEN_WPCALPHA_1 || core_gameData->gen & GEN_WPCALPHA_2 || core_gameData->gen & GEN_ALLS11;
+	if (coreGlobals.p_rocEn) {
+		if (pmoptions.alpha_on_dmd && alpha) {
+			procClearDMD();
+		}
+	}
+	// If we don't want the DMD displayed on the screen, skip this code
+	if (pmoptions.virtual_dmd) {
+#endif
   updateDisplay(bitmap, cliprect, core_gameData->lcdLayout, &count);
   memcpy(locals.lastSeg, coreGlobals.segments, sizeof(locals.lastSeg));
+#ifdef PROC_SUPPORT
+	}
+	if (coreGlobals.p_rocEn) {
+		if (pmoptions.alpha_on_dmd && alpha) {
+			procUpdateDMD();
+		}
+	}
+#endif
   video_update_core_status(bitmap,cliprect);
 }
 
@@ -1036,8 +1098,10 @@ void core_updateSw(int flipEn) {
   int ii;
 
   if (g_fHandleKeyboard) {
+
     for (ii = 0; ii < CORE_COREINPORT+(coreData->coreDips+31)/16; ii++)
       inports[ii] = readinputport(ii);
+
 
     /*-- buttons --*/
     swFlip = 0;
@@ -1059,9 +1123,18 @@ void core_updateSw(int flipEn) {
   else
     swFlip = (coreGlobals.swMatrix[flipSwCol] ^ coreGlobals.invSw[flipSwCol]) & (CORE_SWULFLIPBUTBIT|CORE_SWURFLIPBUTBIT|CORE_SWLLFLIPBUTBIT|CORE_SWLRFLIPBUTBIT);
 
-  /*-- set switches in matrix for non-fliptronic games --*/
-  if (FLIP_SWL(flip)) core_setSw(FLIP_SWL(flip), swFlip & CORE_SWLLFLIPBUTBIT);
-  if (FLIP_SWR(flip)) core_setSw(FLIP_SWR(flip), swFlip & CORE_SWLRFLIPBUTBIT);
+#ifdef PROC_SUPPORT
+  /*-- Only handle flipper switches if we're not in a real game, otherwise they --*/
+  /*-- will get physically activated anyway */
+  if (!coreGlobals.p_rocEn) {
+#endif
+
+    /*-- set switches in matrix for non-fliptronic games --*/
+    if (FLIP_SWL(flip)) core_setSw(FLIP_SWL(flip), swFlip & CORE_SWLLFLIPBUTBIT);
+    if (FLIP_SWR(flip)) core_setSw(FLIP_SWR(flip), swFlip & CORE_SWLRFLIPBUTBIT);
+#ifdef PROC_SUPPORT
+  }
+#endif
 
   /*-- fake solenoids if not CPU controlled --*/
   if ((flip & FLIP_SOL(FLIP_L)) == 0) {
@@ -1117,6 +1190,7 @@ void core_updateSw(int flipEn) {
       for (ii = 1; ii < CORE_FIRSTCUSTSOL+core_gameData->hw.custSol; ii++) {
         if (chgSol & 0x01) {
           /*-- solenoid has changed state --*/
+
           OnSolenoid(ii, allSol & 0x01);
           /*-- log solenoid number on the display (except flippers) --*/
           if ((!pmoptions.dmd_only && (allSol & 0x01)) &&
@@ -1142,6 +1216,7 @@ void core_updateSw(int flipEn) {
   if (g_fHandleKeyboard &&
       (!coreGlobals.simAvail || inports[CORE_SIMINPORT] & SIM_SWITCHKEY)) {
     /*-- simulator keys disabled, use row+column keys --*/
+
     static int lastRow = 0, lastCol = 0;
     int row = 0, col = 0;
 #ifdef MAME_DEBUG
@@ -1402,8 +1477,18 @@ int core_getSwCol(int colEn) {
 /-----------------------*/
 void core_setSw(int swNo, int value) {
   if (coreData->sw2m) swNo = coreData->sw2m(swNo); else swNo = (swNo/10)*8+(swNo%10-1);
+  //fprintf(stderr,"\nPinmame switch %d",swNo);
   coreGlobals.swMatrix[swNo/8] &= ~(1<<(swNo%8)); /* clear the bit first */
+#ifdef PROC_SUPPORT
+	if (coreGlobals.p_rocEn) {
+		coreGlobals.swMatrix[swNo/8] |=  ((value ? 0xff : 0) ^ 0) & (1<<(swNo%8));
+	} else {
+#endif
+
   coreGlobals.swMatrix[swNo/8] |=  ((value ? 0xff : 0) ^ coreGlobals.invSw[swNo/8]) & (1<<(swNo%8));
+#ifdef PROC_SUPPORT
+	}
+#endif
 }
 
 /*-------------------------
@@ -1547,9 +1632,35 @@ static void drawChar(struct mame_bitmap *bitmap, int row, int col, UINT32 bits, 
                     { COL_SEGAAOFF2, palSize-1-dimming, palSize-17-dimming, palSize-33-dimming }};
 
   for (kk = 1; bits; kk++, bits >>= 1) {
-    if (bits & 0x01)
+    if (bits & 0x01) {
+#ifdef PROC_SUPPORT
+			if (coreGlobals.p_rocEn) {
+				if (pmoptions.alpha_on_dmd) {
+                                    	/* Draw alphanumeric segments on the DMD */
+                                    switch (row) {
+                                        case 0:
+                                            procDrawSegment(col/2, 3, kk-1);
+                                            break;
+                                        case 21:
+                                            // This is the ball/credit display on older Sys11
+                                            // Push through an 11 as the row
+                                            // number, the display routine will
+                                            // take care of repositioning
+                                            procDrawSegment(col/2,11,kk-1);
+                                            break;
+                                        case 42:
+                                            procDrawSegment(col/2, 19, kk-1);
+                                                break;
+                                        default:
+                                            break;
+
+					}
+				}
+			}
+#endif
       for (ll = 0; ll < s->rows; ll++)
         pixel[ll] |= s->segs[ll][kk];
+    }
   }
   for (kk = 0; kk < s->rows; kk++) {
     BMTYPE *line = &((BMTYPE **)(bitmap->line))[row+kk][col + s->cols];
@@ -1566,6 +1677,10 @@ static void drawChar(struct mame_bitmap *bitmap, int row, int col, UINT32 bits, 
 /  Initialize PinMAME
 /-----------------------*/
 static MACHINE_INIT(core) {
+#ifdef PROC_SUPPORT
+	char * yaml_filename = pmoptions.p_roc;
+#endif
+
   if (!coreData) { // first time
     /*-- init variables --*/
     memset(&coreGlobals, 0, sizeof(coreGlobals));
@@ -1578,13 +1693,44 @@ static MACHINE_INIT(core) {
       for (ii = 0; ii < 5; ii++) {
         if (coreData->timers[ii].callback) {
           locals.timers[ii] = timer_alloc(coreData->timers[ii].callback);
-          timer_adjust(locals.timers[ii], TIME_IN_HZ(coreData->timers[ii].rate), 0, TIME_IN_HZ(coreData->timers[ii].rate));
+          if (coreData->timers[ii].rate > 0) {
+            timer_adjust(locals.timers[ii], TIME_IN_HZ(coreData->timers[ii].rate), 0, TIME_IN_HZ(coreData->timers[ii].rate));
+          } else {
+            timer_adjust(locals.timers[ii], TIME_IN_USEC(-coreData->timers[ii].rate), 0, TIME_IN_USEC(-coreData->timers[ii].rate));
+          }
         }
       }
     }
     /*-- init switch matrix --*/
     memcpy(&coreGlobals.invSw, core_gameData->wpc.invSw, sizeof(core_gameData->wpc.invSw));
     memcpy(coreGlobals.swMatrix, coreGlobals.invSw, sizeof(coreGlobals.invSw));
+
+#ifdef PROC_SUPPORT
+		/*-- P-ROC operation requires a YAML.  Disable P-ROC operation
+		 * if no YAML is specified. --*/
+
+		coreGlobals.p_rocEn = strcmp(yaml_filename, "None") != 0;
+		if (coreGlobals.p_rocEn) {
+			/*-- Finish P-ROC initialization now that the sim is active. --*/
+			coreGlobals.p_rocEn = procIsActive();
+			/*-- If the initialization fails, disable the p-roc support --*/
+			if (!coreGlobals.p_rocEn) {
+				fprintf(stderr, "P-ROC initialization failed.  Disabling P-ROC support.\n");
+				// TODO: deInit P-ROC here?
+			}
+			else {
+                             // read s11CreditDisplay, doubleAlpha and s11BallDisplay settings
+                             procBallCreditDisplay();
+
+                             // Added option to enable keyboard for direct switches to YAML
+                             g_fHandleKeyboard = procKeyboardWanted();
+
+                             // We don't want the PC to make the noises of pop bumpers etc
+                             g_fHandleMechanics= 0;
+                       }
+		}
+#endif
+
     /*-- masks bit used by flippers --*/
     {
       const int flip = core_gameData->hw.flippers;
@@ -1600,7 +1746,7 @@ static MACHINE_INIT(core) {
     locals.displaySize = pmoptions.dmd_compact ? 1 : 2;
     {
       UINT32 size = core_initDisplaySize(core_gameData->lcdLayout) >> 16;
-      if ((size > Machine->drv->screen_width) && (locals.displaySize > 1)) {
+      if (((int)size > Machine->drv->screen_width) && (locals.displaySize > 1)) {
   	/* force small display */
   	locals.displaySize = 1;
   	core_initDisplaySize(core_gameData->lcdLayout);
@@ -1614,7 +1760,6 @@ static MACHINE_INIT(core) {
     if (g_fHandleKeyboard && core_gameData->simData) {
       int inports[CORE_MAXPORTS];
       int ii;
-
       for (ii = 0; ii < CORE_COREINPORT+(coreData->coreDips+31)/16; ii++)
         inports[ii] = readinputport(ii);
 
@@ -1637,7 +1782,7 @@ static MACHINE_INIT(core) {
 #ifdef VPINMAME
   // DMD USB Init
   if(g_fShowPinDMD && !time_to_reset)
-	pindmdInit(pmoptions);
+	pindmdInit(Machine->gamedrv->name, core_gameData->gen, &pmoptions);
 #endif
 }
 
@@ -1658,6 +1803,11 @@ static MACHINE_STOP(core) {
       timer_remove(locals.timers[ii]);
   }
   memset(locals.timers, 0, sizeof(locals.timers));
+#ifdef PROC_SUPPORT
+	if (coreGlobals.p_rocEn) {
+		procDeinitialize();
+	}
+#endif
   coreData = NULL;
 }
 
@@ -1665,7 +1815,7 @@ static void core_findSize(const struct core_dispLayout *layout, int *maxX, int *
   if (layout) {
     for (; layout->length; layout += 1) {
       int tmpX = 0, tmpY = 0, type = layout->type & CORE_SEGMASK;
-#ifndef MAME_DEBUG
+#if defined(VPINMAME) && !defined(MAME_DEBUG)
       if (layout->type & CORE_NODISP) continue;
 #endif
       if (type == CORE_IMPORT)
@@ -1748,6 +1898,85 @@ void core_nvram(void *file, int write, void *mem, size_t length, UINT8 init) {
       vp_setDIP(5, readinputport(CORE_COREINPORT+3)>>8);
     }
   }
+}
+
+static const unsigned char core_bits_set_table256[256] =
+{
+#   define B2(n) n,     n+1,     n+1,     n+2
+#   define B4(n) B2(n), B2(n+1), B2(n+1), B2(n+2)
+#   define B6(n) B4(n), B4(n+1), B4(n+1), B4(n+2)
+    B6(0), B6(1), B6(1), B6(2)
+};
+
+UINT8 core_calc_modulated_light(UINT32 bits, UINT32 bit_count, UINT8 *prev_level)
+{
+	//UINT8 outputlevel;
+	UINT32 targetlevel;
+	UINT32 mask = (1 << bit_count) - 1;
+
+	bits &= mask;
+	targetlevel = ((UINT32)core_bits_set_table256[bits & 0xff] +
+		core_bits_set_table256[(bits >> 8) & 0xff] +
+		core_bits_set_table256[(bits >> 16) & 0xff] +
+		core_bits_set_table256[(bits >> 24) & 0xff]) * 255 / bit_count;
+	// Apply some smoothing with the previous level
+	// 12/8 - Commenting out for now, causes AFM monsters to stop shaking intermittently.
+	// outputlevel = (UINT8)((targetlevel + *prev_level) / 2);
+	// return outputlevel;
+	*prev_level = (UINT8)targetlevel;
+	return targetlevel;
+}
+
+void core_sound_throttle_adj(int sIn, int *sOut, int buffersize, int samplerate)
+{
+	int delta;
+
+	if (sIn >= *sOut)
+		delta = sIn - *sOut;
+	else
+		delta = sIn + buffersize - *sOut;
+
+#ifdef DEBUG_SOUND
+	{
+		char tmp[161];
+		LARGE_INTEGER performance_count;
+		QueryPerformanceCounter(&performance_count);
+
+		sprintf(tmp, "snd clk: %llu in: %d out: %d size: %d delta %d", performance_count.QuadPart, sIn, *sOut, buffersize, delta);
+		DebugSound(tmp);
+	}
+#endif
+
+	if (delta > samplerate * 50 / 1000)
+	{
+		// Over 50ms delta and throttle didn't catch it fast enough.   Drop some samples, but not so
+		// much that we have to restart from a zero buffer.
+		*sOut = sIn - (samplerate * 20 / 1000);
+		if (*sOut < 0)
+			*sOut += buffersize;
+
+		SetThrottleAdj(0);
+	}
+	else if (delta > samplerate * 35 / 1000)
+	{
+		SetThrottleAdj(-4);
+	}
+	else if (delta > samplerate * 25 / 1000)
+	{
+		SetThrottleAdj(-1);
+	}
+	else if (delta < samplerate * 10 / 1000)
+	{
+		SetThrottleAdj(10);
+	}
+	else if (delta < samplerate * 20 / 1000)
+	{
+		SetThrottleAdj(2);
+	}
+	else
+	{
+		SetThrottleAdj(0);
+	}
 }
 
 /*----------------------------------------------

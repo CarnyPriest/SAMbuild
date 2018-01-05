@@ -1983,6 +1983,14 @@
 						>
 					</File>
 					<File
+						RelativePath=".\src\sound\262intf.c"
+						>
+					</File>
+					<File
+						RelativePath=".\src\sound\262intf.h"
+						>
+					</File>
+					<File
 						RelativePath=".\src\sound\3812intf.c"
 						>
 					</File>
@@ -2303,6 +2311,14 @@
 						>
 					</File>
 					<File
+						RelativePath=".\src\sound\mea8000.c"
+						>
+					</File>
+					<File
+						RelativePath=".\src\sound\mea8000.h"
+						>
+					</File>
+					<File
 						RelativePath=".\src\sound\mixer.c"
 						>
 					</File>
@@ -2496,6 +2512,14 @@
 					</File>
 					<File
 						RelativePath=".\src\sound\ymdeltat.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\sound\ymf262.c"
+						>
+					</File>
+					<File
+						RelativePath=".\src\sound\ymf262.h"
 						>
 					</File>
 				</Filter>
@@ -3480,7 +3504,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\wpc\barni.c"
+					>
+				</File>
+				<File
 					RelativePath=".\src\wpc\bingo.c"
+					>
+				</File>
+				<File
+					RelativePath=".\src\wpc\boomerang.c"
 					>
 				</File>
 				<File
@@ -3585,6 +3617,14 @@
 				</File>
 				<File
 					RelativePath=".\src\wpc\desound.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\wpc\dmddevice.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\wpc\dmddevice.h"
 					>
 				</File>
 				<File
@@ -3704,7 +3744,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\wpc\inderp.c"
+					>
+				</File>
+				<File
 					RelativePath=".\src\wpc\jeutel.c"
+					>
+				</File>
+				<File
+					RelativePath=".\src\wpc\joctronic.c"
 					>
 				</File>
 				<File
@@ -3725,6 +3773,10 @@
 				</File>
 				<File
 					RelativePath=".\src\wpc\kissproto.c"
+					>
+				</File>
+				<File
+					RelativePath=".\src\wpc\lancelot.c"
 					>
 				</File>
 				<File
@@ -3892,6 +3944,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\wpc\slalom.c"
+					>
+				</File>
+				<File
 					RelativePath=".\src\wpc\sleic.c"
 					>
 				</File>
@@ -3933,6 +3989,14 @@
 				</File>
 				<File
 					RelativePath=".\src\wpc\spinbgames.c"
+					>
+				</File>
+				<File
+					RelativePath=".\src\wpc\spiritof76.c"
+					>
+				</File>
+				<File
+					RelativePath=".\src\wpc\stargame.c"
 					>
 				</File>
 				<File

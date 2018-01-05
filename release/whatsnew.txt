@@ -1,10 +1,376 @@
-Version 2.7 (X X, 2016) - ""
+Version 3.1 (X X, 2018) - ""
+------------------------------------------------------------------------------
+*** CORE/CPU ***
+Fix wrong gain/volume of voices/sound effects in Sound Mode 1 (e.g. builtin alternate sound file support)
+
+
+Version 3.0 (December 24th, 2017) - "11 years in the making"
+------------------------------------------------------------------------------
+*** GENERAL ***
+Extend and update some parts of the .txt documentation files
+
+*** CORE/CPU ***
+Add support for the Stern S.A.M. platform (e.g. Stern releases from 2006-2014), special thanks for improvements to the community, notably to Arngrim, CarnyPriest and especially DJRobX
+Correct SP0256 speech for IDSA games (needs additional sp0256-al2.bin file to work (for Basketball and V-1, only the latter features speech though))
+Fix reset / NMI handling for IDSA V-1
+Fix Stern SB300 noise generator regression (and slightly improve sound over older implementation, but still not accurate)
+Fix Rescue 911 (and maybe more: SFII, WCS, Shaq, mZOIS?) DMD brightness level mapping regression
+Improve Punky Willy sound emulation
+Fix sound for Taito Sure Shot (sounds awful, but like the real thing :)) and Mr. Black (Z-80 version still misses sound rom dumps though) (NMI line needs to be pulsed for these games)
+Make speech work for Taito Vegas and Lady Luck - working around a strange PIA issue
+Fix COP420 emulation, sound works now on Zira
+Add emulation pause support for alternate sound
+
+*** ROM SUPPORT *** Thanks to ipdb.org, Effect, Juan, Jubex77, JMan, Gore Daimon, Soren, barakandl, inkochnito
+New:
+MAC: MAC Jungle
+Stern: S.A.M. System Flash Boot 1.02,1.06,2.10,2.3,3.1
+       World Poker Tour 1.03(English),1.05(English),1.06(English,French,German,Italian,Spanish),1.08(English,French,German,Italian,Spanish),1.09(English,French,German,Italian,Spanish),1.09-2(French),
+                        1.11(English,[English,French],[English,Italian],[English,Spanish],French,German,[German,French],Italian,Spanish)
+                        1.12(English,[English,French],[English,Italian],[English,Spanish],French,German,[German,French],Italian,Spanish),1.129(French)
+                        14.0(English,[English,French],[English,Italian],[English,Spanish],French,German,[German,French],Italian,Spanish)
+       Simpsons Kooky Carnival (Redemption) 0.90 New Jersey,1.03,1.05,2.0
+       Pirates of the Caribbean 1.08([English,Spanish]),1.09([English,French],[English,Italian],[English,Spanish],[German,French],
+                                1.10([English,French],[English,Italian],[German,French]),1.11([English,Spanish]),
+                                1.13([English,French],[English,Italian],[English,Spanish],[German,French]),
+                                1.15([English,French],[English,Italian],[English,Spanish],[German,French]),
+                                3.00([English,French],[English,Italian],[English,Spanish],[German,French]),
+                                4.00([English,French],[English,Italian],[English,Spanish],[German,French]),
+                                6.0 ([English,French],[English,Italian],[English,Spanish],[German,French])
+       Family Guy 2.00(English),3.00([English,Italian]),4.00(English,[English,German],7.00([English,French],[English,Spanish]),8.00([English,Spanish])
+                                10.00([English,French],[English,German],[English,Italian],[English,Spanish]),
+                                11.0 ([English,French],[English,German],[English,Italian],[English,Spanish]),
+                                12.0 ([English,French],[English,German],[English,Italian],[English,Spanish])
+       Spider-Man 1.30([English,French],[English,Italian],[English,Spanish],[German,French]),1.32,1.4(+[English,French],[English,Italian],[English,Spanish],[German,French]),
+                  1.42 BETA,1.6(+[English,French],[English,Italian],[English,Spanish],[German,French]),1.7(+[English,French],[English,Italian],[English,Spanish],[German,French]),
+                  1.9(+[English,French],[English,Italian],[English,Spanish],[German,French]),1.92(+[English,French],[English,Italian],[English,Spanish],[German,French]),
+                  2.0,2.1(+[English,French],[English,Italian],[English,Spanish],[German,French]),2.2,2.3,2.4,2.5,2.6,2.61,Vault Edition 1.00,Vault Edition 1.01
+       Wheel of Fortune 1.0,2.0(+French,German,Italian),3.0(+French,German,Italian,Spanish),4.0(+French,German,Italian),4.01(Spanish),5.0(+French,German,Italian,Spanish)
+       Shrek 1.3,1.41
+       Indiana Jones 1.13(+French,German,Italian,Spanish),1.14(+French,German,Italian,Spanish),1.16(+French,German,Italian,Spanish),2.1(+French)
+       Batman - The Dark Knight 1.5,1.6,2.0,2.1,2.2,2.4,2.9,2.94,3.00 Home Edition/Costco
+       CSI: Crime Scene Investigation 1.02,1.03,1.04,2.0,2.1,2.3,2.4
+       24 1.3,1.4,1.44,1.5
+       NBA 5.0,6.0,7.0,8.01,8.02
+       Big Buck Hunter Pro 1.4,1.5,1.6,1.7
+       Iron Man 1.0,1.1,1.2,1.4,1.6,1.81,1.82,1.83(+Vault Edition)
+       Avatar 1.01LE,1.06,1.1,1.2LE,2.0 New CPU
+       Rolling Stones, The 1.0LE,1.03,1.05,1.1,1.1LE
+       TRON: Legacy 1.0LE,1.10,1.1LE,1.2,1.3LE,1.4,1.4LE,1.5,1.6,1.7,1.74,1.74LE,1.7402 New CPU
+       Transformers 0.88LE,1.0LE,1.2,1.2LE,1.3LE,1.4,1.4LE,1.5,1.5LE,1.6,1.7,1.8,1.8LE
+       AC/DC 1.21,1.25,1.3,1.4,1.5,1.5LE,1.52,1.52LE,1.6,1.6LE,1.61,1.61LE,1.63,1.63LE,1.65,1.65LE,1.68,1.68LE
+       X-Men 1.0,1.02,1.04,1.05,1.2LE,1.21LE,1.22LE,1.23LE,1.24LE,1.3,1.3LE,1.5,1.5LE,1.51,1.51LE
+       Avengers, The 1.1,1.2LE,1.4,1.4LE,1.7,1.7LE
+       Metallica 1.03,1.05,1.06,1.12,1.13,1.13LE,1.16,1.16LE,1.2,1.2LE,1.22,1.22LE,1.5,1.5LE,1.51,1.51LE,1.6,1.6LE,1.63(+LED),1.63LE,1.64,1.64LE,1.7,1.7LE
+       Star Trek 1.2,1.3,1.4,1.4LE,1.41LE,1.42LE,1.5,1.5LE,1.6,1.6LE,1.61,1.61LE
+       Mustang 1.2,1.3,1.3LE,1.4,1.4LE(+Boss),1.45,1.45LE(+Boss)
+       Walking Dead, The 1.05,1.11,1.11LE,1.19,1.19LE,1.24,1.24LE,1.25,1.25LE,1.28,1.28LE,1.41,1.41LE,1.53,1.53LE,1.56,1.56LE,1.60.0,1.60.0LE
+
+Correct Dumps:
+Bally: Creature from the Black Lagoon (L-3 and D-3 use SL-1 sound ROMs)
+       Judge Dredd (use L-3 Sound ROMs for corrected Deadworld sounds on machines without working/modified lock)
+Joctronic: Punky Willy
+LTD: Space Poker (corrected one more byte in the patched ROM)
+Playmatic: Zira (sound ROM is actually 2K wide and contains the same code twice)
+Taito: Sure Shot (fixed bad DAC data offset in ssh_s3.bin)
+
+Clones:
+301/Bullseye (normal pinball scoring)
+A.G. Football (R07u & R18u) (exact clone of A.G. Soccer-Ball)
+A.G. Soccer-Ball (R07u)
+Bubba the Redneck Werewolf (unofficial MOD of Hollywood Heat)
+Creature from the Black Lagoon L-2 & D-2
+Demolition Man LX-4C (competition MOD)
+Demolition Man H-5C (competition MOD)
+Demolition Man H-6C (competition MOD)
+Dirty Harry LF-2
+Eight Ball (Older version)
+Getaway: High Speed II, The L-5C (competition MOD)
+Junk Yard 1.2C (competition MOD)
+Meteor (Bugfix)
+Orbitor 1 (No Timed Game)
+Rambo (unofficial MOD of Raven)
+Star Trek: The Next Generation LX-7C (competition MOD)
+Star Wars 20th Anniversary 1.07 Spanish
+Striker Xtreme 1.01 Italian
+Time Warp L-3
+Trident (Newer version, previous trident set was renamed to tridenta)
+
+
+
+Version 2.9 (June 11th, 2017) - "Attack of the clones"
+------------------------------------------------------------------------------
+
+*** CORE/CPU *** Thanks to DJRobX, Quench and Bontango for some of these
+Support for Bally's Boomerang prototype added!
+ Pinfixer noticed the code was available in US patent #4,198,051,
+ so we extracted it using OCR software, corrected obvious mistakes, fatal bugs and missing pieces
+ until a working version of the code emerged.
+ On top of that, there's also a bootleg version that works even a little better.
+Support for Mirco's Spirit of 76 - finally, maybe the first commercial solid-state pinball game
+Support for more Stargame games added (including new sound core for MEA 8000 emulation)
+Support for Playbar's Bloody Roller, very similar hardware to Stargame's Slalom Code 0.3
+Joctronic works now (e.g. Walkyria, yet still no good dumps for Punky Willy, and Pin Ball is missing entirely)
+Removed a nasty hack from the Alvin G. driver
+Added support for game-specific sound ROMs and correct sound bit handling for early WMS Sys3 games
+Using GTS80 gen. 2 sound on Excalibur instead of gen. 3, enabling 8910 sounds (thanks to Jim Hernandez for noticing)
+Fix some GTS3 DMD animations running too fast
+Improved DMD brightness level mapping (again :)) for Gottlieb GTS3 & Alvin G.
+Added extra display segments for some LTD-games, changed flipper enable for Sistema III
+Improve Stern SB100 sound module tone frequencies
+Add specialized Stern SB100B support
+Support for auxiliary lamps / LEDs on Scared Stiff rev. D.01R
+
+Change some more of the timing for the idle/throttle speed code
+Fix a problem when using altsound packages (like the PinSound ones) and changing the machine volume (which resulted in doubled sounds from both emulation and altsound)
+Fix some compiler issues/undefined code behavior (mainly relevant for mingw and unix/gcc builds at the moment)
+Add ALSA support for Unix builds
+
+Add LISY support (Linux for System1 & System80): one can control a Gottlieb pinball machine via PinMAME, special hardware needed, have a look at www.lisy80.com
+
+Updated to zlib 1.2.11
+Updated to latest Pin2DMD dlls
+
+*** ROM SUPPORT *** Thanks to Flipprojets.fr for all the GTS80b-sets (plus Free Play patches), ipdb.org, exegeta for all the LTD and Taito games and clones, tecnopinball.org, Juan, Corey, barakandl, Pinfixer, Effect
+New:
+Bally: Boomerang prototype (and bootleg set)
+LTD: Arizona
+     Cowboy Eight Ball (and alternate set)
+     Disco Dancing
+     Force
+     Haunted Hotel
+     Hustler
+     King Kong
+     Martian Queen (only a bad dump exists which has been patched to make things work)
+     Space Poker   (only a bad dump exists which has been patched to make things work)
+     Time Machine  (only a bad dump exists which has been patched to make things work (4p version))
+     Trick Shooter
+     Viking King
+MAC: Galaxy Play
+Mirco: Spirit of 76
+Playbar: Bloody Roller
+Stargame: Slalom Code 0.3
+          Space Ship
+          White Force
+
+Correct Dumps:
+Bally: Flash Gordon (prototype rev. 1) (missing U10 dump was rediscovered)
+Inder: Metal Man (corrected one music ROM)
+LTD: Columbia (previously supported was in fact one ROM from pecmen)
+Taito: Lady Luck (sound dumps were the ones from Vegas before)
+       Volley (formerly known as Voley Ball and also was missing main CPU dumps)
+WMS: Contact, Disco Fever, Phoenix, World Cup (correct sound ROMs)
+     Demolition Man (H-5B Coin Play), Demolition Man (DH-5B Coin Play LED Ghost Fix), Demolition Man (H-6B Coin Play) (all repatched correctly)
+
+Clones:
+Amazon Hunt II (French Free Play)
+Amazon Hunt III (French Free Play)
+Amazon Hunt III (rev. 1 French)
+Amazon Hunt III (rev. 1 French Free Play)
+Arena (Free Play)
+Arena (French)
+Arena (French Free Play)
+Arena (German)
+Arena (German Free Play)
+Arena (rev. 1 Free Play)
+Bad Girls (Free Play)
+Bad Girls (French)
+Bad Girls (French Free Play) (enabled by setting the maximum number of credits to 20 (both DIP 15 and 16 ON))
+Bad Girls (German)
+Bad Girls (German Free Play) (enabled by setting the maximum number of credits to 20 (both DIP 15 and 16 ON))
+Beat the Clock (with flasher support)
+Big House (Free Play)
+Big House (French)
+Big House (French Free Play)
+Big House (German)
+Big House (German Free Play)
+Black Knight 2000 (PF-1)
+Bone Busters Inc. (Free Play)
+Bone Busters Inc. (French Free Play)
+Bone Busters Inc. (German)
+Bone Busters Inc. (German Free Play)
+Bounty Hunter (Free Play)
+Bounty Hunter (German)
+Bounty Hunter (German Free Play)
+Caveman (Evolution, unofficial MOD)
+Cheetah (Blue cabinet)
+Chicago Cubs Triple Play (Free Play)
+Chicago Cubs Triple Play (rev. 1 Free Play)
+Diamond Lady (Free Play)
+Diamond Lady (French)
+Diamond Lady (French Free Play)
+Diamond Lady (German)
+Diamond Lady (German Free Play)
+Excalibur
+Excalibur (Free Play)
+Excalibur (French Free Play)
+Excalibur (German)
+Excalibur (German Free Play)
+Genesis (Free Play)
+Genesis (French)
+Genesis (French Free Play)
+Genesis (German)
+Genesis (German Free Play)
+Gold Wings (Free Play)
+Gold Wings (French)
+Gold Wings (French Free Play)
+Gold Wings (German)
+Gold Wings (German Free Play)
+Harley-Davidson (Bally, L-2 and D-2)
+Haunted House (rev. 3 unofficial MOD)
+Haunted House (rev. 3 unofficial MOD, LED)
+Haunted House (rev. 3 unofficial MOD, LED+Secret Tunnel)
+Haunted House (rev. 4 unofficial Votrax speech MOD, misses the sound dumps though!)
+Haunted House (rev. 4 unofficial Votrax speech MOD, LED, misses the sound dumps though!)
+Haunted House (rev. 4 unofficial Votrax speech MOD, LED+Secret Tunnel, misses the sound dumps though!)
+Hollywood Heat (Free Play)
+Hollywood Heat (French)
+Hollywood Heat (French Free Play)
+Hollywood Heat (German)
+Hollywood Heat (German Free Play)
+Hot Shots (Free Play)        (enabled by setting the maximum number of credits to 20 (both DIP 15 and 16 ON))
+Hot Shots (French)
+Hot Shots (French Free Play) (enabled by setting the maximum number of credits to 20 (both DIP 15 and 16 ON))
+Hot Shots (German)
+Hot Shots (German Free Play) (enabled by setting the maximum number of credits to 20 (both DIP 15 and 16 ON))
+Mars - God of War (Prototype)
+Mars - God of War (rev. 2 unofficial MOD, fixes a potential startup problem)
+Monte Carlo (Free Play)
+Monte Carlo (French)
+Monte Carlo (French Free Play)
+Monte Carlo (German)
+Monte Carlo (German Free Play)
+Monte Carlo (rev. 1 Free Play)
+Monte Carlo (rev. 2)
+Monte Carlo (rev. 2 Free Play)
+MotorDome (German)
+Night Moves (Free Play)
+Pink Panther (sound correction fix)
+Raven (Free Play)
+Raven (German)
+Raven (German Free Play)
+Raven (rev. 1 Free Play)
+Road Show (Prototype P-3 Sound ROM, combined with LX-2 Game ROM for now)
+Robo-War (Free Play)
+Robo-War (French)
+Robo-War (French Free Play)
+Rock (Free Play)
+Rock (German)
+Rock (German Free Play)
+Rock Encore (Free Play)
+Rock Encore (German)
+Rock Encore (German Free Play)
+Rocky (French speech)
+Rollergames (AD-2 Prototype) (sample/prototype with 8 drop targets)
+Rollergames (LF-2 French)
+Rollergames (LF-3 French)
+Spring Break (Free Play)
+Spring Break (French)
+Spring Break (French Free Play)
+Spring Break (German)
+Spring Break (German Free Play)
+Spring Break (rev. 1 Free Play)
+Spring Break (single ball game, Free Play)
+Tag-Team Pinball (Free Play)
+Tag-Team Pinball (German)
+Tag-Team Pinball (German Free Play)
+Tag-Team Pinball (rev.2 Free Play)
+Teenage Mutant Ninja Turtles (1.04 German)
+TX-Sector (Free Play)
+TX-Sector (French)
+TX-Sector (French Free Play)
+TX-Sector (German)
+TX-Sector (German Free Play)
+U.S.A. Football (R01u)
+Victory (Free Play)
+Victory (French)
+Victory (French Free Play)
+Victory (German)
+Victory (German Free Play)
+Zephy (alternate set)
+
+
+
+Version 2.8b (December 29th, 2016)
+------------------------------------------------------------------------------
+
+*** CORE/CPU ***
+Optimize general sound resampling code
+Expose new option "resampling_quality" to choose between fast/low quality (mode 0) and normal (mode 1)
+
+
+
+Version 2.8 (December 24th, 2016) - "Sounds good"
+------------------------------------------------------------------------------
+
+*** CORE/CPU *** Thanks to DJRobX and lucky1 and mjr for some of these
+Improve precision/performance of general sound filtering and resampling to final output sample rate (latter using libsamplerate by Erik de Castro Lopo now)
+Improve sound pitch for old Sterns (Catacomb, Flight 2000, Freefall, Lightning, Orbitor 1, and Split Second)
+Further improved BSMT2000 sound core for Sega, Alvin G., Data East (Batman and newer), and Stern (up to Terminator 3) DMD generation games
+Further improved AT91 sound core for the rest of the Stern DMDs (Elvis, LOTR, RBION, Sopranos, Nascar/Grand Prix/Dale Jr.)
+ but still one should avoid high volume levels for these machines (~24 and above, for example on Nascar, or even ~20 on LOTR)
+Improved AT91 core emulation features
+ and add 'at91jit' option to disable it
+Improved FM sound emulation cores (like AY8910, YMF262 and YM2151: so a lot of Gottlieb generations, old Ballys, pre-DCS games, etc)
+Slightly improved TMS5200 core (Bally Centaur, etc), especially the wrong pitch if Zaccaria games were run after the first time from within VP
+Use reverb for all sound cores (not just TMS5200) used in Bally Centaur
+Improved M114 sound core (Mr. Game)
+Improved HC55516 CVSD sound core (Gorgar up to Twilight Zone, etc) and add some lowpass filtering (active only on older machines) to remove some of the audible noise
+Slightly lowpass filter DCS sound core (Indiana Jones and up) to remove some of the audible noise and additional sound throttling adjustments
+Improved GTS80BS/GTS3 DAC & OKI6376/ADPCM sound cores (Gottlieb DMDs, etc)
+Improved GTS80SS DAC sound core (Haunted House, Black Hole, Mars - God of War, etc)
+Improved Capcom sound core
+
+Improved DMD brightness level mapping for Gottlieb GTS3 & Alvin G.
+Retweak Pistol Poker to use the correct 12MHz clock
+
+Add support for modulated/multi-level flashers on WPC (see whatsnewVPM.txt on how to enable it)
+Add support for GI on Whitestar
+Improve NGG wheel by using the mech class to simulate the spinning wheel
+
+Reduce latency of input handling, especially on WPC and add new options around this:
+ cpu_affinity_mask (default 0, note that its really a mask: For CPU #1 only, set it to 1 (=2^(1-1)), CPU #4 only is 8 (=2^(4-1)), so CPU's 1 and 4 is 9 (=2^(1-1) + 2^(4-1)) then, etc) and
+ low_latency_throttle (default 1, will divide an emulated frame into more parts to reduce input latency)
+
+Change scaling of the window content if DirectX disabled (incl. 64bit compile) to fit the full window, incl. bilinear upsampling of the DMD/Segments (latter using BasicBitmap by skywind)
+Fix window size issues if an additional mini-DMD is in use
+
+Store DMD dumps in a DmdDump subfolder (but only if it already exists)
+
+*** ROM SUPPORT *** Thanks to pinball-broker, Juan, Timmo, Chad Hendrickson, Inkochnito, zaccaria-pinball.com, ipdb.org
+Add sound rom dump to U-Boat 65
+
+New:
+JocMatic: Rider's Surf (running on Playmatic hardware)
+
+Kinda new:
+Hook 5.00 (unofficial MOD)
+Star Wars 20th Anniversary 1.06 & 1.07
+Tommy 5.00 (unofficial MOD)
+
+Clones:
+ABC Monday Night Football 2.9 50cts (B5 ROM from IPDB has a wrong checksum)
+Back to the Future 2.8
+Dragonfist Bootleg 2 (matches drop target scoring with the instruction card/manual)
+Laser Cue L-3 (Neverending Bell Fix)
+Lost in Space 1.01 French
+Stargate rev.5
+Star God (alternate version)
+X-Files 3.03 French
+
+
+
+Version 2.7 (June 08th, 2016) - "Alive and kicking"
 ------------------------------------------------------------------------------
 
 *** CORE/CPU ***
 64bit compilation supported
+XMAME port for unix/linux systems
+PROC support (needs special compile with PROC_SUPPORT defined) to drive (at least) real WPC machines with PinMAME/PROC
+
 New S14001A sound core for old Sterns (Catacomb, Flight 2000, Freefall, Lightning, Orbitor 1, and Split Second)
-Improved BSMT2000 sound core for Sega, Alvin G. DMDs, Data East DMDs (Batman and newer), and Stern DMDs (up to Terminator 3)
+Improved BSMT2000 sound core for Sega, Alvin G., Data East (Batman and newer), and Stern (up to Terminator 3) DMD generation games
+Improved AT91 sound core for the rest of the Stern DMDs (Elvis, LOTR, RBION, Sopranos, Nascar/Grand Prix/Dale Jr.)
 Improved Brave Team sound core
 
 *** ROM SUPPORT *** Thanks to Inkochnito, Soren
@@ -18,6 +384,7 @@ Clones:
 Bram Stoker's Dracula L-2C (competition MOD)
 Creature from the Black Lagoon L-5C (competition MOD)
 Dr. Dude LA-3C (competition MOD)
+Earthshaker LA-4C (competition MOD)
 Hook 4.01p (4.01 with Prototype Sound)
 Inder Centaur (alternate version)
 Hyperball L-3
@@ -75,7 +442,7 @@ Changed head mech handler for PZ:
  Head will assume varying positions between 0 and 95 that translate to test positions 0 to 6 (within small ranges)
 Updated to zlib 1.2.8
 
-*** ROM SUPPORT *** Thanks to John Lundy, Inkochnito, John Wart Jr, Mitch, John Crawford, Kelley, Juan, pinball-broker, François, PinKitty & Tim Polzin
+*** ROM SUPPORT *** Thanks to John Lundy, Inkochnito, John Wart Jr, Mitch, John Crawford, Kelley, Juan, pinball-broker, François, PinKitty, Tim Polzin & Chad Hendrickson
 New:
 Apple Time: Thunder Man
 Atari: 4x4 (not working yet)
@@ -84,8 +451,6 @@ Barni: Red Baron (not working yet)
 CICPlay: Galaxy Play 2,
          Kidnap
 Data East: King Kong 1.0
-IDSA: Basket Ball,
-      V-1 (speech not working yet)
 Inder: Centaur
 Joctronic: Punky Willy (not working yet, incomplete dumps),
            Walkyria (not working yet)
@@ -229,7 +594,7 @@ Johnny Mnemonic 0.5R/No Fear 1.0 - John Wart Jr.
 Judge Dredd L-4/L-5, Shadow LA-6
 Safecracker 0.91
 STTNG P-4 - Scott Charles
-IDSA V1/Basket Ball
+IDSA V-1/Basketball
 Inder Metal Man/Moon Light
 Juegos Populares Halley Comet/Petaco 2/Pimbal "Pinball 3000"
 Peyper Nemesis/Odin - Basillo

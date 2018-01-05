@@ -73,7 +73,7 @@ static void writeword_a24_d32(offs_t address, data16_t data)
 		return;
 	}
 	cpu_writemem24bedw(address, data >> 8);
-	cpu_writemem24bedw(address + 1, data);
+	cpu_writemem24bedw(address + 1, (data8_t)data);
 }
 
 /* potentially misaligned 32-bit reads with a 32-bit data bus (and 24-bit address bus) */
@@ -158,7 +158,7 @@ static void writeword_a32_d32(offs_t address, data16_t data)
 		return;
 	}
 	cpu_writemem32bedw(address, data >> 8);
-	cpu_writemem32bedw(address + 1, data);
+	cpu_writemem32bedw(address + 1, (data8_t)data);
 }
 
 /* potentially misaligned 32-bit reads with a 32-bit data bus (and 32-bit address bus) */
@@ -2194,7 +2194,6 @@ static data16_t m68306_intreg_r(offs_t address, int word) {
         data = m68306intreg[irISR]; break;
       case irICR: /* interrupt control */
         data = m68306intreg[irICR]; break;
-        break;
       case irBUSERR: /* refresh + buserror */
         LOG(("buserror_r\n"));
         break;

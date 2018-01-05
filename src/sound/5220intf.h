@@ -29,7 +29,11 @@ double tms5220_time_to_ready(void);
 int tms5220_int_r(void);
 
 void tms5220_reset(void);
-void tms5220_set_frequency(int frequency);
+void tms5220_set_frequency(double frequency);
+
+#ifdef PINMAME
+void tms5220_set_reverb_filter(float delay, float force);
+#endif
 
 #endif
 

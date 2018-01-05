@@ -38,13 +38,115 @@
  *
 *****************************************************************************/
 
+//#define ARM9 has newer MAME code, but that is only partially ported over to the old codebase
+#ifdef ARM9
+void arm7_cpu_device::arm9ops_undef(uint32_t insn)
+{
+	// unsupported instruction
+	LOG(("ARM7: Instruction %08X unsupported\n", insn));
+}
+
+void arm7_cpu_device::arm9ops_1(uint32_t insn)
+{
+	/* Change processor state (CPS) */
+	if ((insn & 0x00f10020) == 0x00000000)
+	{
+		// unsupported (armv6 onwards only)
+		arm9ops_undef(insn);
+		R15 += 4;
+	}
+	else if ((insn & 0x00ff00f0) == 0x00010000) /* set endianness (SETEND) */
+	{
+		// unsupported (armv6 onwards only)
+		arm9ops_undef(insn);
+		R15 += 4;
+	}
+	else
+	{
+		arm9ops_undef(insn);
+		R15 += 4;
+	}
+}
+
+void arm7_cpu_device::arm9ops_57(uint32_t insn)
+{
+	/* Cache Preload (PLD) */
+	if ((insn & 0x0070f000) == 0x0050f000)
+	{
+		// unsupported (armv6 onwards only)
+		arm9ops_undef(insn);
+		R15 += 4;
+	}
+	else
+	{
+		arm9ops_undef(insn);
+		R15 += 4;
+	}
+}
+
+void arm7_cpu_device::arm9ops_89(uint32_t insn)
+{
+	/* Save Return State (SRS) */
+	if ((insn & 0x005f0f00) == 0x004d0500)
+	{
+		// unsupported (armv6 onwards only)
+		arm9ops_undef(insn);
+		R15 += 4;
+	}
+	else if ((insn & 0x00500f00) == 0x00100a00) /* Return From Exception (RFE) */
+	{
+		// unsupported (armv6 onwards only)
+		arm9ops_undef(insn);
+		R15 += 4;
+	}
+	else
+	{
+		arm9ops_undef(insn);
+		R15 += 4;
+	}
+}
+
+void arm7_cpu_device::arm9ops_ab(uint32_t insn)
+{
+	// BLX
+	HandleBranch(insn, true);
+	set_cpsr(GET_CPSR|T_MASK);
+}
+
+void arm7_cpu_device::arm9ops_c(uint32_t insn)
+{
+	/* Additional coprocessor double register transfer */
+	if ((insn & 0x00e00000) == 0x00400000)
+	{
+		// unsupported
+		arm9ops_undef(insn);
+		R15 += 4;
+	}
+	else
+	{
+		arm9ops_undef(insn);
+		R15 += 4;
+	}
+}
+
+void arm7_cpu_device::arm9ops_e(uint32_t insn)
+{
+	/* Additional coprocessor register transfer */
+	// unsupported
+	arm9ops_undef(insn);
+	R15 += 4;
+}
+#endif
+
 extern unsigned at91_get_reg(int regnum);
 
 /* This implementation uses an improved switch() for hopefully faster opcode fetches compared to my last version
 .. though there's still room for improvement. */
 {
 	data32_t pc;
+	static data32_t pc_prev2 = 0, pc_prev1 = 0;
 	data32_t insn;
+	int op_offset;
 
 	RESET_ICOUNT
 	do
@@ -60,8 +162,17 @@ extern unsigned at91_get_reg(int regnum);
 
 		/* load 32 bit instruction, trying the JIT first */
 		pc = R15;
+
+		// Debug test triggers
+
+		// Helpful to backtrace a crash :)
+
 		JIT_FETCH(ARM7.jit, pc);
 		insn = cpu_readop32(pc);
+		op_offset = 0;
+
+		pc_prev2 = pc_prev1;
+		pc_prev1 = pc;
 
 		/* process condition codes for this instruction */
 		switch (insn >> INSN_COND_SHIFT)
@@ -109,12 +220,20 @@ extern unsigned at91_get_reg(int regnum);
 			if (Z_IS_CLEAR(GET_CPSR) && (!(GET_CPSR & N_MASK) == !(GET_CPSR & V_MASK))) goto L_Next;
 			break;
 		case COND_NV:
-			goto L_Next;
+#ifdef ARM9
+			if (m_archRev < 5)
+#endif
+				goto L_Next;
+#ifdef ARM9
+			else
+				op_offset = 0x10;
+#endif
+			break;
 		}
 		/*******************************************************************/
 		/* If we got here - condition satisfied, so decode the instruction */
 		/*******************************************************************/		
-		switch( (insn & 0xF000000)>>24 )
+		switch( ((insn & 0xF000000)>>24) + op_offset)
 		{
 			/* Bits 27-24 = 0000 -> Can be Data Proc, Multiply, Multiply Long, Halfword Data Transfer */
 			case 0:
@@ -221,6 +340,7 @@ extern unsigned at91_get_reg(int regnum);
 			case 7:
 				HandleMemSingle(insn);
 				R15 += 4;
+				ARM7_CHECKIRQ;
 				break;
 			/* Block Data Transfer/Access */
 			case 8:
@@ -231,7 +351,7 @@ extern unsigned at91_get_reg(int regnum);
 			/* Branch or Branch & Link */
 			case 0xa:
 			case 0xb:
-				HandleBranch(insn);
+				HandleBranch(insn, 0);
 				break;
 			/* Co-Processor Data Transfer */
 			case 0xc:
@@ -256,12 +376,13 @@ extern unsigned at91_get_reg(int regnum);
 			/* Undefined */
 			default:
 				ARM7.pendingSwi = 1;
-				ARM7_CHECKIRQ;
+
 				ARM7_ICOUNT -= 1;				//undefined takes 4 cycles (page 77)
 				LOG(("%08x:  Undefined instruction\n",pc-4));
 				L_Next:
 					R15 += 4;
 					ARM7_ICOUNT +=2;	//Any unexecuted instruction only takes 1 cycle (page 193)
+					ARM7_CHECKIRQ;
 		}
 		/* All instructions remove 3 cycles.. Others taking less / more will have adjusted this # prior to here */
 		ARM7_ICOUNT -= 3;
@@ -343,7 +464,6 @@ jit_go_native:
 		R15 = tmp1;
 		ARM7_ICOUNT = tmp2;
 	}
-	
 	// resume emulation
 	goto resume_from_jit;
 

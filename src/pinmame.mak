@@ -6,6 +6,7 @@ ISVER$(MAMEVER)=1
 #
 PINOBJ=$(OBJ)/$(PINMAMESRC)
 CFLAGS += -Isrc/$(PINMAMESRC)
+CPPFLAGS += -Isrc/$(PINMAMESRC)
 DEFS += -DPINMAME=1 -DMAMEVER=$(MAMEVER)
 # Used in GUI version (PinMAME32)
 DEFS += -DMAME32NAME=\"PINMAME32\" -DMAMENAME=\"PINMAME\"
@@ -78,6 +79,10 @@ DRVLIBS += $(PINOBJ)/mac.o
 DRVLIBS += $(PINOBJ)/barni.o
 DRVLIBS += $(PINOBJ)/joctronic.o
 DRVLIBS += $(PINOBJ)/lancelot.o
+DRVLIBS += $(PINOBJ)/stargame.o
+DRVLIBS += $(PINOBJ)/slalom.o
+DRVLIBS += $(PINOBJ)/boomerang.o
+DRVLIBS += $(PINOBJ)/spiritof76.o
 #
 # Games
 #
@@ -237,6 +242,7 @@ SOUNDS += SP0256@
 SOUNDS += Y8950@
 SOUNDS += ASTROCADE@
 SOUNDS += YMF262@
+SOUNDS += MEA8000@
 
 OBJDIRS += $(PINOBJ)
 OBJDIRS += $(PINOBJ)/sims

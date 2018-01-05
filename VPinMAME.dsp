@@ -1081,6 +1081,14 @@ SOURCE=.\src\sound\m114s.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\sound\mea8000.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\sound\mea8000.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\sound\mixer.c
 # End Source File
 # Begin Source File
@@ -2200,6 +2208,10 @@ SOURCE=.\src\wpc\bingo.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\wpc\boomerang.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\wpc\bowarrow.c
 # End Source File
 # Begin Source File
@@ -2620,6 +2632,10 @@ SOURCE=.\src\wpc\sim.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\wpc\slalom.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\wpc\sleic.c
 # End Source File
 # Begin Source File
@@ -2661,6 +2677,14 @@ SOURCE=.\src\wpc\spinb.h
 # Begin Source File
 
 SOURCE=.\src\wpc\spinbgames.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\wpc\spiritof76.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\wpc\stargame.c
 # End Source File
 # Begin Source File
 
@@ -3003,19 +3027,11 @@ SOURCE=.\src\win32com\Res\VPinMAMELogo.bmp
 # End Source File
 # Begin Source File
 
-SOURCE=.\src\win32com\Res\VPinMAMESplash.bmp
-# End Source File
-# Begin Source File
-
 SOURCE=.\src\win32com\Res\VPinMAMESplash2.bmp
 # End Source File
 # Begin Source File
 
 SOURCE=.\src\win32com\Res\VPinMAMESplash3.bmp
-# End Source File
-# Begin Source File
-
-SOURCE=.\src\win32com\Res\VPinMAMESplash4.bmp
 # End Source File
 # Begin Source File
 

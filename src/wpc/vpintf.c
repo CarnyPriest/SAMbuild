@@ -6,7 +6,9 @@
 
 static struct {
   UINT8  lastLampMatrix[CORE_MAXLAMPCOL];
+  UINT8 lastRGBLamps[CORE_MAXRGBLAMPS];
   UINT64 lastSol;
+  UINT8  lastModSol[CORE_MODSOL_MAX];
   UINT32 solMask[2];
   int    lastGI[CORE_MAXGI];
   UINT8  dips[VP_MAXDIPBANKS];
@@ -38,11 +40,13 @@ int vp_getLamp(int lampNo) {
 /-------------------------------------*/
 int vp_getChangedLamps(vp_tChgLamps chgStat) {
   UINT8 lampMatrix[CORE_MAXLAMPCOL];
+  UINT8 RGBlamps[CORE_MAXRGBLAMPS];
   int idx = 0;
   int ii;
 
   /*-- get current status --*/
   memcpy(lampMatrix, coreGlobals.lampMatrix, sizeof(lampMatrix));
+  memcpy(RGBlamps, coreGlobals.RGBlamps, sizeof(RGBlamps));
 
   /*-- fill in array --*/
   for (ii = 0; ii < CORE_STDLAMPCOLS+core_gameData->hw.lampCol; ii++) {
@@ -62,33 +66,74 @@ int vp_getChangedLamps(vp_tChgLamps chgStat) {
       }
     }
   }
+
+  for (ii = 0; ii < CORE_MAXRGBLAMPS; ii++) {
+	  int chgLamp = RGBlamps[ii] ^ locals.lastRGBLamps[ii];
+	  if (chgLamp) {
+		  // With this mapping 1-80 are "legacy" 
+		  // 8 bit lamps, and 81+ are modern intensity-level
+		  // RGB capable LEDs.  
+		  chgStat[idx].lampNo = ii+81;  
+		  chgStat[idx].currStat = RGBlamps[ii]; 
+		  idx += 1;
+	  }
+  }
+
   memcpy(locals.lastLampMatrix, lampMatrix, sizeof(lampMatrix));
+  memcpy(locals.lastRGBLamps, RGBlamps, sizeof(RGBlamps));
   return idx;
 }
 
 /*-------------------------------------------
 /  get all solenoids changed since last call
-/  returns number of canged solenoids
+/  returns number of changed solenoids
 /-------------------------------------*/
-int vp_getChangedSolenoids(vp_tChgSols chgStat) {
-  UINT64 allSol = core_getAllSol();
-  UINT64 chgSol = (allSol ^ locals.lastSol) & vp_getSolMask64();
-  int idx = 0;
-  int ii;
+int vp_getChangedSolenoids(vp_tChgSols chgStat) 
+{
+	UINT64 allSol = core_getAllSol();
+	UINT64 chgSol = (allSol ^ locals.lastSol) & vp_getSolMask64();
+	int idx = 0;
+	int ii;
+	int start = 0, end = CORE_FIRSTCUSTSOL+core_gameData->hw.custSol-1;
 
-  locals.lastSol = allSol;
+	locals.lastSol = allSol;
+	
+	if (options.usemodsol)
+	{
+		for(ii = 0; ii<CORE_MODSOL_MAX; ii++)
+		{
+			// Skip the VPM reserved solenoids, they will be handled after.  Need to include
+			// "flipper" solenoids as WPC may sneak flashers there when upper flippers aren't present.
+			// WPC will put unsmoothed 0/1 values on actual flippers so this shouldn't harm anything.
+			if (ii==40)
+				ii=CORE_FIRSTCUSTSOL-1;
 
-  /*-- add changed solenoids to the array --*/
-  for (ii = 1; ii < CORE_FIRSTCUSTSOL+core_gameData->hw.custSol; ii++) {
-    if (chgSol & 0x01) {
-      chgStat[idx].solNo = ii; // Solenoid number
-      chgStat[idx].currStat = (allSol & 0x01);
-      idx += 1;
-    }
-    chgSol >>= 1;
-    allSol >>= 1;
-  }
-  return idx;
+			if (locals.lastModSol[ii] != coreGlobals.modulatedSolenoids[CORE_MODSOL_CUR][ii])
+			{
+				locals.lastModSol[ii] = coreGlobals.modulatedSolenoids[CORE_MODSOL_CUR][ii];
+				chgStat[idx].solNo = ii+1; // Solenoid number
+				chgStat[idx].currStat = locals.lastModSol[ii];
+				idx += 1;
+			}
+		}
+		// Treat the VPM reserved solenoids the old way. 
+		start = 40;
+		end = CORE_FIRSTCUSTSOL-1;
+		chgSol >>= start;
+		allSol >>= start;
+	}
+
+	for (ii = start; ii < end; ii++) 
+	{
+		if (chgSol & 0x01) {
+			chgStat[idx].solNo = ii+1; // Solenoid number
+			chgStat[idx].currStat = (allSol & 0x01);
+			idx += 1;
+		}
+		chgSol >>= 1;
+		allSol >>= 1;
+	}
+	return idx;
 }
 
 /*-------------------------------------------
@@ -132,7 +177,12 @@ int vp_getDIP(int dipBank) {
 /  set Solenoid Mask
 /-----------*/
 void vp_setSolMask(int no, int mask) {
-  locals.solMask[no] = mask;
+	// TODO This is a bit of a B2S compatibility hack - B2S precludes us from adding a proper new setting.
+	// Use index 2 to turn on/off modulated solenoids, also see put_SolMask()
+	if (no == 2)
+		options.usemodsol = mask;
+	else
+		locals.solMask[no] = mask;
 }
 
 /*-----------

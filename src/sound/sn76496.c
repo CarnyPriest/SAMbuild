@@ -275,7 +275,7 @@ static void SN76496_set_gain(int chip,int gain)
 	{
 		/* limit volume to avoid clipping */
 		if (out > (double)(MAX_OUTPUT / 4)) R->VolTable[i] = MAX_OUTPUT / 4;
-		else R->VolTable[i] = out;
+		else R->VolTable[i] = (int)out;
 
 		out /= 1.258925412;	/* = 10 ^ (2/20) = 2dB */
 	}
@@ -332,6 +332,7 @@ static int generic_start(const struct MachineSound *msound, int feedbackmask, in
 {
 	int chip;
 	const struct SN76496interface *intf = msound->sound_interface;
+	struct SN76496 *R;
 
 	for (chip = 0;chip < intf->num;chip++)
 	{
@@ -340,7 +341,7 @@ static int generic_start(const struct MachineSound *msound, int feedbackmask, in
 
 		SN76496_set_gain(chip,(intf->volume[chip] >> 8) & 0xff);
 
-        struct SN76496 *R = &sn[chip];
+        R = &sn[chip];
 
         R->FeedbackMask = feedbackmask;
         R->WhitenoiseTaps = noisetaps;

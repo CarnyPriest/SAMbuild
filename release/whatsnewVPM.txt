@@ -1,7 +1,35 @@
 What's new in Visual PinMAME:
 -----------------------------
 
-Version 2.7 (X X, 2016) - ""
+Version 3.1 (X X, 2018) - ""
+------------------------------------------------------------------------------
+
+Version 3.0 (December 24th, 2017) - "11 years in the making"
+------------------------------------------------------------------------------
+- Extend and update some parts of the .txt documentation files
+
+- New method for the Controller object:
+	HRESULT SoundMode([out, retval] int *pVal); - Get sound processing mode, e.g. 0 = standard builtin PinMAME emulation, 1 = builtin alternate sound file support, 2 = external pinsound, 3 = external pinsound + psrec sound recording
+	HRESULT SoundMode([in] int newVal); - Set sound processing mode, e.g. 0 = standard builtin PinMAME emulation, 1 = builtin alternate sound file support, 2 = external pinsound, 3 = external pinsound + psrec sound recording
+
+Version 2.9 (June 11th, 2017) - "Attack of the clones"
+------------------------------------------------------------------------------
+- No interface changes, refer to whatsnew.txt for PinMAME changes
+
+Version 2.8b (December 29th, 2016)
+------------------------------------------------------------------------------
+- Expose new option in UI: Resampling Quality, to choose between fast performance/low quality (0) and normal (1)
+
+Version 2.8 (December 24th, 2016) - "Sounds good"
+------------------------------------------------------------------------------
+- To enable the new modulated/multi-level flasher support (see whatsnew.txt), set SolMask to 2
+
+- New, generalized external DMD handling via a separate dmddevice.dll instead of the define hell
+  This also allows to drive any kind of virtual or real DMD via this new interface (see ext\dmddevice\dmddevice.h)
+  For now, Visual PinMAME ships with four different dll packages for PinDMD1/2/3 and Pin2DMD, so pick the one that you need
+  NOTE: In case you experience problems on Windows 7 ("No DMD device driver found"), try installing: http://go.microsoft.com/fwlink/p/?linkid=217865
+
+Version 2.7 (June 08th, 2016) - "Alive and kicking"
 ------------------------------------------------------------------------------
 - New option for the DMD window: DMD opacity
 
@@ -16,8 +44,17 @@ Version 2.7 (X X, 2016) - ""
       (must have PinSound Studio 0.7 or newer running at the same time:
        make sure that the windows permissions match between PinSound Studio and Visual PinMAME/Pinball, e.g.
        if one is using admin permissions when running, then both need to be started with that (or the other way round))
+  (needs VPINMAME_ALTSOUND (also requires bass.lib/.dll) and/or VPINMAME_PINSOUND defined when compiling)
+
+- New methods for the Controller object:
+	HRESULT NVRAM(/*[out, retval]*/ VARIANT *pVal); - Get the full NVRAM of the emulation (e.g. high scores, settings, etc. as a binary blob of 8bit values) 
+	HRESULT ChangedNVRAM(/*[out, retval]*/ VARIANT *pVal); - Get only the NVRAM parts that have changed since last call (similar to ChangedLamps), first dimension has the location, second the new value (only 8 bits are valid), third the previous value (only 8 bits are valid)
+  (See for example https://github.com/tomlogic/pinmame-nvram-maps for some machines NVRAM mappings)
+
+- Add 'Restore window position' to menu
 
 - PinDMD 3 handling
+  (see pindmd.h to change defines when compiling, also requires pindmd.lib/.dll)
 
 Version 2.6 (December 24, 2015) - "The team awakens"
 ------------------------------------------------------------------------------
@@ -48,7 +85,7 @@ Version 2.6 (December 24, 2015) - "The team awakens"
 
 	HRESULT ChangedGIsState([in] int **buf, [out, retval] int *pVal); - Copy all changed GI lamps (user-allocated)
 
-        HRESULT ChangedLEDsState([in] int nHigh, [in] int nLow, [in] int nnHigh, [in] int nnLow, [in] int **buf, [out, retval] int *pVal); - Copy all changed LEDs (user-allocated)
+	HRESULT ChangedLEDsState([in] int nHigh, [in] int nLow, [in] int nnHigh, [in] int nnLow, [in] int **buf, [out, retval] int *pVal); - Copy all changed LEDs (user-allocated)
 
 	HRESULT MasterVolume([out, retval] int *pVal); - Get Master Volume
 	HRESULT MasterVolume([in] int newVal); - Set Master Volume

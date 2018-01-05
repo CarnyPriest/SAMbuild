@@ -28,6 +28,7 @@
 // current frameskip/autoframeskip settings
 extern int			frameskip;
 extern int			autoframeskip;
+extern int			g_low_latency_throttle;
 
 // speed throttling
 extern int			throttle;
@@ -51,5 +52,8 @@ extern UINT8		blit_swapxy;
 
 void win_orient_rect(struct rectangle *rect);
 void win_disorient_rect(struct rectangle *rect);
+void throttle_speed_part(int part, int totalparts);
+void SetThrottleAdj(int Adj);
+
 
 #endif

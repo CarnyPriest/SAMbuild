@@ -38,6 +38,8 @@
 #include "sim.h"
 #include "wmssnd.h"
 #include "mech.h"
+#include "machine/4094.h"
+
 /*------------------
 /  Local functions
 /-------------------*/
@@ -399,8 +401,8 @@ CORE_GAMEDEF(ss,15,"Scared Stiff (1.5)",1996,"Bally",wpc_m95S,0)
 CORE_CLONEDEF(ss,14,15,"Scared Stiff (1.4)",1996,"Bally",wpc_m95S,0)
 CORE_CLONEDEF(ss,12,15,"Scared Stiff (1.2)",1996,"Bally",wpc_m95S,0)
 CORE_CLONEDEF(ss,03,15,"Scared Stiff (0.3)",1996,"Bally",wpc_m95S,0)
-CORE_CLONEDEF(ss,01,15,"Scared Stiff (D0.1R, Sound rev. 25)",1996,"Bally",wpc_m95S,0)
-CORE_CLONEDEF(ss,01b,15,"Scared Stiff (D0.1R, Sound rev. 25 Coin Play)",1996,"Bally",wpc_m95S,0)
+CORE_CLONEDEF(ss,01,15,"Scared Stiff (D.01R, Sound rev. 0.25)",1996,"Bally",wpc_m95S,0)
+CORE_CLONEDEF(ss,01b,15,"Scared Stiff (D.01R, Sound rev. 0.25 Coin Play)",1996,"Bally",wpc_m95S,0)
 
 /*-----------------------
 / Simulation Definitions
@@ -417,6 +419,22 @@ static sim_tSimData ssSimData = {
   NULL  					/* no key conditions */
 };
 
+static WRITE_HANDLER(parallel_0_out) {
+  coreGlobals.tmpLampMatrix[9] = core_revbyte(data);
+}
+static WRITE_HANDLER(parallel_1_out) {
+  coreGlobals.tmpLampMatrix[8] = core_revbyte(data);
+}
+static WRITE_HANDLER(qspin_0_out) {
+  HC4094_data_w(1, data);
+}
+
+static HC4094interface hc4094ss = {
+  2, // 2 chips
+  { parallel_0_out, parallel_1_out },
+  { qspin_0_out }
+};
+
 /*----------------------
 / Game Data Information
 /----------------------*/
@@ -424,7 +442,7 @@ static core_tGameData ssGameData = {
   GEN_WPC95, wpc_dispDMD,
   {
     FLIP_SW(FLIP_L | FLIP_U) | FLIP_SOL(FLIP_L),
-    0,0,0,0,0,1,0,
+    0,2,0,0,0,1,0, // 2 extra lamp columns for the LEDs of rev. 0.1
     NULL, ss_handleMech, ss_getMech, ss_drawMech,
     NULL, NULL
   },
@@ -442,12 +460,34 @@ static mech_tInitData ss_wheelMech = {
   39,40, MECH_LINEAR|MECH_CIRCLE|MECH_TWOSTEPSOL|MECH_FAST, 200, 200,
   {{swWheelIndex, 25, 199}}
 };
+
+static WRITE_HANDLER(ss_wpc_w) {
+  wpc_w(offset, data);
+  if (offset == WPC_SOLENOID1) {
+    HC4094_data_w (0, GET_BIT5);
+    HC4094_clock_w(0, GET_BIT4);
+    HC4094_clock_w(1, GET_BIT4);
+  } else if (offset == WPC_SOLENOID3) {
+    int enabled = GET_BIT3;
+    if (!enabled) { // finished strobing in the bits, now send data to the lamps - maybe slower by more reliable
+      coreGlobals.lampMatrix[8] = coreGlobals.tmpLampMatrix[8];
+      coreGlobals.lampMatrix[9] = coreGlobals.tmpLampMatrix[9];
+    }
+    HC4094_strobe_w(0, enabled);
+    HC4094_strobe_w(1, enabled);
+    HC4094_oe_w(0, enabled);
+    HC4094_oe_w(1, enabled);
+  }
+}
+
 /*---------------
 /  Game handling
 /----------------*/
 static void init_ss(void) {
   core_gameData = &ssGameData;
   mech_add(0,&ss_wheelMech);
+  install_mem_write_handler(0, 0x3fb0, 0x3fff, ss_wpc_w);
+  HC4094_init(&hc4094ss);
 }
 
 static void ss_handleMech(int mech) {

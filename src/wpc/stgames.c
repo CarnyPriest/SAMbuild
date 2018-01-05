@@ -95,16 +95,17 @@ CORE_CLONEDEFNV(stingrfp,stingray,"Stingray (Free Play)",1977,"Stern",by35_mST10
 /*--------------------------------
 / Stars
 /-------------------------------*/
+// There exists a newer 'A' version, that is so far undumped (25A-ROM-P3A.U2, 25A-ROM-P4A.U6) 
 INITGAME(stars,GEN_STMPU100,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_NONE,0)
-BY17_ROMSTARTx88(stars, "cpu_u2.716",CRC(630d05df) SHA1(2baa16265d524297332fa951d9eab3e0e8d26078),
-                        "cpu_u6.716",CRC(57e63d42) SHA1(619ef955553654893c3071d8b70855fee8a5e6a7))
+BY17_ROMSTARTx88(stars, "25A-ROM-P3.U2",CRC(630d05df) SHA1(2baa16265d524297332fa951d9eab3e0e8d26078), /*cpu_u2.716*/
+                        "25A-ROM-P4.U6",CRC(57e63d42) SHA1(619ef955553654893c3071d8b70855fee8a5e6a7)) /*cpu_u6.716*/
 BY35_ROMEND
 #define input_ports_stars input_ports_st
 CORE_GAMEDEFNV(stars,"Stars",1978,"Stern",by35_mST100,GAME_USES_CHIMES)
 
 INITGAME(starsfp,GEN_STMPU100,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_NONE,0)
 BY17_ROMSTARTx88(starsfp, "fpstars2.716",CRC(4fe7f1aa) SHA1(9da462c0973bd9531ff38a3b6d57f69cb6a2e219),
-                        "fpstars6.716",CRC(c4560fd3) SHA1(1ee8863b57ae781a6dac9ebfc92f467b60e54138))
+                          "fpstars6.716",CRC(c4560fd3) SHA1(1ee8863b57ae781a6dac9ebfc92f467b60e54138))
 BY35_ROMEND
 #define input_ports_starsfp input_ports_st
 CORE_CLONEDEFNV(starsfp,stars,"Stars (Free Play)",1978,"Stern",by35_mST100,GAME_USES_CHIMES)
@@ -193,7 +194,7 @@ CORE_GAMEDEFNV(dracula,"Dracula",1979,"Stern",by35_mST100s,0)
 
 INITGAME(draculfp,GEN_STMPU100,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST100,0)
 BY17_ROMSTARTx88(draculfp,"fpdrac_2.716",CRC(c53b2f2b) SHA1(e722239167abf160ff1b3dcdd5971ae51d5d5d21),
-                         "fpdrac_6.716",CRC(fa3c8b9a) SHA1(627f569495c86885a2c45c2f8c65bf8c433bab61))
+                          "fpdrac_6.716",CRC(fa3c8b9a) SHA1(627f569495c86885a2c45c2f8c65bf8c433bab61))
 BY35_ROMEND
 #define input_ports_draculfp input_ports_st
 CORE_CLONEDEFNV(draculfp,dracula,"Dracula (Free Play)",1979,"Stern",by35_mST100s,0)
@@ -202,69 +203,76 @@ CORE_CLONEDEFNV(draculfp,dracula,"Dracula (Free Play)",1979,"Stern",by35_mST100s
 / Trident - uses MPU-200 inports
 /-------------------------------*/
 INITGAME(trident,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST100B,0)
-BY17_ROMSTARTx88(trident,"cpu_u2.716",CRC(934e49dd) SHA1(cbf6ca2759166f522f651825da0c75cf7248d3da),
-                         "cpu_u6.716",CRC(540bce56) SHA1(0b21385501b83e448403e0216371487ed54026b7))
+BY17_ROMSTARTx88(trident,"25AROM_P11A.U2", CRC(6dcd6ad3) SHA1(f748acc8628c5013b630a5c7b25a1bf72e36b16d),
+                         "25AROM_P12AU.U6",CRC(fb955a6f) SHA1(387080d5af318463475797fecff026d6db776a0c)) // U6 is the same as the one from Magic/Hot Hand/Cosmic Princess
 BY35_ROMEND
 #define input_ports_trident input_ports_st
-CORE_GAMEDEFNV(trident,"Trident",1979,"Stern",by35_mST100s,0)
+CORE_GAMEDEFNV(trident,"Trident",1979,"Stern",by35_mST100bs,0)
+
+INITGAME(tridenta,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST100B,0)
+BY17_ROMSTARTx88(tridenta,"cpu_u2.716",CRC(934e49dd) SHA1(cbf6ca2759166f522f651825da0c75cf7248d3da),
+                          "cpu_u6.716",CRC(540bce56) SHA1(0b21385501b83e448403e0216371487ed54026b7))
+BY35_ROMEND
+#define input_ports_tridenta input_ports_st
+CORE_CLONEDEFNV(tridenta,trident,"Trident (Old)",1979,"Stern",by35_mST100bs,0)
 
 INITGAME(tridenfp,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST100B,0)
 BY17_ROMSTARTx88(tridenfp,"fptrid_2.716",CRC(985c931b) SHA1(673a2f7aa825b2092c5b68ad1edd36e19f2ded96),
-                         "fptrid_6.716",CRC(944fe5de) SHA1(8b331f03bcb761253b0e4df6a8a20e5ff33bb163))
+                          "fptrid_6.716",CRC(944fe5de) SHA1(8b331f03bcb761253b0e4df6a8a20e5ff33bb163))
 BY35_ROMEND
 #define input_ports_tridenfp input_ports_st
-CORE_CLONEDEFNV(tridenfp,trident,"Trident (Free Play)",1979,"Stern",by35_mST100s,0)
+CORE_CLONEDEFNV(tridenfp,trident,"Trident (Old Free Play)",1979,"Stern",by35_mST100bs,0)
 
 /*--------------------------------
 / Hot Hand - uses MPU-200 inports
 /-------------------------------*/
 INITGAME(hothand,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST100B,0)
-BY17_ROMSTARTx88(hothand,"cpu_u2.716",CRC(5e79ea2e) SHA1(9b45c59b2076fcb3a35de1dd3ba2444ea852f149),
-                         "cpu_u6.716",CRC(fb955a6f) SHA1(387080d5af318463475797fecff026d6db776a0c))
+BY17_ROMSTARTx88(hothand,"cpu_u2.716",     CRC(5e79ea2e) SHA1(9b45c59b2076fcb3a35de1dd3ba2444ea852f149),
+                         "25AROM_P12AU.U6",CRC(fb955a6f) SHA1(387080d5af318463475797fecff026d6db776a0c)) /*cpu_u6.716*/
 BY35_ROMEND
 #define input_ports_hothand input_ports_st
-CORE_GAMEDEFNV(hothand,"Hot Hand",1979,"Stern",by35_mST100s,0)
+CORE_GAMEDEFNV(hothand,"Hot Hand",1979,"Stern",by35_mST100bs,0)
 
 INITGAME(hothanfp,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST100B,0)
 BY17_ROMSTARTx88(hothanfp,"fphoth_2.716",CRC(8757431b) SHA1(7ea13f2abc2b2322d08e419c66cca8cf22040e7f),
                          "fphoth_6.716",CRC(709dbde2) SHA1(c8ee72344b098e0edb16d4957627d283b1a34f50))
 BY35_ROMEND
 #define input_ports_hothanfp input_ports_st
-CORE_CLONEDEFNV(hothanfp,hothand,"Hot Hand (Free Play)",1979,"Stern",by35_mST100s,0)
+CORE_CLONEDEFNV(hothanfp,hothand,"Hot Hand (Free Play)",1979,"Stern",by35_mST100bs,0)
 
 /*--------------------------------
 / Magic - uses MPU-200 inports
 /-------------------------------*/
 INITGAME(magic,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST100B,0)
-BY17_ROMSTARTx88(magic,"cpu_u2.716",CRC(8838091f) SHA1(d2702b5e15076793b4560c77b78eed6c1da571b6),
-                       "cpu_u6.716",CRC(fb955a6f) SHA1(387080d5af318463475797fecff026d6db776a0c))
+BY17_ROMSTARTx88(magic,"cpu_u2.716",     CRC(8838091f) SHA1(d2702b5e15076793b4560c77b78eed6c1da571b6),
+                       "25AROM_P12AU.U6",CRC(fb955a6f) SHA1(387080d5af318463475797fecff026d6db776a0c)) /*cpu_u6.716*/
 BY35_ROMEND
 #define input_ports_magic input_ports_st
-CORE_GAMEDEFNV(magic,"Magic",1979,"Stern",by35_mST100s,0)
+CORE_GAMEDEFNV(magic,"Magic",1979,"Stern",by35_mST100bs,0)
 
 INITGAME(magicfp,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST100B,0)
 BY17_ROMSTARTx88(magicfp,"fpmagic2.716",CRC(7b770230) SHA1(f3aa59779a1662d3e7accb12786e14e9f344c657),
-                       "fpmagic6.716",CRC(3bc9594a) SHA1(7cd3954b28bac605e7dc08b6144bfdd237d75643))
+                         "fpmagic6.716",CRC(3bc9594a) SHA1(7cd3954b28bac605e7dc08b6144bfdd237d75643))
 BY35_ROMEND
 #define input_ports_magicfp input_ports_st
-CORE_CLONEDEFNV(magicfp,magic,"Magic (Free Play)",1979,"Stern",by35_mST100s,0)
+CORE_CLONEDEFNV(magicfp,magic,"Magic (Free Play)",1979,"Stern",by35_mST100bs,0)
 
 /*-------------------------------------
 / Cosmic Princess - same ROMs as Magic
 /-------------------------------------*/
 INITGAME(princess,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST100B,0)
 BY17_ROMSTARTx88(princess,"cpu_u2.716",CRC(8838091f) SHA1(d2702b5e15076793b4560c77b78eed6c1da571b6),
-                          "cpu_u6.716",CRC(fb955a6f) SHA1(387080d5af318463475797fecff026d6db776a0c))
+                          "25AROM_P12AU.U6",CRC(fb955a6f) SHA1(387080d5af318463475797fecff026d6db776a0c)) /*cpu_u6.716*/
 BY35_ROMEND
 #define input_ports_princess input_ports_st
-CORE_GAMEDEFNV(princess,"Cosmic Princess",1979,"Stern",by35_mST100s,0)
+CORE_GAMEDEFNV(princess,"Cosmic Princess",1979,"Stern",by35_mST100bs,0)
 
 INITGAME(princefp,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST100B,0)
 BY17_ROMSTARTx88(princefp,"fpcosp_2.716",CRC(7b770230) SHA1(f3aa59779a1662d3e7accb12786e14e9f344c657),
                           "fpcosp_6.716",CRC(27e45565) SHA1(55e56b12225ecccecb3c71f9c7134246436eb2d1))
 BY35_ROMEND
 #define input_ports_princefp input_ports_st
-CORE_CLONEDEFNV(princefp,princess,"Cosmic Princess (Free Play)",1979,"Stern",by35_mST100s,0)
+CORE_CLONEDEFNV(princefp,princess,"Cosmic Princess (Free Play)",1979,"Stern",by35_mST100bs,0)
 
 /****************************************************/
 /* STERN MPU-200 (almost identical to Bally MPU-35) */
@@ -285,20 +293,33 @@ BY35_ROMEND
 #define input_ports_meteor input_ports_st
 CORE_GAMEDEFNV(meteor,"Meteor",1979,"Stern",by35_mST200,0)
 
+/* From pinside, maybe this is about this ROM:
+The bug isn't necessarily dependent on the spinner, but does have to do with the Bonus X and the 'Collect All Rockets' light on the outlanes -
+As I understand it, the 'Collect All Rockets' routine saves data to a RAM location that is right adjacent to the Bonus 'X' save location. If something CPU intensive happens, a race condition will occur where the 'Collect All Rockets' code will save and then clear a value as another thread is trying to read the Bonus X. The Bonus X thread will then get an incorrect number (255), and think that's your bonus. It will then count down your rockets (even if you have none) from 255x. Interestingly, how the lights are stored in RAM, you can watch the 'Game Over' light on the backbox switch on and off - that light, essentially, is your '8x' bonus light.
+The ROM set listed as 'Alternate' is officially released from Stern, and it changes the RAM location for one of those two functions, avoiding the collision. */
+INITGAME(meteora,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
+ST200_ROMSTART8888(meteora,"cpu_u1a.716",CRC(9ee33909) SHA1(5f58e4e72af47047c8f060f98706ed9607720705),
+                           "cpu_u5.716", CRC(43a46997) SHA1(2c74ca10cf9091db10542960f499f39f3da277ee),
+                           "cpu_u2.716", CRC(fd396792) SHA1(b5d051a7ce7e7c2f9c4a0d900cef4f9ef2089476),
+                           "cpu_u6.716", CRC(03fa346c) SHA1(51c04123cb433e90920c241e2d1f89db4643427b))
+BY35_ROMEND
+#define input_ports_meteora input_ports_st
+CORE_GAMEDEFNV(meteora,"Meteor (Bugfix)",1979,"Stern",by35_mST200,0)
+
 INITGAME(meteorbf,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
-ST200_ROMSTART8888(meteorbf,"cpu_u1.716",CRC(e0fd8452) SHA1(a13215378a678e26a565742d81fdadd2e161ba7a),
-                          "cpu_u5.716",CRC(43a46997) SHA1(2c74ca10cf9091db10542960f499f39f3da277ee),
-						  "cpu_u2bf.716", CRC(8d1a4a0b) SHA1(12c75b613fba34c4db87afb78f598c8cd9989bf4),
-						  "cpu_u6bf.716", CRC(e185ca50) SHA1(b82521d2dd97a9af2a522745256f6ebc2db95eab))
+ST200_ROMSTART8888(meteorbf,"cpu_u1.716",  CRC(e0fd8452) SHA1(a13215378a678e26a565742d81fdadd2e161ba7a),
+                            "cpu_u5.716",  CRC(43a46997) SHA1(2c74ca10cf9091db10542960f499f39f3da277ee),
+						    "cpu_u2bf.716",CRC(8d1a4a0b) SHA1(12c75b613fba34c4db87afb78f598c8cd9989bf4),
+						    "cpu_u6bf.716",CRC(e185ca50) SHA1(b82521d2dd97a9af2a522745256f6ebc2db95eab))
 BY35_ROMEND
 #define input_ports_meteorbf input_ports_st
 CORE_CLONEDEFNV(meteorbf,meteor,"Meteor (Bonus Count Fix)",1979,"Stern",by35_mST200,0)
 
 INITGAME(meteorfp,GEN_STMPU200,dispst6,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
 ST200_ROMSTART8888(meteorfp,"fpmet_u1.716",CRC(7a5472ce) SHA1(7e3be954b66e5f61cfdbb189fa60ca33ad40a975),
-                          "cpu_u5.716",CRC(43a46997) SHA1(2c74ca10cf9091db10542960f499f39f3da277ee),
-                          "cpu_u2.716",CRC(fd396792) SHA1(b5d051a7ce7e7c2f9c4a0d900cef4f9ef2089476),
-                          "fpmet_u6.716",CRC(0bd52abc) SHA1(2a40bcffbfc28b44c5badf1833ce6b1bd76a02e5))
+                            "cpu_u5.716",  CRC(43a46997) SHA1(2c74ca10cf9091db10542960f499f39f3da277ee),
+                            "cpu_u2.716",  CRC(fd396792) SHA1(b5d051a7ce7e7c2f9c4a0d900cef4f9ef2089476),
+                            "fpmet_u6.716",CRC(0bd52abc) SHA1(2a40bcffbfc28b44c5badf1833ce6b1bd76a02e5))
 BY35_ROMEND
 #define input_ports_meteorfp input_ports_st
 CORE_CLONEDEFNV(meteorfp,meteor,"Meteor (Free Play)",1979,"Stern",by35_mST200,0)
@@ -317,18 +338,18 @@ CORE_CLONEDEFNV(meteorb,meteor,"Meteor (7-digit conversion)",2003,"Stern / Olive
 
 INITGAME(meteorc,GEN_STMPU200,dispst7,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
 ST200_ROMSTART8888(meteorc,"fp10met1.716",CRC(4b92583f) SHA1(44c78d856694d7fb34089f78212deac18a7c149f),
-                          "fp10met5.716",CRC(cd795f7a) SHA1(8f6113c7415cf5d2cf09d17c7de7f8e3d1c84334),
-                          "fp10met2.716",CRC(5a33ed97) SHA1(86c0c6cc68c33cdab603b65ec1dd30e208e0b1c1),
-                          "fp10met6.716",CRC(2ae8e9fb) SHA1(60af7ffef90382c7bf4ec7612e079114481825e1))
+                           "fp10met5.716",CRC(cd795f7a) SHA1(8f6113c7415cf5d2cf09d17c7de7f8e3d1c84334),
+                           "fp10met2.716",CRC(5a33ed97) SHA1(86c0c6cc68c33cdab603b65ec1dd30e208e0b1c1),
+                           "fp10met6.716",CRC(2ae8e9fb) SHA1(60af7ffef90382c7bf4ec7612e079114481825e1))
 BY35_ROMEND
 #define input_ports_meteorc input_ports_meteor
 CORE_CLONEDEFNV(meteorc,meteor,"Meteor (7-digit conversion Free Play)",2003,"Stern / Oliver",by35_mST200,0)
 
 INITGAME(meteord,GEN_STMPU200,dispst7,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
-ST200_ROMSTART8888(meteord,"cpu_u1.716",CRC(e0fd8452) SHA1(a13215378a678e26a565742d81fdadd2e161ba7a),
-                          "cpu_u5_d10.716",CRC(a0ac4dac) SHA1(05943374cdc9d67a20a00c62213e04f8f72c772c),
-                          "fp10met2.716",CRC(5a33ed97) SHA1(86c0c6cc68c33cdab603b65ec1dd30e208e0b1c1),
-                          "fp10met6.716",CRC(2ae8e9fb) SHA1(60af7ffef90382c7bf4ec7612e079114481825e1))
+ST200_ROMSTART8888(meteord,"cpu_u1.716",    CRC(e0fd8452) SHA1(a13215378a678e26a565742d81fdadd2e161ba7a),
+                           "cpu_u5_d10.716",CRC(a0ac4dac) SHA1(05943374cdc9d67a20a00c62213e04f8f72c772c),
+                           "fp10met2.716",  CRC(5a33ed97) SHA1(86c0c6cc68c33cdab603b65ec1dd30e208e0b1c1),
+                           "fp10met6.716",  CRC(2ae8e9fb) SHA1(60af7ffef90382c7bf4ec7612e079114481825e1))
 BY35_ROMEND
 #define input_ports_meteord input_ports_meteor
 CORE_CLONEDEFNV(meteord,meteor,"Meteor (/10 Scoring)",2005,"Stern / Oliver",by35_mST200,0)
@@ -363,7 +384,7 @@ ST200_ROMSTART8888(galaxyb,"cpu_u1b.716",CRC(53f7c0c9) SHA1(c3ee8bbdd1eca7a044c7
                            "cpu_u6b.716",CRC(be4eacc1) SHA1(3d95e8e859312ef0a7ed52356dabe35ed0bebdef))
 BY35_ROMEND
 #define input_ports_galaxyb input_ports_galaxy
-CORE_CLONEDEFNV(galaxyb,galaxy,"Galaxy (7-digit bootleg)",2004,"Stern / Oliver",by35_mST200,0)
+CORE_CLONEDEFNV(galaxyb,galaxy,"Galaxy (7-digit bootleg)",2003,"Stern / Oliver",by35_mST200,0) // rev. 2
 
 /*--------------------------------
 / Ali
@@ -432,13 +453,22 @@ CORE_CLONEDEFNV(seawitfp,seawitch,"Seawitch (Free Play)",1980,"Stern",by35_mST20
 / Cheetah
 /-------------------------------*/
 INITGAME(cheetah,GEN_STMPU200,dispst7,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
-ST200_ROMSTART8888(cheetah,"cpu_u1.716",CRC(6a845d94) SHA1(c272d5895edf2270f5f06fc33345bb4911abbee4),
-                           "cpu_u5.716",CRC(e7bdbe6c) SHA1(8b213c2271dbd5157e0d34a33672130b935d76be),
-                           "cpu_u2.716",CRC(a827a1a1) SHA1(723ebf193b5ce7b19df70e83caa9bb80f2e3fa66),
-                           "cpu_u6.716",CRC(ed33c227) SHA1(a96ba2814cef7663728bb5fdea2dc6ecfa219038))
+ST200_ROMSTART8888(cheetah,"CHEETAH__R_B20.U1",CRC(6a845d94) SHA1(c272d5895edf2270f5f06fc33345bb4911abbee4), /*cpu_u1.716*/
+                           "CHEETAH__R_B20.U5",CRC(e7bdbe6c) SHA1(8b213c2271dbd5157e0d34a33672130b935d76be), /*cpu_u5.716*/
+                           "CHEETAH__R_B20.U2",CRC(a827a1a1) SHA1(723ebf193b5ce7b19df70e83caa9bb80f2e3fa66), /*cpu_u2.716*/
+                           "CHEETAH__R_B20.U6",CRC(ed33c227) SHA1(a96ba2814cef7663728bb5fdea2dc6ecfa219038)) /*cpu_u6.716*/
 BY35_ROMEND
 #define input_ports_cheetah input_ports_st
-CORE_GAMEDEFNV(cheetah,"Cheetah",1980,"Stern",by35_mST200,0)
+CORE_GAMEDEFNV(cheetah,"Cheetah (Black cabinet)",1980,"Stern",by35_mST200,0)
+
+INITGAME(cheetahb,GEN_STMPU200,dispst7,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
+ST200_ROMSTART8888(cheetahb,"CHEETAH__X_B16.U1",CRC(2f736a0a) SHA1(e0dc14215d90145881ac1b407fbe057770696122), /*cheetah.u1*/
+                            "CHEETAH__X_B16.U5",CRC(168f0650) SHA1(5b3294bf64f06cc9d193bb14891b2acfbb5c06d4), /*cheetah.u5*/
+                            "CHEETAH__X_B16.U2",CRC(f6bd41bc) SHA1(ac94f4ba17c31dfe10ab7efab63d98aa3401e4ae), /*cheetah.u2*/
+                            "CHEETAH__X_B16.U6",CRC(c7eba210) SHA1(ced377e53f30b371e74c26527e5f8bebcc10ee59)) /*cheetah.u6*/
+BY35_ROMEND
+#define input_ports_cheetahb input_ports_st
+CORE_CLONEDEFNV(cheetahb,cheetah,"Cheetah (Blue cabinet)",1980,"Stern",by35_mST200,0)
 
 INITGAME(cheetafp,GEN_STMPU200,dispst7,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
 ST200_ROMSTART8888(cheetafp,"fpch_u1.716",CRC(af26e00e) SHA1(9573cf5a56bbd7a534022b43752c7c25042d707b),
@@ -489,7 +519,7 @@ BY35_ROMEND
 CORE_CLONEDEFNV(quicksfp,quicksil,"Quicksilver (Free Play)",1980,"Stern",by35_mST200,0)
 
 /*--------------------------------
-/ Stargazer
+/ Star Gazer
 /-------------------------------*/
 INITGAME(stargzr,GEN_STMPU200,dispst7,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
 ST200_ROMSTART8888(stargzr,"cpu_u1.716",CRC(83606fd4) SHA1(7f6448bc0dabe50de40fd47a7242c1be4a93e84d),
@@ -498,7 +528,7 @@ ST200_ROMSTART8888(stargzr,"cpu_u1.716",CRC(83606fd4) SHA1(7f6448bc0dabe50de40fd
                            "cpu_u6.716",CRC(4e1f4dc6) SHA1(1f63a0b71af84fb6e1168ff77cbcbabcaa1323f3))
 BY35_ROMEND
 #define input_ports_stargzr input_ports_st
-CORE_GAMEDEFNV(stargzr,"Stargazer",1980,"Stern",by35_mST200,0)
+CORE_GAMEDEFNV(stargzr,"Star Gazer",1980,"Stern",by35_mST200,0)
 
 INITGAME(stargzfp,GEN_STMPU200,dispst7,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
 ST200_ROMSTART8888(stargzfp,"fpsg_u1.716",CRC(4a4e3847) SHA1(87205061f5c981a2e6be6b8d56c8bc563611a30c),
@@ -507,10 +537,10 @@ ST200_ROMSTART8888(stargzfp,"fpsg_u1.716",CRC(4a4e3847) SHA1(87205061f5c981a2e6b
                            "cpu_u6.716",CRC(4e1f4dc6) SHA1(1f63a0b71af84fb6e1168ff77cbcbabcaa1323f3))
 BY35_ROMEND
 #define input_ports_stargzfp input_ports_st
-CORE_CLONEDEFNV(stargzfp,stargzr,"Stargazer (Free Play)",1980,"Stern",by35_mST200,0)
+CORE_CLONEDEFNV(stargzfp,stargzr,"Star Gazer (Free Play)",1980,"Stern",by35_mST200,0)
 
 /*--------------------------------
-/ Stargazer (modified rules rev .9)
+/ Star Gazer (modified rules rev .9)
 /-------------------------------*/
 INITGAME(stargzrb,GEN_STMPU200,dispst7,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
 ST200_ROMSTART8888(stargzrb,"cpu_u1.716",CRC(83606fd4) SHA1(7f6448bc0dabe50de40fd47a7242c1be4a93e84d),
@@ -519,7 +549,7 @@ ST200_ROMSTART8888(stargzrb,"cpu_u1.716",CRC(83606fd4) SHA1(7f6448bc0dabe50de40f
                            "cpu_u6b.716",CRC(b68b11c5) SHA1(1af6aca8ecf70d2adf588a1e856f753193c05abd))
 BY35_ROMEND
 #define input_ports_stargzrb input_ports_stargzr
-CORE_CLONEDEFNV(stargzrb,stargzr,"Stargazer (modified rules rev. 9)",2006,"Stern / Oliver",by35_mST200,0)
+CORE_CLONEDEFNV(stargzrb,stargzr,"Star Gazer (modified rules rev. 9)",2006,"Stern / Oliver",by35_mST200,0)
 
 /*--------------------------------
 / Flight 2000
@@ -757,7 +787,17 @@ ST200_ROMSTART8888(dragfisb,"cpu_u1.716",CRC(4cbd1a38) SHA1(73b7291f38cd0a330010
                             "bcpu_u6.716",CRC(7e8db47b) SHA1(4a42636c1baf39072bbe123855c9cc5f20ca6888))
 BY35_ROMEND
 #define input_ports_dragfisb input_ports_st
-CORE_CLONEDEFNV(dragfisb,dragfist,"Dragonfist (Bootleg)",1982,"Stern",by35_mST200,0)
+CORE_CLONEDEFNV(dragfisb,dragfist,"Dragonfist (Drop Target Score Bootleg)",1982,"Stern",by35_mST200,0)
+
+// This one from ipdb patches some more additional bytes from dragfisb, but no more documentation found
+INITGAME(dragfib2,GEN_STMPU200,dispDragfist,FLIP_SW(FLIP_L),0,SNDBRD_ST300,0)
+ST200_ROMSTART8888(dragfib2,"cpu_u1.716",CRC(4cbd1a38) SHA1(73b7291f38cd0a3300107605db26d474ecfc3101),
+                            "cpu_u5.716",CRC(1783269a) SHA1(75151b79844d26d9e8ecf00dec96643ee2fedc5b),
+                            "cpu_u2.716",CRC(9ac8292b) SHA1(99ad3ad6e1d1b19695ce1b5b76f6bd85c9c6530d),
+                            "b2cpu_u6.716",CRC(90b3baad) SHA1(ac2982baff3c4d61d38b39d446a3b8aa012acb30))
+BY35_ROMEND
+#define input_ports_dragfib2 input_ports_st
+CORE_CLONEDEFNV(dragfib2,dragfist,"Dragonfist (Drop Target Score Bootleg 2)",1982,"Stern",by35_mST200,0)
 
 /*--------------------------------
 / Orbitor 1
@@ -780,8 +820,8 @@ CORE_GAMEDEFNV(orbitor1,"Orbitor 1",1982,"Stern",by35_mST200v,0)
 
 INITGAME(orbitofp,GEN_STMPU200,dispOrbitor,FLIP_SW(FLIP_L),0,SNDBRD_ST300V,0)
 ST200_ROMSTART8888(orbitofp,"cpu_u1.716",CRC(575520e3) SHA1(9d52b065a14d4f95cebd48f60f628f2c246385fa),
-                            "fpo1_u5.716",CRC(d6eadb75) SHA1(dc3b483d76f3d02a3f8dd1d298f432ff594b968d),
-                            "fpo1_u2.716",CRC(83a6dc48) SHA1(ab6e8e5078ce94bd052ebaef9d323154b5c053bf),
+                           "fpo1_u5.716",CRC(d6eadb75) SHA1(dc3b483d76f3d02a3f8dd1d298f432ff594b968d),
+                           "fpo1_u2.716",CRC(83a6dc48) SHA1(ab6e8e5078ce94bd052ebaef9d323154b5c053bf),
                             "cpu_u6.716",CRC(8861155a) SHA1(81a1b3434d4f80dee5704454f8359200faea173d))
 VSU100_SOUNDROM_U9U10(      "snd_u9.716",CRC(2ba24569) SHA1(da2f4a4eeed9ae7ff8a342f4d630e12dcb2decf5),
                            "snd_u10.716",CRC(8e5b4a38) SHA1(de3f59363553f5f0d6098401734436930e64fbbd))
@@ -810,6 +850,17 @@ VSU100_SOUNDROM_U9U10(      "snd_u9.716",CRC(2ba24569) SHA1(da2f4a4eeed9ae7ff8a3
 BY35_ROMEND
 #define input_ports_orbitorb input_ports_st
 CORE_CLONEDEFNV(orbitorb,orbitor1,"Orbitor 1 (Bootleg Free Play)",1982,"Stern",by35_mST200v,0)
+
+INITGAME(orbitorc,GEN_STMPU200,dispOrbitor,FLIP_SW(FLIP_L),0,SNDBRD_ST300V,0)
+ST200_ROMSTART8888(orbitorc,"o1v3_u1.716",CRC(31677402) SHA1(5814c4eaa8c36842b6a9c3bbafed1efff39c7b3a), // called MOD1.716 on ipdb.org
+                             "MOD5.716", CRC(57896ec0) SHA1(a8aefa1fd8f05f3e2e112f2c2de474e71070ae05),
+                            "cpu_u2.716",CRC(4421d827) SHA1(9b617215f2d92ef2c69104eb4e63a924704665aa),
+                            "cpu_u6.716",CRC(8861155a) SHA1(81a1b3434d4f80dee5704454f8359200faea173d))
+VSU100_SOUNDROM_U9U10(      "snd_u9.716",CRC(2ba24569) SHA1(da2f4a4eeed9ae7ff8a342f4d630e12dcb2decf5),
+                           "snd_u10.716",CRC(8e5b4a38) SHA1(de3f59363553f5f0d6098401734436930e64fbbd))
+BY35_ROMEND
+#define input_ports_orbitorc input_ports_st
+CORE_CLONEDEFNV(orbitorc,orbitor1,"Orbitor 1 (Bootleg No Timed Game)",1982,"Stern",by35_mST200v,0)
 
 /*--------------------------------
 / Cue (Proto - Never released)

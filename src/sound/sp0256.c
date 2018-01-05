@@ -26,7 +26,7 @@
     This emulation flips the bits on every byte of the memory map during
     the sp0256_start() call.
 
-    If the memory map contents is modified during execution (becuase of ROM
+    If the memory map contents is modified during execution (because of ROM
     bank switching) the sp0256_bitrevbuff() call must be called after the
     section of ROM is modified.
 */
@@ -37,7 +37,11 @@
 #include "cpuintrf.h"
 #include "sp0256.h"
 
+#ifdef PINMAME
+#define CLOCK_DIVIDER 312
+#else
 #define CLOCK_DIVIDER (7*6*8)
+#endif
 #define HIGH_QUALITY
 
 #define SCBUF_SIZE   (4096)             /* Must be power of 2               */
@@ -271,7 +275,7 @@ static int lpc12_update(struct lpc12_t *f, int num_samp, INT16 *out, UINT32 *opt
         }
 
 #ifdef HIGH_QUALITY /* Higher quality than the original, but who cares? */
-        out[oidx++ & SCBUF_MASK] = limit(samp) << 2;
+        out[oidx++ & SCBUF_MASK] = limit(samp) << 4;
 #else
         out[oidx++ & SCBUF_MASK] = (limit(samp >> 4) << 8);
 #endif
@@ -1101,7 +1105,7 @@ static void sp0256_micro(void)
 static void sp0256_update(int num, INT16 *output, int length)
 {
 	int output_index = 0;
-  int samples, did_samp, old_idx;
+  int samples, did_samp/*, old_idx*/;
 
 	while( output_index < length )
 	{
@@ -1132,7 +1136,7 @@ static void sp0256_update(int num, INT16 *output, int length)
 		/*  repeat count holds up and we have room in our scratch buffer.   */
 		/* ---------------------------------------------------------------- */
 		did_samp = 0;
-		old_idx  = sp0256.sc_head;
+		//old_idx  = sp0256.sc_head;
 		if (samples > 0) do
 		{
 			int do_samp;

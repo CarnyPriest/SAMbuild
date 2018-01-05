@@ -21,9 +21,15 @@ struct DACinterface
 };
 
 int DAC_sh_start(const struct MachineSound *msound);
+
+#ifdef PINMAME
+void DAC_set_reverb_filter(int num, float delay, float force);
+#endif
+
 void DAC_data_w(int num,int data);
 void DAC_signed_data_w(int num,int data);
 void DAC_data_16_w(int num,int data);
+void DAC_DC_offset_correction_data_16_w(int num, int data);
 void DAC_signed_data_16_w(int num,int data);
 
 WRITE_HANDLER( DAC_0_data_w );

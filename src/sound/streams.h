@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-void set_RC_filter(int channel,int R1,int R2,int R3,int C);
+void set_RC_filter(int channel,int R1,int R2,int R3,int C,int sample_rate);
 
 int streams_sh_start(void);
 void streams_sh_stop(void);
@@ -24,6 +24,7 @@ void stream_update(int channel,int min_interval);	/* min_interval is in usec */
 
 #ifdef PINMAME
 void stream_set_sample_rate(int channel, int sample_rate);
+int stream_get_sample_rate(int channel);
 #endif /* PINMAME */
 
 #ifdef __cplusplus

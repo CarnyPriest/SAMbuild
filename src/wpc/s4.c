@@ -7,6 +7,9 @@
 #include "sndbrd.h"
 #include "wmssnd.h"
 #include "s4.h"
+#ifdef PROC_SUPPORT
+#include "p-roc/p-roc.h"
+#endif
 
 #define S4_PIA0 0
 #define S4_PIA1 1
@@ -17,8 +20,14 @@
 #define S4_IRQFREQ    1000  /* IRQ Frequency*/
 
 #define S4_SOLSMOOTH       2 /* Smooth the Solenoids over this numer of VBLANKS */
+#ifdef PROC_SUPPORT
+// TODO/PROC: Make variables out of these defines. Values depend on "-proc" switch.
+#define S4_LAMPSMOOTH      1
+#define S4_DISPLAYSMOOTH   1
+#else
 #define S4_LAMPSMOOTH      2 /* Smooth the lamps over this number of VBLANKS */
 #define S4_DISPLAYSMOOTH   2 /* Smooth the display over this number of VBLANKS */
+#endif
 
 static struct {
   int	 alphapos;
@@ -138,10 +147,38 @@ static WRITE_HANDLER(s4_pa_w) {
 static WRITE_HANDLER(s4_lampcol_w) { core_setLamp(coreGlobals.tmpLampMatrix, s4locals.lampColumn = data, s4locals.lampRow); }
 static WRITE_HANDLER(s4_lamprow_w) { core_setLamp(coreGlobals.tmpLampMatrix, s4locals.lampColumn, s4locals.lampRow = ~data); }
 
+#ifdef PROC_SUPPORT
+// pass 0 to coil_index for C01-C08 and 8 for C09-C16
+void update_proc_coils(UINT8 cur_data, UINT8 last_data, int coil_index) {
+  int i;
+  UINT8 changed_data = cur_data ^ last_data;
+  if (changed_data) {
+    for (i = 0; changed_data && i < 8; ++i) {
+      if (changed_data & 1) {
+        //printf("C%02u %s\n", i + 1 + coil_index, (cur_data & 1) ? "on" : "off"); 
+        procDriveCoil(i + 40 + coil_index, cur_data & 1);
+      }
+      changed_data >>= 1;
+      cur_data >>= 1;
+    }
+    procFlush();
+  }
+}
+#endif
+
 /**************************/
 /* REGULAR SOLENOIDS #1-8 */
 /**************************/
 static WRITE_HANDLER(s4_sol1_8_w) {
+  // sol #8 also used for sound command on some System 3 / 4
+  if (!(core_gameData->gen & GEN_S3C)) sndbrd_0_ctrl_w(0, ~data);
+#ifdef PROC_SUPPORT
+  if (coreGlobals.p_rocEn) {
+    static UINT8 last_data = 0;
+    update_proc_coils(data, last_data, 0);
+    last_data = data;
+  }
+#endif
   coreGlobals.pulsedSolState = (coreGlobals.pulsedSolState & 0xffffff00) | data;
   s4locals.solenoids |= data;
 }
@@ -152,6 +189,13 @@ static WRITE_HANDLER(s4_sol1_8_w) {
 static WRITE_HANDLER(s4_sol9_16_w) {
   // WPCMAME 20040816 - sound lines also trigger solenoids (for chimes)
   if (!(core_gameData->gen & GEN_S3C)) sndbrd_0_data_w(0, ~data);
+#ifdef PROC_SUPPORT
+  if (coreGlobals.p_rocEn) {
+    static UINT8 last_data = 0;
+    update_proc_coils(data, last_data, 8);
+    last_data = data;
+  }
+#endif
   coreGlobals.pulsedSolState = (coreGlobals.pulsedSolState & 0xffff00ff) | (data<<8);
   s4locals.solenoids |= (data<<8);
 }
@@ -174,7 +218,15 @@ static WRITE_HANDLER(s4_specsol6_w) { setSSSol(data, 5); }
 /*******************/
 /* GAME ON SIGNAL? */
 /*******************/
-WRITE_HANDLER(s4_gameon_w) { s4locals.ssEn = data; }
+WRITE_HANDLER(s4_gameon_w) {
+#ifdef PROC_SUPPORT
+  if (coreGlobals.p_rocEn) {
+    // drive C23 (flipper enable)
+    procDriveCoil(22 + 40, data & 1);
+  }
+#endif
+  s4locals.ssEn = data;
+}
 
 static const struct pia6821_interface s4_pia[] = {{
 /*PIA 1 - Display and other*/
@@ -252,6 +304,35 @@ static INTERRUPT_GEN(s4_vblank) {
 
   /*-- lamps --*/
   if ((s4locals.vblankCount % S4_LAMPSMOOTH) == 0) {
+#ifdef PROC_SUPPORT
+    if (coreGlobals.p_rocEn) {
+      // Keep the P-ROC tickled each time we run around the interrupt
+      // so it knows we are still alive
+      procTickleWatchdog();
+
+      // Loop through the lamp matrix, looking for any which have changed state
+      int col, row, procLamp;
+      for (col = 0; col < CORE_STDLAMPCOLS; col++) {
+        UINT8 chgLamps = coreGlobals.lampMatrix[col] ^ coreGlobals.tmpLampMatrix[col];
+        UINT8 tmpLamps = coreGlobals.tmpLampMatrix[col];
+        for (row = 0; row < 8; row++) {
+          procLamp = 80 + (8 * col) + row;
+          // If lamp (col,row) has changed state, drive the P-ROC with the new value
+          if (chgLamps & 0x01) {
+            procDriveLamp(procLamp, tmpLamps & 0x01);
+          }
+          // If this lamp was defined in the YAML file as one showing kickback status,
+          // then call to the kickback routine to update information
+          if (coreGlobals.isKickbackLamp[procLamp]) {
+            procKickbackCheck(procLamp);
+          }
+          chgLamps >>= 1;
+          tmpLamps >>= 1;
+        }
+      }
+      procFlush();
+    }
+#endif
     memcpy(coreGlobals.lampMatrix, coreGlobals.tmpLampMatrix, sizeof(coreGlobals.tmpLampMatrix));
     memset(coreGlobals.tmpLampMatrix, 0, sizeof(coreGlobals.tmpLampMatrix));
   }
@@ -260,6 +341,11 @@ static INTERRUPT_GEN(s4_vblank) {
   if (s4locals.ssEn) {
     int ii;
     s4locals.solenoids |= CORE_SOLBIT(CORE_SSFLIPENSOL);
+#ifdef PROC_SUPPORT
+    if (!coreGlobals.p_rocEn)
+    // Only update special solenoids if no P-ROC; otherwise they
+    // lock on when controlled by direct switches
+#endif
     /*-- special solenoids updated based on switches --*/
     for (ii = 0; ii < 6; ii++) {
       if (core_gameData->sxx.ssSw[ii] && core_getSw(core_gameData->sxx.ssSw[ii]))
@@ -278,6 +364,15 @@ static INTERRUPT_GEN(s4_vblank) {
     memcpy(coreGlobals.segments, s4locals.segments, sizeof(coreGlobals.segments));
     memset(s4locals.segments,0,sizeof(s4locals.segments));
 
+#ifdef PROC_SUPPORT
+    /* On the Combo-interface for Sys11, driver 63 is the diag LED */
+//    if (core_gameData->gen & GEN_ALLS4) {
+//        if (coreGlobals.diagnosticLed != locals.diagnosticLed) {
+//            procDriveCoil(63,locals.diagnosticLed);
+//        }
+//    }
+#endif //PROC_SUPPORT
+
     /*update leds*/
     coreGlobals.diagnosticLed = s4locals.diagnosticLed;
   }
@@ -285,8 +380,17 @@ static INTERRUPT_GEN(s4_vblank) {
 }
 
 static SWITCH_UPDATE(s4) {
+#ifdef PROC_SUPPORT
+  // Go read the switches from the P-ROC
+  if (coreGlobals.p_rocEn) 
+    procGetSwitchEvents();
+#endif
   if (inports) {
+#ifndef PROC_SUPPORT
+    // All the matrix switches come from the P-ROC, so we only want to read
+    // the first column from the keyboard if we are not using the P-ROC
     coreGlobals.swMatrix[1] = inports[S4_COMINPORT] & 0x00ff;
+#endif
     coreGlobals.swMatrix[0] = (inports[S4_COMINPORT] & 0xff00)>>8;
   }
   /*-- Diagnostic buttons on CPU board --*/
@@ -304,7 +408,7 @@ static MACHINE_INIT(s4) {
   pia_config(S4_PIA2, PIA_STANDARD_ORDERING, &s4_pia[2]);
   pia_config(S4_PIA3, PIA_STANDARD_ORDERING, &s4_pia[3]);
   if (!(core_gameData->gen & GEN_S3C))
-    sndbrd_0_init(SNDBRD_S67S, 1, NULL, NULL, NULL);
+    sndbrd_0_init(core_gameData->hw.soundBoard ? core_gameData->hw.soundBoard : SNDBRD_S67S, 1, NULL, NULL, NULL);
   s4locals.vblankCount = 1;
 }
 static MACHINE_RESET(s4) {
@@ -343,7 +447,7 @@ MEMORY_END
 MACHINE_DRIVER_START(s4)
   MDRV_IMPORT_FROM(PinMAME)
   MDRV_CORE_INIT_RESET_STOP(s4,s4,s4)
-  MDRV_CPU_ADD(M6800, 3580000/4)
+  MDRV_CPU_ADD(M6800, 3579545/4)
   MDRV_CPU_MEMORY(s4_readmem, s4_writemem)
   MDRV_CPU_VBLANK_INT(s4_vblank, 1)
   MDRV_CPU_PERIODIC_INT(s4_irq, S4_IRQFREQ)
@@ -351,6 +455,12 @@ MACHINE_DRIVER_START(s4)
   MDRV_DIPS(8+16)
   MDRV_SWITCH_UPDATE(s4)
   MDRV_DIAGNOSTIC_LEDV(2)
+MACHINE_DRIVER_END
+
+/*-- S3 with sound board --*/
+MACHINE_DRIVER_START(s3S)
+  MDRV_IMPORT_FROM(s4)
+  MDRV_IMPORT_FROM(wmssnd_s67s)
 MACHINE_DRIVER_END
 
 /*-- S4 with sound board --*/

@@ -16,7 +16,9 @@
 
 #define MAX_OUTPUT 0x7fff
 
-#define STEP 0x8000
+#define STEP 2
+
+#define SINGLE_CHANNEL_MIXER // mix all channels into one stream to avoid having to resample all separately, undef for debugging purpose
 
 //#define VERBOSE
 
@@ -33,7 +35,7 @@ static int num = 0, ym_num = 0;
 struct AY8910
 {
 	int Channel;
-	int SampleRate;
+	int ready;
 	read8_handler PortAread;
 	read8_handler PortBread;
 	write8_handler PortAwrite;
@@ -41,7 +43,6 @@ struct AY8910
 	INT32 register_latch;
 	UINT8 Regs[16];
 	INT32 lastEnable;
-	UINT32 UpdateStep;
 	INT32 PeriodA,PeriodB,PeriodC,PeriodN,PeriodE;
 	INT32 CountA,CountB,CountC,CountN,CountE;
 	UINT32 VolA,VolB,VolC,VolE;
@@ -51,6 +52,9 @@ struct AY8910
 	UINT8 Hold,Alternate,Attack,Holding;
 	INT32 RNG;
 	unsigned int VolTable[32];
+#ifdef SINGLE_CHANNEL_MIXER
+	unsigned int mix_vol[3];
+#endif
 };
 
 /* register id's */
@@ -77,7 +81,7 @@ static struct AY8910 AYPSG[MAX_8910];		/* array of PSG's */
 
 
 
-void _AYWriteReg(int n, int r, int v)
+static void _AYWriteReg(int n, int r, int v)
 {
 	struct AY8910 *PSG = &AYPSG[n];
 	int old;
@@ -101,8 +105,8 @@ void _AYWriteReg(int n, int r, int v)
 	case AY_ACOARSE:
 		PSG->Regs[AY_ACOARSE] &= 0x0f;
 		old = PSG->PeriodA;
-		PSG->PeriodA = (PSG->Regs[AY_AFINE] + 256 * PSG->Regs[AY_ACOARSE]) * PSG->UpdateStep;
-		if (PSG->PeriodA == 0) PSG->PeriodA = PSG->UpdateStep;
+		PSG->PeriodA = (PSG->Regs[AY_AFINE] + (INT32)256 * PSG->Regs[AY_ACOARSE]) * STEP;
+		if (PSG->PeriodA == 0) PSG->PeriodA = STEP;
 		PSG->CountA += PSG->PeriodA - old;
 		if (PSG->CountA <= 0) PSG->CountA = 1;
 		break;
@@ -110,8 +114,8 @@ void _AYWriteReg(int n, int r, int v)
 	case AY_BCOARSE:
 		PSG->Regs[AY_BCOARSE] &= 0x0f;
 		old = PSG->PeriodB;
-		PSG->PeriodB = (PSG->Regs[AY_BFINE] + 256 * PSG->Regs[AY_BCOARSE]) * PSG->UpdateStep;
-		if (PSG->PeriodB == 0) PSG->PeriodB = PSG->UpdateStep;
+		PSG->PeriodB = (PSG->Regs[AY_BFINE] + (INT32)256 * PSG->Regs[AY_BCOARSE]) * STEP;
+		if (PSG->PeriodB == 0) PSG->PeriodB = STEP;
 		PSG->CountB += PSG->PeriodB - old;
 		if (PSG->CountB <= 0) PSG->CountB = 1;
 		break;
@@ -119,16 +123,16 @@ void _AYWriteReg(int n, int r, int v)
 	case AY_CCOARSE:
 		PSG->Regs[AY_CCOARSE] &= 0x0f;
 		old = PSG->PeriodC;
-		PSG->PeriodC = (PSG->Regs[AY_CFINE] + 256 * PSG->Regs[AY_CCOARSE]) * PSG->UpdateStep;
-		if (PSG->PeriodC == 0) PSG->PeriodC = PSG->UpdateStep;
+		PSG->PeriodC = (PSG->Regs[AY_CFINE] + (INT32)256 * PSG->Regs[AY_CCOARSE]) * STEP;
+		if (PSG->PeriodC == 0) PSG->PeriodC = STEP;
 		PSG->CountC += PSG->PeriodC - old;
 		if (PSG->CountC <= 0) PSG->CountC = 1;
 		break;
 	case AY_NOISEPER:
 		PSG->Regs[AY_NOISEPER] &= 0x1f;
 		old = PSG->PeriodN;
-		PSG->PeriodN = PSG->Regs[AY_NOISEPER] * PSG->UpdateStep;
-		if (PSG->PeriodN == 0) PSG->PeriodN = PSG->UpdateStep;
+		PSG->PeriodN = PSG->Regs[AY_NOISEPER] * (INT32)STEP;
+		if (PSG->PeriodN == 0) PSG->PeriodN = STEP;
 		PSG->CountN += PSG->PeriodN - old;
 		if (PSG->CountN <= 0) PSG->CountN = 1;
 		break;
@@ -169,8 +173,8 @@ void _AYWriteReg(int n, int r, int v)
 	case AY_EFINE:
 	case AY_ECOARSE:
 		old = PSG->PeriodE;
-		PSG->PeriodE = ((PSG->Regs[AY_EFINE] + 256 * PSG->Regs[AY_ECOARSE])) * PSG->UpdateStep;
-		if (PSG->PeriodE == 0) PSG->PeriodE = PSG->UpdateStep / 2;
+		PSG->PeriodE = ((PSG->Regs[AY_EFINE] + (INT32)256 * PSG->Regs[AY_ECOARSE])) * STEP;
+		if (PSG->PeriodE == 0) PSG->PeriodE = STEP / 2;
 		PSG->CountE += PSG->PeriodE - old;
 		if (PSG->CountE <= 0) PSG->CountE = 1;
 		break;
@@ -380,16 +384,40 @@ WRITE16_HANDLER( AY8910_write_port_4_msb_w ) { if (ACCESSING_MSB) AY8910Write(4,
 
 
 
-static void AY8910Update(int chip,INT16 **buffer,int length)
+static void AY8910Update(int chip,
+#ifdef SINGLE_CHANNEL_MIXER
+                         INT16 *buffer,
+#else
+                         INT16 **buffer,
+#endif
+                         int length)
 {
 	struct AY8910 *PSG = &AYPSG[chip];
-	INT16 *buf1,*buf2,*buf3;
 	int outn;
 
+	INT16 *buf1;
+#ifdef SINGLE_CHANNEL_MIXER
+	INT32 tmp_buf;
+	buf1 = buffer;
+#else
+	INT16 *buf2,*buf3;
 	buf1 = buffer[0];
 	buf2 = buffer[1];
 	buf3 = buffer[2];
+#endif
 
+	/* hack to prevent us from hanging when starting filtered outputs */
+	if (!PSG->ready)
+	{
+		memset(buf1, 0, length * sizeof(*buf1));
+#ifndef SINGLE_CHANNEL_MIXER
+		if (buf2)
+			memset(buf2, 0, length * sizeof(*buf2));
+		if (buf3)
+			memset(buf3, 0, length * sizeof(*buf3));
+#endif
+		return;
+	}
 
 	/* The 8910 has three outputs, each output is the mix of one of the three */
 	/* tone generators and of the (single) noise generator. The two are mixed */
@@ -638,30 +666,31 @@ static void AY8910Update(int chip,INT16 **buffer,int length)
 			}
 		}
 
+#ifdef SINGLE_CHANNEL_MIXER
+		tmp_buf = (vola * PSG->VolA * PSG->mix_vol[0] + volb * PSG->VolB * PSG->mix_vol[1] + volc * PSG->VolC * PSG->mix_vol[2])/(100*STEP);
+		*(buf1++) = (tmp_buf < -32768) ? -32768 : ((tmp_buf > 32767) ? 32767 : tmp_buf);
+#else
 		*(buf1++) = (vola * PSG->VolA) / STEP;
 		*(buf2++) = (volb * PSG->VolB) / STEP;
 		*(buf3++) = (volc * PSG->VolC) / STEP;
-
+#endif
 		length--;
 	}
 }
 
 
-void AY8910_set_clock(int chip,int clock)
+void AY8910_set_clock(int chip, int clock)
 {
 	struct AY8910 *PSG = &AYPSG[chip];
 
-	/* the step clock for the tone and noise generators is the chip clock    */
-	/* divided by 8; for the envelope generator of the AY-3-8910, it is half */
-	/* that much (clock/16), but the envelope of the YM2149 goes twice as    */
-	/* fast, therefore again clock/8.                                        */
-	/* Here we calculate the number of steps which happen during one sample  */
-	/* at the given sample rate. No. of events = sample rate / (clock/8).    */
-	/* STEP is a multiplier used to turn the fraction into a fixed point     */
-	/* number.                                                               */
-	PSG->UpdateStep = ((double)STEP * PSG->SampleRate * 8 + clock/2) / clock;
+#ifdef SINGLE_CHANNEL_MIXER
+	stream_set_sample_rate(PSG->Channel, clock/8);
+#else
+	int ch;
+	for (ch = 0; ch < 3; ch++)
+		stream_set_sample_rate(PSG->Channel + ch, clock/8);
+#endif
 }
-
 
 void AY8910_set_volume(int chip,int channel,int volume)
 {
@@ -670,7 +699,11 @@ void AY8910_set_volume(int chip,int channel,int volume)
 
 	for (ch = 0; ch < 3; ch++)
 		if (channel == ch || channel == ALL_8910_CHANNELS)
+#ifdef SINGLE_CHANNEL_MIXER
+			PSG->mix_vol[ch] = volume;
+#else
 			mixer_set_volume(PSG->Channel + ch, volume);
+#endif
 }
 
 
@@ -688,7 +721,7 @@ static void build_mixer_table(int chip)
 	out = MAX_OUTPUT;
 	for (i = 31;i > 0;i--)
 	{
-		PSG->VolTable[i] = out + 0.5;	/* round to nearest */
+		PSG->VolTable[i] = (unsigned int)(out + 0.5);	/* round to nearest */
 
 		out /= 1.188502227;	/* = 10 ^ (1.5/20) = 1.5dB */
 	}
@@ -713,6 +746,7 @@ void AY8910_reset(int chip)
 		_AYWriteReg(chip,i,0);	/* AYWriteReg() uses the timer system; we cannot */
 								/* call it at this time because the timer system */
 								/* has not been initialized. */
+	PSG->ready = 1;
 }
 
 void AY8910_sh_reset(void)
@@ -728,23 +762,38 @@ static int AY8910_init(const char *chip_name,int chip,
 		mem_read_handler portAread,mem_read_handler portBread,
 		mem_write_handler portAwrite,mem_write_handler portBwrite)
 {
-	int i;
 	struct AY8910 *PSG = &AYPSG[chip];
+	int i;
+#ifdef SINGLE_CHANNEL_MIXER
+	char buf[40];
+	int gain = MIXER_GET_GAIN(volume);
+	int pan = MIXER_GET_PAN(volume);
+#else
 	char buf[3][40];
 	const char *name[3];
 	int vol[3];
+#endif
 
-
+	/* the step clock for the tone and noise generators is the chip clock    */
+	/* divided by 8; for the envelope generator of the AY-3-8910, it is half */
+	/* that much (clock/16), but the envelope of the YM2149 goes twice as    */
+	/* fast, therefore again clock/8.                                        */
 // causes crashes with YM2610 games - overflow?
 //	if (options.use_filter)
-//		sample_rate = clock/8;
+		sample_rate = clock/8;
 
 	memset(PSG,0,sizeof(struct AY8910));
-	PSG->SampleRate = sample_rate;
 	PSG->PortAread = portAread;
 	PSG->PortBread = portBread;
 	PSG->PortAwrite = portAwrite;
 	PSG->PortBwrite = portBwrite;
+
+#ifdef SINGLE_CHANNEL_MIXER
+	for (i = 0;i < 3;i++)
+		PSG->mix_vol[i] = MIXER_GET_LEVEL(volume);
+	sprintf(buf,"%s #%d",chip_name,chip);
+	PSG->Channel = stream_init(buf,MIXERG(100,gain,pan),sample_rate,chip,AY8910Update);
+#else
 	for (i = 0;i < 3;i++)
 	{
 		vol[i] = volume;
@@ -752,11 +801,10 @@ static int AY8910_init(const char *chip_name,int chip,
 		sprintf(buf[i],"%s #%d Ch %c",chip_name,chip,'A'+i);
 	}
 	PSG->Channel = stream_init_multi(3,name,vol,sample_rate,chip,AY8910Update);
+#endif
 
 	if (PSG->Channel == -1)
 		return 1;
-
-	AY8910_set_clock(chip,clock);
 
 	return 0;
 }
@@ -769,7 +817,6 @@ static void AY8910_statesave(int chip)
 	state_save_register_INT32("AY8910",  chip, "register_latch", &PSG->register_latch, 1);
 	state_save_register_UINT8("AY8910",  chip, "Regs",           PSG->Regs,            8);
 	state_save_register_INT32("AY8910",  chip, "lastEnable",     &PSG->lastEnable,     1);
-	state_save_register_UINT32("AY8910", chip, "UpdateStep",     &PSG->UpdateStep,     1);
 
 	state_save_register_INT32("AY8910",  chip, "PeriodA",        &PSG->PeriodA,        1);
 	state_save_register_INT32("AY8910",  chip, "PeriodB",        &PSG->PeriodB,        1);
@@ -863,3 +910,19 @@ void AY8910_sh_stop_ym(void)
 	ym_num = 0;
 }
 
+#ifdef PINMAME
+void AY8910_set_reverb_filter(int chip, float delay, float force)
+{
+	struct AY8910 *PSG = &AYPSG[chip];
+
+#ifdef SINGLE_CHANNEL_MIXER
+	//stream_update(PSG->Channel, 0); //!!?
+	mixer_set_reverb_filter(PSG->Channel, delay, force);
+#else
+	int ch;
+	for (ch = 0; ch < 3; ch++)
+		//stream_update(PSG->Channel + ch, 0); //!!?
+		mixer_set_reverb_filter(PSG->Channel + ch, delay, force);
+#endif
+}
+#endif

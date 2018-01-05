@@ -34,6 +34,10 @@ static void init_##name(void) { core_gameData = &name##GameData; }
 static core_tGameData name##GameData = {0,dispTaito,{FLIP_SW(FLIP_L),0,0,0,sb,0}}; \
 static void init_##name(void) { core_gameData = &name##GameData; }
 
+#define INITGAME2(name,sb) \
+static core_tGameData name##GameData = {0,dispTaito,{FLIP_SW(FLIP_L),0,0,0,sb,0,1}}; \
+static void init_##name(void) { core_gameData = &name##GameData; }
+
 //02/79 Apache!
 //03/79 Football
 //03/79 Hot Ball (B Eight Ball, 01/77)
@@ -162,21 +166,21 @@ TAITO_ROMSTART2222(sureshot,"ssh1.bin",CRC(46b96e00) SHA1(2cdbc0994bf0ff55330988
                             "ssh4.bin",CRC(ced8f9df) SHA1(ba6b50df3ad2cb28885542748a61777df2010d69))
 TAITO_SOUNDROMS222("ssh_s1.bin", CRC(acb7e92f) SHA1(103da5c87d0f1e0444575193e760b667d42fea73),
                    "ssh_s2.bin", CRC(c1351b31) SHA1(a306ff7abe5b032cd05195200fc56a97c1d2eef3),
-				   "ssh_s3.bin", CRC(5e7f5275) SHA1(48eb1a499d2485b317ad769d876ec4cd57980285))
+                   "ssh_s3.bin", CRC(4efbe537) SHA1(cd8b78433ff1f4da42482a8c6ef97d0ba36be262))
 TAITO_ROMEND
 #define input_ports_sureshot input_ports_taito
-CORE_GAMEDEFNV(sureshot,"Sure Shot",1981,"Taito",taito_sintetizador,GAME_IMPERFECT_SOUND)
+CORE_GAMEDEFNV(sureshot,"Sure Shot",1981,"Taito",taito_sintetizador_nmi,0)
 
 /*--------------------------------
 / Lady Luck
 /-------------------------------*/
-INITGAME(ladylukt,SNDBRD_TAITO_SINTEVOX)
+INITGAME2(ladylukt,SNDBRD_TAITO_SINTEVOX)
 TAITO_ROMSTART2222(ladylukt,"lluck1.bin",CRC(be242895) SHA1(0528e9049e44b5ae7bba4a21ca5c0a2e5ffa4ca5),
                             "lluck2.bin",CRC(48169726) SHA1(282a322178e007df1183620dfcf3411bc67d8a0a),
                             "lluck3.bin",CRC(f22666f6) SHA1(2b92007cc4c91a2804d9f6229fa68be35be849ce),
                             "lluck4.bin",CRC(1715ee7e) SHA1(45677053f501d687d7482e70b7902a67d277eee9))
-TAITO_SOUNDROMS22("lluck_s1.bin", CRC(78ed85b4) SHA1(72fee3e337f2d2174a41434084699c3a472d798e),
-                  "lluck_s2.bin", CRC(b0b05e9f) SHA1(1b5b5701ece241913367960eba7f58ca1a528548))
+TAITO_SOUNDROMS22("lluck_s1.bin", CRC(41c703c0) SHA1(2996f6e1e15d7caea19abceb27a2f897bb0f598d),
+                  "lluck_s2.bin", CRC(66ab66df) SHA1(4e4d3fd4872ba4943e40c7313f6ddc2d12c2224f))
 TAITO_ROMEND
 #define input_ports_ladylukt input_ports_taito
 CORE_GAMEDEFNV(ladylukt,"Lady Luck (Taito)",1981,"Taito",taito_sintevox,0)
@@ -188,8 +192,8 @@ TAITO_ROMSTART2222(vegast,"lluck1.bin",CRC(be242895) SHA1(0528e9049e44b5ae7bba4a
                           "lluck2.bin",CRC(48169726) SHA1(282a322178e007df1183620dfcf3411bc67d8a0a),
                           "vegas3.bin",CRC(bd1fdbc3) SHA1(e184cec644b2d5cc05c3d458a06299359322df00),
                           "vegas4.bin",CRC(61f733a9) SHA1(a86ac621d81eb69a56706f9b0d49c0816f14a016))
-TAITO_SOUNDROMS22("lluck_s1.bin", CRC(78ed85b4) SHA1(72fee3e337f2d2174a41434084699c3a472d798e),
-                  "lluck_s2.bin", CRC(b0b05e9f) SHA1(1b5b5701ece241913367960eba7f58ca1a528548))
+TAITO_SOUNDROMS22("vegas_s1.bin", CRC(78ed85b4) SHA1(72fee3e337f2d2174a41434084699c3a472d798e),
+                  "vegas_s2.bin", CRC(b0b05e9f) SHA1(1b5b5701ece241913367960eba7f58ca1a528548))
 TAITO_ROMEND
 #define init_vegast init_ladylukt
 #define input_ports_vegast input_ports_ladylukt
@@ -407,18 +411,18 @@ TAITO_ROMEND
 CORE_GAMEDEFNV(gork,"Gork",1982,"Taito",taito_sintevoxpp,0)
 
 /*--------------------------------
-/ Voley Ball
+/ Volley
 /-------------------------------*/
 INITGAME(voleybal,SNDBRD_TAITO_SINTETIZADORPP)
-TAITO_ROMSTART2222(voleybal,"voley1.bin",NO_DUMP,
-                            "voley2.bin",NO_DUMP,
-                            "voley3.bin",NO_DUMP,
-                            "voley4.bin",NO_DUMP)
+TAITO_ROMSTART2222(voleybal,"voley1.bin",CRC(d218b759) SHA1(91dab8a583b9fa897fc0bd17cce2812015b2a82a),
+                            "voley2.bin",CRC(59b049cc) SHA1(f3b42debddf7e088f520c020017c0aca56ad0052),
+                            "voley3.bin",CRC(f3fdbb37) SHA1(d78bd68e7bdbdbc4447c65b77bd5b30a23d0951c),
+                            "voley4.bin",CRC(35168496) SHA1(29ca360368970a0fae51f187ad5a89ad81ae2c6a))
 TAITO_SOUNDROMS44("voley_s1.bin", CRC(9c825666) SHA1(330ecd9caccb8a1555c5e7302095ae25558c020e),
                   "voley_s2.bin", CRC(79a8228c) SHA1(e71d9347a8fc230c70703164ae0e4d44423bbb5d))
 TAITO_ROMEND
 #define input_ports_voleybal input_ports_taito
-CORE_GAMEDEFNV(voleybal,"Voley Ball",198?,"Taito",taito_sintetizadorpp,0)
+CORE_GAMEDEFNV(voleybal,"Volley",198?,"Taito",taito_sintetizadorpp,0)
 
 //??/8? Ogar
 
@@ -436,7 +440,7 @@ TAITO_SOUNDROMS444("mrb_s1.bin", CRC(ff28b2b9) SHA1(3106811740e0206ad4ba7845e204
                    "mrb_s3.bin", CRC(276fb897) SHA1(b1a4323a4d921e3ae4beefaa04cd95e18cc33b9d))
 TAITO_ROMEND
 #define input_ports_mrblack input_ports_taito
-CORE_GAMEDEFNV(mrblack,"Mr. Black",1984,"Taito",taito_sintetizadorpp,GAME_IMPERFECT_SOUND)
+CORE_GAMEDEFNV(mrblack,"Mr. Black",1984,"Taito",taito_sintetizadorpp_nmi,0)
 
 TAITO_ROMSTART22222(mrblack1,"mrb1a.bin",CRC(a97c986a) SHA1(315b3410eb495aa471da20bc199754ff0d8e9a3b),
                              "mrb2.bin", CRC(ddf2a88e) SHA1(8de67f4032811ec3b7da1655207d05e52d4e5e01),
@@ -449,7 +453,7 @@ TAITO_SOUNDROMS444("mrb_s1.bin", CRC(ff28b2b9) SHA1(3106811740e0206ad4ba7845e204
 TAITO_ROMEND
 #define init_mrblack1 init_mrblack
 #define input_ports_mrblack1 input_ports_mrblack
-CORE_CLONEDEFNV(mrblack1,mrblack,"Mr. Black (alternate set)",1985,"Taito",taito_sintetizadorpp,GAME_IMPERFECT_SOUND)
+CORE_CLONEDEFNV(mrblack1,mrblack,"Mr. Black (alternate set)",1985,"Taito",taito_sintetizadorpp_nmi,0)
 
 /*--------------------------------
 / Fire Action Deluxe

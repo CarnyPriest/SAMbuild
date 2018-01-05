@@ -623,6 +623,7 @@ static void fh_drawStatic(BMTYPE **line) {
 /*-----------------
 /  ROM definitions
 /------------------*/
+// "special L-2 sound ROM" for L-9:
 #define FH_SOUND_L3 \
 WPCS_SOUNDROM222("fh_u18.sl3",CRC(7f6c7045) SHA1(8c8d601e8e6598507d75b4955ccc51623124e8ab), \
                  "fh_u15.sl2",CRC(0744b9f5) SHA1(b626601d82e6b1cf25f7fdcca31e623fc14a3f92), \
@@ -740,12 +741,33 @@ static core_tGameData fhGameData = {
 ---------------------------------------------------------------------------------------------*/
 
 
+#ifdef PROC_SUPPORT
+  #include "p-roc/p-roc.h"
+  /*
+    Solenoid smoothing messes up Rudy's mouth (C21 and C22)
+  */
+  void fh_wpc_proc_solenoid_handler(int solNum, int enabled, int smoothed) {
+    switch (solNum) {
+      case 20:  // C21, Mouth Motor
+      case 21:  // C22, Up/Down Driver
+        // Solenoids to handle in immediate mode, not smoothed.  Negate `smoothed`
+        // so default handler will process immediate solenoid changes and ignore
+        // smoothed changes.
+        smoothed = !smoothed;
+    }
+    default_wpc_proc_solenoid_handler(solNum, enabled, smoothed);
+  }
+#endif
+
 /*---------------
 /  Game handling
 /----------------*/
 static void init_fh(void) {
   core_gameData = &fhGameData;
   locals.divertercount=0;
+#ifdef PROC_SUPPORT
+  wpc_proc_solenoid_handler = fh_wpc_proc_solenoid_handler;
+#endif
 }
 
 

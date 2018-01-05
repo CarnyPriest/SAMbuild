@@ -55,7 +55,8 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;LSB_FIRST;inline=__inline;__inline__=__inline;INLINE=__inline;DIRECTINPUT_VERSION=0x0500;DIRECTDRAW_VERSION=0x0300;PROCESSOR_ARCHITECTURE=x86;ZLIB_WINAPI;MAMEVER=7300;PINMAME;PINMAME_NO_UNUSED;VPINMAME"
+				AdditionalIncludeDirectories="src;src\wpc;src\windows;src\vc;src\cpu\m68000\generated_by_m68kmake;src\win32com;ext\zlib\include;$(IntDir)\MIDL"
+				PreprocessorDefinitions="VPINMAME_ALTSOUND;VPINMAME_PINSOUND;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;LSB_FIRST;inline=__inline;__inline__=__inline;INLINE=__inline;DIRECTINPUT_VERSION=0x0500;DIRECTDRAW_VERSION=0x0300;PROCESSOR_ARCHITECTURE=x86;ZLIB_WINAPI;MAMEVER=7300;PINMAME;PINMAME_NO_UNUSED;VPINMAME"
 				StringPooling="true"
 				ExceptionHandling="0"
 				RuntimeLibrary="0"
@@ -83,12 +84,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="zlibstatmt.lib winmm.lib dxguid.lib ddraw.lib dinput.lib dsound.lib odbc32.lib odbccp32.lib version.lib"
+				AdditionalDependencies="bass.lib zlibstatmt.lib winmm.lib dxguid.lib ddraw.lib dinput.lib dsound.lib odbc32.lib odbccp32.lib version.lib"
 				OutputFile="$(OutDir)\VPinMAME.dll"
 				Version="20.0"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="ext\zlib\lib_vc9"
+				AdditionalLibraryDirectories="ext\bass;ext\zlib\lib_vc9"
 				ModuleDefinitionFile="src\win32com\VPinMAME.def"
 				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"
 				SubSystem="2"
@@ -156,7 +157,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="src;src\wpc;src\windows;src\vc;src\cpu\m68000\generated_by_m68kmake;src\win32com;ext\zlib\include;$(IntDir)\MIDL"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;LSB_FIRST;inline=__inline;__inline__=__inline;INLINE=__inline;DIRECTINPUT_VERSION=0x0500;DIRECTDRAW_VERSION=0x0300;PROCESSOR_ARCHITECTURE=x86;ZLIB_WINAPI;MAMEVER=7300;PINMAME;PINMAME_NO_UNUSED;VPINMAME"
+				PreprocessorDefinitions="VPINMAME_ALTSOUND;VPINMAME_PINSOUND;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;LSB_FIRST;inline=__inline;__inline__=__inline;INLINE=__inline;DIRECTINPUT_VERSION=0x0500;DIRECTDRAW_VERSION=0x0300;PROCESSOR_ARCHITECTURE=x86;ZLIB_WINAPI;MAMEVER=7300;PINMAME;PINMAME_NO_UNUSED;VPINMAME"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				AssemblerListingLocation="$(IntDir)\"
@@ -181,12 +182,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="zlibstatmtd.lib winmm.lib dxguid.lib ddraw.lib dinput.lib dsound.lib odbc32.lib odbccp32.lib version.lib"
+				AdditionalDependencies="bass.lib zlibstatmtd.lib winmm.lib dxguid.lib ddraw.lib dinput.lib dsound.lib odbc32.lib odbccp32.lib version.lib"
 				OutputFile="$(OutDir)\VPinMAME.dll"
 				Version="4.0"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="ext\zlib\lib_vc9"
+				AdditionalLibraryDirectories="ext\bass;ext\zlib\lib_vc9"
 				ModuleDefinitionFile="src\win32com\VPinMAME.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"
@@ -256,7 +257,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="src;src\wpc;src\windows;src\vc;src\cpu\m68000\generated_by_m68kmake;src\win32com;ext\zlib\include;$(IntDir)\MIDL"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;LSB_FIRST;inline=__inline;__inline__=__inline;INLINE=__inline;DIRECTINPUT_VERSION=0x0500;DIRECTDRAW_VERSION=0x0300;PROCESSOR_ARCHITECTURE=x86;ZLIB_WINAPI;MAMEVER=7300;PINMAME;PINMAME_NO_UNUSED;VPINMAME;MAME_DEBUG"
+				PreprocessorDefinitions="VPINMAME_ALTSOUND;VPINMAME_PINSOUND;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;LSB_FIRST;inline=__inline;__inline__=__inline;INLINE=__inline;DIRECTINPUT_VERSION=0x0500;DIRECTDRAW_VERSION=0x0300;PROCESSOR_ARCHITECTURE=x86;ZLIB_WINAPI;MAMEVER=7300;PINMAME;PINMAME_NO_UNUSED;VPINMAME;MAME_DEBUG"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -280,12 +281,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="zlibstatmt.lib winmm.lib dxguid.lib ddraw.lib dinput.lib dsound.lib odbc32.lib odbccp32.lib version.lib"
+				AdditionalDependencies="bass.lib zlibstatmt.lib winmm.lib dxguid.lib ddraw.lib dinput.lib dsound.lib odbc32.lib odbccp32.lib version.lib"
 				OutputFile="$(OutDir)\VPinMAME.dll"
 				Version="20.0"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="ext\zlib\lib_vc9"
+				AdditionalLibraryDirectories="ext\bass;ext\zlib\lib_vc9"
 				ModuleDefinitionFile="src\win32com\VPinMAME.def"
 				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"
 				SubSystem="2"
@@ -353,7 +354,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="src;src\wpc;src\windows;src\vc;src\cpu\m68000\generated_by_m68kmake;src\win32com;ext\zlib\include;$(IntDir)\MIDL"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;LSB_FIRST;inline=__inline;__inline__=__inline;INLINE=__inline;DIRECTINPUT_VERSION=0x0500;DIRECTDRAW_VERSION=0x0300;PROCESSOR_ARCHITECTURE=x86;ZLIB_WINAPI;MAMEVER=7300;PINMAME;PINMAME_NO_UNUSED;VPINMAME;MAME_DEBUG"
+				PreprocessorDefinitions="VPINMAME_ALTSOUND;VPINMAME_PINSOUND;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;LSB_FIRST;inline=__inline;__inline__=__inline;INLINE=__inline;DIRECTINPUT_VERSION=0x0500;DIRECTDRAW_VERSION=0x0300;PROCESSOR_ARCHITECTURE=x86;ZLIB_WINAPI;MAMEVER=7300;PINMAME;PINMAME_NO_UNUSED;VPINMAME;MAME_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				AssemblerListingLocation="$(IntDir)\"
@@ -378,12 +379,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="zlibstatmtd.lib winmm.lib dxguid.lib ddraw.lib dinput.lib dsound.lib odbc32.lib odbccp32.lib version.lib"
+				AdditionalDependencies="bass.lib zlibstatmtd.lib winmm.lib dxguid.lib ddraw.lib dinput.lib dsound.lib odbc32.lib odbccp32.lib version.lib"
 				OutputFile="$(OutDir)\VPinMAME.dll"
 				Version="4.0"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="ext\zlib\lib_vc9"
+				AdditionalLibraryDirectories="ext\bass;ext\zlib\lib_vc9"
 				ModuleDefinitionFile="src\win32com\VPinMAME.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"
@@ -2354,6 +2355,14 @@
 						>
 					</File>
 					<File
+						RelativePath=".\src\sound\mea8000.c"
+						>
+					</File>
+					<File
+						RelativePath=".\src\sound\mea8000.h"
+						>
+					</File>
+					<File
 						RelativePath=".\src\sound\mixer.c"
 						>
 					</File>
@@ -3507,6 +3516,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\wpc\boomerang.c"
+					>
+				</File>
+				<File
 					RelativePath=".\src\wpc\bowarrow.c"
 					>
 				</File>
@@ -3608,6 +3621,14 @@
 				</File>
 				<File
 					RelativePath=".\src\wpc\desound.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\wpc\dmddevice.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\wpc\dmddevice.h"
 					>
 				</File>
 				<File
@@ -3927,6 +3948,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\wpc\slalom.c"
+					>
+				</File>
+				<File
 					RelativePath=".\src\wpc\sleic.c"
 					>
 				</File>
@@ -3968,6 +3993,14 @@
 				</File>
 				<File
 					RelativePath=".\src\wpc\spinbgames.c"
+					>
+				</File>
+				<File
+					RelativePath=".\src\wpc\spiritof76.c"
+					>
+				</File>
+				<File
+					RelativePath=".\src\wpc\stargame.c"
 					>
 				</File>
 				<File
@@ -4558,34 +4591,26 @@
 						>
 					</File>
 				</Filter>
-			</Filter>
-			<Filter
-				Name="PinDMD"
-				>
-				<File
-					RelativePath=".\src\pindmd\pinddrv.c"
+				<Filter
+					Name="basicbitmap"
 					>
-				</File>
-				<File
-					RelativePath=".\src\pindmd\pinddrv.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\pindmd\pindmd.c"
-					>
-				</File>
-				<File
-					RelativePath=".\src\pindmd\pindmd.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\pindmd\usbalphanumeric.c"
-					>
-				</File>
-				<File
-					RelativePath=".\src\pindmd\usbalphanumeric.h"
-					>
-				</File>
+					<File
+						RelativePath=".\ext\basicbitmap\BasicBitmap.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\ext\basicbitmap\BasicBitmap.h"
+						>
+					</File>
+					<File
+						RelativePath=".\ext\basicbitmap\BasicBitmap_C.h"
+						>
+					</File>
+					<File
+						RelativePath=".\ext\basicbitmap\BasicBitmap_SSE2.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter
@@ -4601,19 +4626,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\win32com\Res\VPinMAMESplash.bmp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\win32com\Res\VPinMAMESplash2.bmp"
 				>
 			</File>
 			<File
 				RelativePath=".\src\win32com\Res\VPinMAMESplash3.bmp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\win32com\Res\VPinMAMESplash4.bmp"
 				>
 			</File>
 			<File

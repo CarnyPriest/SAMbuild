@@ -31,6 +31,7 @@
 #define IDC_WINDMD                      115
 #define IDC_DMDOPACITY                  116
 #define IDC_SOUNDMODE                   117
+#define IDC_RESAMPLEQ                   118
 #define IDC_DMDRED                      120
 #define IDC_DMDGREEN                    121
 #define IDC_DMDBLUE                     122
@@ -92,13 +93,14 @@
 #define ID_CTRLCTXMENU_INFO             32776
 #define ID_CTRLCTXMENU_STOPEMULATION    32777
 #define ID_CTRLCTXMENU_DISPLAY_RESTORESIZE 32778
+#define ID_CTRLCTXMENU_DISPLAY_RESTOREPOS 32779
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        214
-#define _APS_NEXT_COMMAND_VALUE         32779
+#define _APS_NEXT_COMMAND_VALUE         32780
 #define _APS_NEXT_CONTROL_VALUE         242
 #define _APS_NEXT_SYMED_VALUE           106
 #endif

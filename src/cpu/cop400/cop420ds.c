@@ -22,7 +22,9 @@ int DasmCOP420(char *buffer, unsigned pc)
 
 	if ((op >= 0x80 && op <= 0xBE) || (op >= 0xC0 && op <= 0xFE))
 	{
-		if ((pc & 0x3E0) >= 0x80 && (pc & 0x3E0) < 0x100) //JP pages 2,3
+		int page = pc >> 6;
+
+		if (page == 2 || page == 3) //JP pages 2,3
 		{
 			addr = (UINT16)((pc & 0x380) | (op & 0x7F));
 			sprintf(buffer,"JP %03x",addr);
@@ -37,7 +39,7 @@ int DasmCOP420(char *buffer, unsigned pc)
 			else					//JSRP
 			{
 				addr = (UINT16)(0x80 | (op & 0x3F));
-				sprintf(buffer,"JSRP %02x",addr);
+				sprintf(buffer,"JSRP %03x",addr);
 //				flags = DASMFLAG_STEP_OVER;
 			}
 		}
@@ -161,7 +163,7 @@ int DasmCOP420(char *buffer, unsigned pc)
 
 		case 0x23:
 			addr = (UINT16)(oprom[1] & 0x3F);
-			sprintf(buffer,"XAD %x%x",((addr & 0x30) >> 4),addr & 0x0F);
+			sprintf(buffer, (oprom[1] & 0x80 ? "XAD %02x" : "LDD %02x"), addr);
 			cnt = 2;
 			break;
 

@@ -623,6 +623,9 @@ static void CreateCommandLine(int nGameIndex, char* pCmdLine)
 
 	sprintf(&pCmdLine[strlen(pCmdLine)], " -rompath \"%s\"",            GetRomDirs());
 	sprintf(&pCmdLine[strlen(pCmdLine)], " -samplepath \"%s\"",         GetSampleDirs());
+#if defined(PINMAME) && defined(PROC_SUPPORT)
+	sprintf(&pCmdLine[strlen(pCmdLine)], " -procpath \"%s\"",           GetProcDirs());
+#endif /* PINMAME && PROC_SUPPORT */
 	sprintf(&pCmdLine[strlen(pCmdLine)], " -inipath \"%s\"",			GetIniDir());
 	sprintf(&pCmdLine[strlen(pCmdLine)], " -cfg_directory \"%s\"",      GetCfgDir());
 	sprintf(&pCmdLine[strlen(pCmdLine)], " -nvram_directory \"%s\"",    GetNvramDir());
@@ -733,7 +736,7 @@ static void CreateCommandLine(int nGameIndex, char* pCmdLine)
 	/* sound */
 	sprintf(&pCmdLine[strlen(pCmdLine)], " -samplerate %d",             pOpts->samplerate);
 	sprintf(&pCmdLine[strlen(pCmdLine)], " -%ssamples",                 pOpts->use_samples     ? "" : "no");
-	sprintf(&pCmdLine[strlen(pCmdLine)], " -%sresamplefilter",          pOpts->use_filter      ? "" : "no");
+	//sprintf(&pCmdLine[strlen(pCmdLine)], " -%sresamplefilter",          pOpts->use_filter      ? "" : "no");
 	sprintf(&pCmdLine[strlen(pCmdLine)], " -%ssound",                   pOpts->enable_sound    ? "" : "no");
 	sprintf(&pCmdLine[strlen(pCmdLine)], " -volume %d",                 pOpts->attenuation);
 	sprintf(&pCmdLine[strlen(pCmdLine)], " -audio_latency %i",          pOpts->audio_latency);
@@ -823,7 +826,7 @@ static int RunMAME(int nGameIndex)
 	PROCESS_INFORMATION pi;
 	char pCmdLine[2048];
 	time_t start, end;
-	double elapsedtime;
+	time_t elapsedtime;
 
 	CreateCommandLine(nGameIndex, pCmdLine);
 
@@ -1295,7 +1298,7 @@ void ResizePickerControls(HWND hWnd)
 		RECT rWindow;
 
 		for (i = 0; i < nSplitterCount; i++)
-			nSplitterOffset[i] = rect.right * g_splitterInfo[i].dPosition;
+			nSplitterOffset[i] = (int)(rect.right * g_splitterInfo[i].dPosition);
 
 		GetWindowRect(hStatusBar, &rWindow);
 		bottomMargin = rWindow.bottom - rWindow.top;

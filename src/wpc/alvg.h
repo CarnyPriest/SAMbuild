@@ -8,8 +8,6 @@
 #include "wpcsam.h"
 #include "sim.h"
 
-#define MYSTERY_CASTLE_HACK // hack to double the 8031 CPU clockrate, this does not make sense currently, but fixes the speed of DMD animations
-
 #define ALVG_CPUNO	0
 
 /*-------------------------
@@ -47,9 +45,8 @@
 
 #define ALVG_COMINPORT       CORE_COREINPORT
 
-#define ALVG_SOLSMOOTH       4 /* Smooth the Solenoids over this numer of VBLANKS */
-#define ALVG_LAMPSMOOTH      6 /* Smooth the lamps over this number of VBLANKS */
-#define ALVG_DISPLAYSMOOTH   1 /* Smooth the display over this number of VBLANKS */
+#define ALVG_SOLSMOOTH       40 /* Smooth the Solenoids over this numer of VBLANKS */
+#define ALVG_LAMPSMOOTH      30 /* Smooth the lamps over this number of VBLANKS */
 
 /*-- To access C-side multiplexed solenoid/flasher --*/
 #define ALVG_CSOL(x) ((x)+24)
@@ -77,17 +74,15 @@ extern MACHINE_DRIVER_EXTERN(alvg);
 extern MACHINE_DRIVER_EXTERN(alvgs1);
 extern MACHINE_DRIVER_EXTERN(alvgs2);
 extern MACHINE_DRIVER_EXTERN(alvgs2dmd1);
-#ifdef MYSTERY_CASTLE_HACK
 extern MACHINE_DRIVER_EXTERN(alvgs2dmd2);
-#endif
+extern MACHINE_DRIVER_EXTERN(alvgs2dmd3);
 
 #define mALVG         alvg
 #define mALVGS1		  alvgs1
 #define mALVGS2		  alvgs2
 #define mALVGS2DMD1   alvgs2dmd1
-#ifdef MYSTERY_CASTLE_HACK
 #define mALVGS2DMD2   alvgs2dmd2
-#endif
+#define mALVGS2DMD3   alvgs2dmd3
 
 //Use only for testing the 8031 core emulation
 #ifdef MAME_DEBUG

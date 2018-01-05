@@ -65,6 +65,7 @@ public:
 private:
 	void GetProductVersion(int *nVersionNo0, int *nVersionNo1, int *nVersionNo2, int *nVersionNo3);
 	static DWORD FAR PASCAL RunController(CController* pController);
+	TIMECAPS caps;
 
 public:
 
@@ -143,6 +144,9 @@ public:
 	STDMETHOD(GetWindowRect)(/*[in,defaultvalue(0)]*/ long hWnd, /*[out, retval]*/ VARIANT *pVal);
 	STDMETHOD(GetClientRect)(/*[in,defaultvalue(0)]*/ long hWnd, /*[out, retval]*/ VARIANT *pVal);
 
+	STDMETHOD(get_NVRAM)(/*[out, retval]*/ VARIANT *pVal);
+	STDMETHOD(get_ChangedNVRAM)(/*[out, retval]*/ VARIANT *pVal);
+
 	STDMETHOD(get_RawDmdWidth)(/*[out, retval]*/ int *pVal);
 	STDMETHOD(get_RawDmdHeight)(/*[out, retval]*/ int *pVal);
 	STDMETHOD(get_RawDmdPixels)(/*[out, retval]*/ VARIANT *pVal);
@@ -217,6 +221,9 @@ public:
 	STDMETHOD(put_IgnoreRomCrc)(/*[in]*/ VARIANT_BOOL newVal);
 	STDMETHOD(get_CabinetMode)(/*[out, retval]*/ VARIANT_BOOL *pVal);
 	STDMETHOD(put_CabinetMode)(/*[in]*/ VARIANT_BOOL newVal);
+
+	STDMETHOD(get_SoundMode)(/*[out, retval]*/ int *pVal);
+	STDMETHOD(put_SoundMode)(/*[in]*/ int newVal);
 };
 
 #endif // !defined(AFX_Controller_H__D2811491_40D6_4656_9AA7_8FF85FD63543__INCLUDED_)

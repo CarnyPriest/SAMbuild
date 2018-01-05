@@ -10,6 +10,7 @@
 #include "driver.h"
 #include "timer.h"
 #include "state.h"
+#include "video.h"
 #include "mamedbg.h"
 #include "hiscore.h"
 
@@ -177,6 +178,11 @@ static int cycles_stolen;
  *
  *************************************/
 
+#define LOW_LATENCY_THROTTLE_PARTS 4
+
+static void *sync_timer;
+static int sync_countdown;
+
 static void *vblank_timer;
 static int vblank_countdown;
 static int vblank_multiplier;
@@ -220,6 +226,7 @@ static void cpu_inittimers(void);
 static void cpu_vblankreset(void);
 static void cpu_vblankcallback(int param);
 static void cpu_updatecallback(int param);
+static void cpu_throttlecallback(int param);
 static void end_interleave_boost(int param);
 static void compute_perfect_interleave(void);
 
@@ -667,7 +674,7 @@ static void watchdog_reset(void)
 {
 	if (watchdog_counter == -1)
 		logerror("watchdog armed\n");
-	watchdog_counter = 3 * Machine->drv->frames_per_second;
+	watchdog_counter = (INT32)(3. * (double)Machine->drv->frames_per_second);
 }
 
 
@@ -1102,31 +1109,15 @@ int cycles_left_to_run(void)
 
 --------------------------------------------------------------*/
 
-UINT32 activecpu_gettotalcycles(void)
-{
-	VERIFY_EXECUTINGCPU(0, cpu_gettotalcycles);
-	return cpu[activecpu].totalcycles + cycles_currently_ran();
-}
-
-UINT32 cpu_gettotalcycles(int cpunum)
-{
-	VERIFY_CPUNUM(0, cpu_gettotalcycles);
-	if (cpunum == cpu_getexecutingcpu())
-		return cpu[cpunum].totalcycles + cycles_currently_ran();
-	else
-		return cpu[cpunum].totalcycles;
-}
-
-
 UINT64 activecpu_gettotalcycles64(void)
 {
-	VERIFY_EXECUTINGCPU(0, cpu_gettotalcycles);
+	VERIFY_EXECUTINGCPU(0, cpu_gettotalcycles64);
 	return cpu[activecpu].totalcycles + cycles_currently_ran();
 }
 
 UINT64 cpu_gettotalcycles64(int cpunum)
 {
-	VERIFY_CPUNUM(0, cpu_gettotalcycles);
+	VERIFY_CPUNUM(0, cpu_gettotalcycles64);
 	if (cpunum == cpu_getexecutingcpu())
 		return cpu[cpunum].totalcycles + cycles_currently_ran();
 	else
@@ -1572,6 +1563,13 @@ static void cpu_firstvblankcallback(int param)
  *
  *************************************/
 
+static void cpu_synccallback(int param)
+{
+	throttle_speed_part(LOW_LATENCY_THROTTLE_PARTS-sync_countdown, LOW_LATENCY_THROTTLE_PARTS);
+	if(!--sync_countdown)
+		timer_adjust(sync_timer, TIME_NEVER, 0, TIME_NEVER);
+}
+
 static void cpu_vblankcallback(int param)
 {
 	int cpunum;
@@ -1629,6 +1627,9 @@ static void cpu_vblankcallback(int param)
 
 		/* reset the counter */
 		vblank_countdown = vblank_multiplier;
+		sync_countdown = LOW_LATENCY_THROTTLE_PARTS - 1;
+		if(g_low_latency_throttle && frameskip == 0)
+			timer_adjust(sync_timer, TIME_IN_HZ(60 * LOW_LATENCY_THROTTLE_PARTS), 0, TIME_IN_HZ(60 * LOW_LATENCY_THROTTLE_PARTS));
 	}
 }
 
@@ -1826,7 +1827,9 @@ static void cpu_inittimers(void)
 	}
 
 	/* now find the LCD with the rest of the CPUs (brute force - these numbers aren't huge) */
+
 	vblank_multiplier = max;
+
 	while (1)
 	{
 		for (cpunum = 0; cpunum < cpu_gettotalcpu(); cpunum++)
@@ -1853,8 +1856,10 @@ static void cpu_inittimers(void)
 	/* allocate a vblank timer at the frame rate * the LCD number of interrupts per frame */
 	vblank_period = TIME_IN_HZ(Machine->drv->frames_per_second * vblank_multiplier);
 	vblank_timer = timer_alloc(cpu_vblankcallback);
+
 	vblank_countdown = vblank_multiplier;
 
+	sync_timer = timer_alloc(cpu_synccallback);
 	/*
 	 *		The following code creates individual timers for each CPU whose interrupts are not
 	 *		synced to the VBLANK, and computes the typical number of cycles per interrupt

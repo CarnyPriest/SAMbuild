@@ -237,14 +237,22 @@ CORE_GAMEDEF(play,a24,"Playboy 35th Anniversary (2.4)",1989,"Data East",de_mDEAS
 / Monday Night Football - CPU Rev 2 /Alpha Type 3 16/32K Roms - 32/64K Sound Roms
 /----------------------------------------------------------------------------------*/
 INITGAMES11(mnfb,GEN_DE, de_dispAlpha3, FLIP1516, SNDBRD_DE1S, S11_LOWALPHA, 0)
-DE_ROMSTART48(mnfb_c27,"mnfb2-7.b5",CRC(995eb9b8) SHA1(d05d74393fda59ffd8d7b5546313779cdb10d23e),
-                   "mnfb2-7.c5",  CRC(579d81df) SHA1(9c96da34d37d3369513003e208222bd6e8698638))
-DE1S_SOUNDROM244(  "mnf-f7.256",  CRC(fbc2d6f6) SHA1(33173c081de776d32e926481e94b265ec48d770b),       //F7 on schem (sound)
+DE_ROMSTART48(mnfb_c29,"mnfb2-9.b5",CRC(2d6805d1) SHA1(f222cbf30d07975279eea210738f7d4f73b3fcf4) BAD_DUMP,
+                   "mnfb2-9.c5",  CRC(98d50cf5) SHA1(59d3b16f8195ab95cece71a12dab3349dfeb2c2b))
+DE1S_SOUNDROM244(  "mnf-f7.256",  CRC(fbc2d6f6) SHA1(33173c081de776d32e926481e94b265ec48d770b),     //F7 on schem (sound)
                    "mnf-f5-6.512",CRC(0c6ea963) SHA1(8c88fa588222ef8a6c872b8c5b49639b108384d4),     //F6 on schem (voice1)
                    "mnf-f4-5.512",CRC(efca5d80) SHA1(9655c885dd64aa170205170b6a0c052bd9367379))     //F4 on schem (voice2)
 DE_ROMEND
 #define input_ports_mnfb input_ports_des11
-CORE_GAMEDEF(mnfb,c27,"Monday Night Football (2.7, 50cts)",1989,"Data East",de_mDEAS1,0)
+CORE_GAMEDEF(mnfb,c29,"Monday Night Football (2.9, 50cts)",1989,"Data East",de_mDEAS1,0)
+
+DE_ROMSTART48(mnfb_c27,"mnfb2-7.b5",CRC(995eb9b8) SHA1(d05d74393fda59ffd8d7b5546313779cdb10d23e),
+                   "mnfb2-7.c5",  CRC(579d81df) SHA1(9c96da34d37d3369513003e208222bd6e8698638))
+DE1S_SOUNDROM244(  "mnf-f7.256",  CRC(fbc2d6f6) SHA1(33173c081de776d32e926481e94b265ec48d770b),     //F7 on schem (sound)
+                   "mnf-f5-6.512",CRC(0c6ea963) SHA1(8c88fa588222ef8a6c872b8c5b49639b108384d4),     //F6 on schem (voice1)
+                   "mnf-f4-5.512",CRC(efca5d80) SHA1(9655c885dd64aa170205170b6a0c052bd9367379))     //F4 on schem (voice2)
+DE_ROMEND
+CORE_CLONEDEF(mnfb,c27,c29,"Monday Night Football (2.7, 50cts)",1989,"Data East",de_mDEAS1,0)
 
 /*------------------------------------------------------------------
 / Robocop - CPU Rev 3 /Alpha Type 3 - 32K Roms - 32/64K Sound Roms
@@ -305,15 +313,15 @@ CORE_GAMEDEF(kiko,a10,"King Kong (1.0)",1990,"Data East",de_mDEAS1,0)
 / Back to the Future - CPU Rev 3 /Alpha Type 3 - 32K Roms - 32/64K Sound Roms
 /--------------------------------------------------------------------------------*/
 INITGAMES11(bttf,GEN_DE, de_dispAlpha3, FLIP1516, SNDBRD_DE1S, S11_LOWALPHA, 0)
-DE_ROMSTART48(bttf_a27,"bttfb5.2-7",CRC(24b53174) SHA1(00a5e47e70ce4244873980c946479f0bbc414f2e),
-                   "bttfc5.2-7",CRC(c4d85d7e) SHA1(88bb91f9ed50335fc402b68983b49319c7dd4e99))
+DE_ROMSTART48(bttf_a28,"bttfb5.2-8",CRC(a7dafa3c) SHA1(a29b8986d1886aa7bb7dea2521c3d7143ab75320),
+                   "bttfc5.2-8",CRC(5dc9928f) SHA1(03de05ed7b04ba86d695f03b1a3d65788faf2d4f))
 DE1S_SOUNDROM244(  "bttfsf7.rom",CRC(7673146e) SHA1(d6bd7cf39c78c8aff0b1a0b6cfd46a2a8ce9e086),      //7f
                    "bttfsf6.rom",CRC(468a8d9c) SHA1(713cf84cc5f0531e2e9f7aaa58ebeb53c28ba395),      //6f
                    "bttfsf5.rom",CRC(37a6f6b8) SHA1(ebd603d36527a2af25dcda1fde5cdf9a34d1f9cd))      //4f
 DE_ROMEND
 
 #define input_ports_bttf input_ports_des11
-CORE_GAMEDEF(bttf,a27,"Back to the Future (2.7)",1990,"Data East",de_mDEAS1,0)
+CORE_GAMEDEF(bttf,a28,"Back to the Future (2.8)",1990,"Data East",de_mDEAS1,0)
 
 DE_ROMSTART88(bttf_a20,"bttfb5.2-0",CRC(c0d4df6b) SHA1(647d0d0a5af04f4255a588da41a6cdb2cf522875),
                    "bttfc5.2-0",CRC(a189a189) SHA1(9669653280c78c811931ea3944817c717f3b5b77))
@@ -321,7 +329,7 @@ DE1S_SOUNDROM244(  "bttfsf7.rom",CRC(7673146e) SHA1(d6bd7cf39c78c8aff0b1a0b6cfd4
                    "bttfsf6.rom",CRC(468a8d9c) SHA1(713cf84cc5f0531e2e9f7aaa58ebeb53c28ba395),      //6f
                    "bttfsf5.rom",CRC(37a6f6b8) SHA1(ebd603d36527a2af25dcda1fde5cdf9a34d1f9cd))      //4f
 DE_ROMEND
-CORE_CLONEDEF(bttf,a20,a27,"Back to the Future (2.0)",1990,"Data East",de_mDEAS1,0)
+CORE_CLONEDEF(bttf,a20,a28,"Back to the Future (2.0)",1990,"Data East",de_mDEAS1,0)
 
 DE_ROMSTART48(bttf_a21,"bktofutr.b5",CRC(a651f867) SHA1(99cff09a06a99abac505c7732bb4ed985f0946e4),
                    "bktofutr.c5",CRC(118ae58e) SHA1(a17e4cc3c12ca770e6e0674cfbeb55482739f735))
@@ -329,7 +337,15 @@ DE1S_SOUNDROM244(  "bttfsf7.rom",CRC(7673146e) SHA1(d6bd7cf39c78c8aff0b1a0b6cfd4
                    "bttfsf6.rom",CRC(468a8d9c) SHA1(713cf84cc5f0531e2e9f7aaa58ebeb53c28ba395),      //6f
                    "bttfsf5.rom",CRC(37a6f6b8) SHA1(ebd603d36527a2af25dcda1fde5cdf9a34d1f9cd))      //4f
 DE_ROMEND
-CORE_CLONEDEF(bttf,a21,a27,"Back to the Future (2.1)",1990,"Data East",de_mDEAS1,0)
+CORE_CLONEDEF(bttf,a21,a28,"Back to the Future (2.1)",1990,"Data East",de_mDEAS1,0)
+
+DE_ROMSTART48(bttf_a27,"bttfb5.2-7",CRC(24b53174) SHA1(00a5e47e70ce4244873980c946479f0bbc414f2e),
+                   "bttfc5.2-7",CRC(c4d85d7e) SHA1(88bb91f9ed50335fc402b68983b49319c7dd4e99))
+DE1S_SOUNDROM244(  "bttfsf7.rom",CRC(7673146e) SHA1(d6bd7cf39c78c8aff0b1a0b6cfd46a2a8ce9e086),      //7f
+                   "bttfsf6.rom",CRC(468a8d9c) SHA1(713cf84cc5f0531e2e9f7aaa58ebeb53c28ba395),      //6f
+                   "bttfsf5.rom",CRC(37a6f6b8) SHA1(ebd603d36527a2af25dcda1fde5cdf9a34d1f9cd))      //4f
+DE_ROMEND
+CORE_CLONEDEF(bttf,a27,a28,"Back to the Future (2.7)",1990,"Data East",de_mDEAS1,0)
 
 DE_ROMSTART48(bttf_g27,"bttfb5g.2-7",CRC(5e3e3cfa) SHA1(2d489c48463c7d28614d56aa566ffbc745bf6a8b),
                    "bttfc5g.2-7",CRC(31dec6d0) SHA1(b0f9323ace3f6d96790be7fe2df67b974c291a29))
@@ -337,7 +353,7 @@ DE1S_SOUNDROM244(  "bttfsf7.rom",CRC(7673146e) SHA1(d6bd7cf39c78c8aff0b1a0b6cfd4
                    "bttfsf6.rom",CRC(468a8d9c) SHA1(713cf84cc5f0531e2e9f7aaa58ebeb53c28ba395),      //6f
                    "bttfsf5.rom",CRC(37a6f6b8) SHA1(ebd603d36527a2af25dcda1fde5cdf9a34d1f9cd))      //4f
 DE_ROMEND
-CORE_CLONEDEF(bttf,g27,a27,"Back to the Future (2.7 German)",199?,"Data East",de_mDEAS1,0)
+CORE_CLONEDEF(bttf,g27,a28,"Back to the Future (2.7 German)",199?,"Data East",de_mDEAS1,0)
 
 /*------------------------------------------------------------------------
 / The Simpsons - CPU Rev 3 /Alpha Type 3 16/32K Roms - 32/128K Sound Roms
@@ -391,6 +407,15 @@ DE1S_SOUNDROM288(   "tmntf7.rom",CRC(59ba0153) SHA1(e7b02a656c67a0d866020a60ee90
 DE_ROMEND
 #define input_ports_tmnt input_ports_des11
 CORE_GAMEDEF(tmnt,104,"Teenage Mutant Ninja Turtles (1.04)",1991,"Data East",de_mDEDMD16S1,0)
+
+DE_ROMSTART48(tmnt_104g,"tmntb5a.104",CRC(f508eeee) SHA1(5e67fde49f6e7d5d563645df9036d5691be076cf),
+                  "tmntc5g.104",CRC(d7f2fd8b) SHA1(b80f6201ca2981ec4a3869688963884948a6bd72))
+DE_DMD16ROM1(     "tmntdsp.104",CRC(545686b7) SHA1(713df7820d024db3406f5e171f62a53e34474f70))
+DE1S_SOUNDROM288(  "tmntf7.rom",CRC(59ba0153) SHA1(e7b02a656c67a0d866020a60ee90e30bef77f67f),        //7f
+                   "tmntf6.rom",CRC(5668d45a) SHA1(65766cb47791ec0a2243015d487f1156a2819fe6),        //6f
+                   "tmntf4.rom",CRC(6c38cd84) SHA1(bbe8797fe1622cb8f0842c4d7159760fed080880))        //4f
+DE_ROMEND
+CORE_CLONEDEF(tmnt,104g,104,"Teenage Mutant Ninja Turtles (1.04 German)",1991,"Data East",de_mDEDMD16S1,0)
 
 DE_ROMSTART48(tmnt_103,"tmntb5.103",CRC(fcc6c5b0) SHA1(062bbc93de0f8bb1921da4d756a13923f23cf5d9),
                    "tmntc5.103",CRC(46b68ecc) SHA1(cb94041017c0856f1e15de05c70369cb4f8756cd))
@@ -530,6 +555,14 @@ DE_ROMEND
 #define input_ports_hook input_ports_des11
 CORE_GAMEDEF(hook,408,"Hook (4.08)",1992,"Data East",de_mDEDMD16S2A,0)
 
+DE_ROMSTARTx0(hook_500,"hokcpua.500",CRC(93e25b12) SHA1(5ec37ad3358f1f093be771f5978f1ad8a7a7c61a))
+DE_DMD16ROM2(       "hokdspa.500",CRC(ed6a134b) SHA1(775975b629312f7f1151d878d40723ad4a79928c))
+DE2S_SOUNDROM022(   "hooksnd.u7" ,CRC(642f45b3) SHA1(a4b2084f32e52a596547384906281d04424332fc),
+                    "hook-voi.u17" ,CRC(6ea9fcd2) SHA1(bffc66df542e06dedddaa403b5513446d9d6fc8c),
+                    "hook-voi.u21" ,CRC(b5c275e2) SHA1(ff51c2007132a1310ac53b5ab2a4af7d0ab15948))
+DE_ROMEND
+CORE_CLONEDEF(hook,500,408,"Hook (5.00 unofficial MOD)",2016,"Data East",de_mDEDMD16S2A,0)
+
 DE_ROMSTARTx0(hook_401p,"hokcpua.401",CRC(20223298) SHA1(a8063765db947b059eadaad6654ed0c5cad9198d))
 DE_DMD16ROM2(       "hokdspa.401",CRC(59a07eb5) SHA1(d1ca41ce417f1772fe4da1eb37077f924b66ad36))
 DE2S_SOUNDROM022(   "hooksnd_p.u7" ,CRC(20091293) SHA1(fdfc4eadef0bf1915c7c72c1fd8dafaa429b3c44),
@@ -642,7 +675,31 @@ DE2S_SOUNDROM042(     "s-wars.u7"  ,CRC(cefa19d5) SHA1(7ddf9cc85ab601514305bc460
                       "s-wars.u21" ,CRC(7b08fdf1) SHA1(489d21a10e97e886f948d81dedd7f8de3acecd2b))
 DE_ROMEND
 #define input_ports_stwr input_ports_des11
-CORE_GAMEDEF(stwr,104,"Star Wars (1.04)",2012,"Data East",de_mDEDMD32S2A,0)
+CORE_GAMEDEF(stwr,104,"Star Wars (1.04 20th Anniversary)",2012,"Data East",de_mDEDMD32S2A,0)
+
+DE_ROMSTARTx0(stwr_106,"starcpua.106",CRC(35d3cfd9) SHA1(14d8960f3657d7cd977b0a749e995aadb3fd4c7c))
+DE_DMD32ROM8x(        "sw4mrom.a15",CRC(00c87952) SHA1(cd2f491f03fcb3e3ceff7ee7f678aa1957a5d14b))
+DE2S_SOUNDROM042(     "s-wars.u7"  ,CRC(cefa19d5) SHA1(7ddf9cc85ab601514305bc46083a07a3d087b286),
+                      "s-wars.u17" ,CRC(7950a147) SHA1(f5bcd5cf6b35f9e4f14d62b084495c3a743d92a1),
+                      "s-wars.u21" ,CRC(7b08fdf1) SHA1(489d21a10e97e886f948d81dedd7f8de3acecd2b))
+DE_ROMEND
+CORE_CLONEDEF(stwr,106,104,"Star Wars (1.06 20th Anniversary)",2016,"Data East",de_mDEDMD32S2A,0)
+
+DE_ROMSTARTx0(stwr_107s,"starcpua.107",CRC(1a801b7e) SHA1(fef567126dff87a2cb31401b029c3050438072b7))
+DE_DMD32ROM8x(        "sw4mrom.s15",CRC(158867b9) SHA1(45a0f4d26c21e2259aeb2a726a1eac23744213a2))
+DE2S_SOUNDROM042(     "s-wars.u7"  ,CRC(cefa19d5) SHA1(7ddf9cc85ab601514305bc46083a07a3d087b286),
+                      "s-wars.u17" ,CRC(7950a147) SHA1(f5bcd5cf6b35f9e4f14d62b084495c3a743d92a1),
+                      "s-wars.u21" ,CRC(7b08fdf1) SHA1(489d21a10e97e886f948d81dedd7f8de3acecd2b))
+DE_ROMEND
+CORE_CLONEDEF(stwr,107s,104,"Star Wars (1.07 20th Anniversary, Spanish)",2016,"Data East",de_mDEDMD32S2A,0)
+
+DE_ROMSTARTx0(stwr_107,"starcpua.107",CRC(1a801b7e) SHA1(fef567126dff87a2cb31401b029c3050438072b7))
+DE_DMD32ROM8x(        "sw4mrom.a15",CRC(00c87952) SHA1(cd2f491f03fcb3e3ceff7ee7f678aa1957a5d14b))
+DE2S_SOUNDROM042(     "s-wars.u7"  ,CRC(cefa19d5) SHA1(7ddf9cc85ab601514305bc46083a07a3d087b286),
+                      "s-wars.u17" ,CRC(7950a147) SHA1(f5bcd5cf6b35f9e4f14d62b084495c3a743d92a1),
+                      "s-wars.u21" ,CRC(7b08fdf1) SHA1(489d21a10e97e886f948d81dedd7f8de3acecd2b))
+DE_ROMEND
+CORE_CLONEDEF(stwr,107,104,"Star Wars (1.07 20th Anniversary)",2016,"Data East",de_mDEDMD32S2A,0)
 
 DE_ROMSTARTx0(stwr_103,"starcpua.103",CRC(318085ca) SHA1(7c35bdee52e8093fe05f0624615baabe559a1917))
 DE_DMD32ROM8x(        "sw4mrom.a15",CRC(00c87952) SHA1(cd2f491f03fcb3e3ceff7ee7f678aa1957a5d14b))
@@ -877,6 +934,16 @@ DE2S_SOUNDROM14444( "tommysnd.u7" ,CRC(ab0b4626) SHA1(31237b4f5e866710506f1336e3
 DE_ROMEND
 #define input_ports_tomy input_ports_des11
 CORE_GAMEDEF(tomy,400,"Tommy (4.00)",1994,"Data East",de_mDEDMD32S2A,0)
+
+DE_ROMSTARTx0(tomy_500,"tomcpua.500", CRC(902cfaa7) SHA1(0f2931d43d8effb7c8ab4e430dcb57a2ea8364c6))
+DE_DMD32ROM8x(      "tommydva.500",CRC(9ade47a0) SHA1(16b5600afc4dd22cf8a04997225cdac9edb685d8))
+DE2S_SOUNDROM14444( "tommysnd.u7" ,CRC(ab0b4626) SHA1(31237b4f5e866710506f1336e3ca2dbd6a89385a),
+                    "tommysnd.u17",CRC(11bb2aa7) SHA1(57b4867c109996861f45ead1ceedb7153aff852e),
+                    "tommysnd.u21",CRC(bb4aeec3) SHA1(2ac6cd25b79584fa6ad2c8a36c3cc58ab8ec0206),
+                    "tommysnd.u36",CRC(208d7aeb) SHA1(af8af2094d1a91c7b4ef8ac6d4f594728e97450f),
+                    "tommysnd.u37",CRC(46180085) SHA1(f761c27532180de313f23b41f02341783be8938b))
+DE_ROMEND
+CORE_CLONEDEF(tomy,500,400,"Tommy (5.00 unofficial MOD)",2016,"Data East",de_mDEDMD32S2A,0)
 
 DE_ROMSTARTx0(tomy_h30,"tomcpuh.300", CRC(121b5932) SHA1(e7d7bf8a78baf1c00c8bac908d4646586b8cf1f5))
 DE_DMD32ROM8x(      "tommydva.300",CRC(1f2d0896) SHA1(50c617e30bb843c69a6ca8afeeb751c886f5e6bd))

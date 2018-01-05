@@ -43,6 +43,8 @@ extern struct rc_option win_d3d_opts[];
 
 // from ticker.c
 extern void uSleep(const UINT64 u);
+extern void uOverSleep(const UINT64 u);
+extern void uUnderSleep(const UINT64 u);
 
 //============================================================
 //	PARAMETERS
@@ -68,6 +70,7 @@ int autoframeskip;
 // speed throttling
 int throttle = 1;
 int fastfrms = 0;
+int g_low_latency_throttle = 0;
 
 // palette lookups
 UINT8 palette_lookups_invalid;
@@ -342,7 +345,7 @@ static int decode_aspect(struct rc_option *option, const char *arg, int priority
 		fprintf(stderr, "error: invalid value for aspect ratio: %s\n", arg);
 		return -1;
 	}
-	win_screen_aspect = (double)num / (double)den;
+	win_screen_aspect = (float)((double)num / (double)den);
 
 	option->priority = priority;
 	return 0;
@@ -686,8 +689,46 @@ extern HANDLE g_hEnterThrottle;
 extern int    g_iSyncFactor;
 int           iCurrentSyncValue = 512;
 #endif
+int    g_iThrottleAdj = 0;
 
-static void throttle_speed(void)
+
+#ifdef DEBUG_SOUND
+void DebugSound(char *s)
+{
+	FILE *stream = fopen("C:\\temp\\sndlog.txt", "a");
+	fprintf(stream, "%s\n", s);
+	fclose(stream);
+}
+#endif
+
+void SetThrottleAdj(int adj)
+{
+#ifdef DEBUG_SOUND
+	char tmp[81];
+
+	static int last = 0;
+	if (adj != last)
+	{
+		sprintf(tmp, "Set throttle adj: %d (cur %d)", adj, g_iThrottleAdjCur);
+		DebugSound(tmp);
+		last = adj;
+	}
+#endif
+	g_iThrottleAdj = adj;
+}
+
+static void throttle_speed()
+{
+	throttle_speed_part(1,1);
+}
+
+// Throttle code changed to support parital frame syncing.
+// The emulated machine can often read, and respond to input by firing flippers in less than 10ms, but
+// if the emulation only runs in 60hz "chunks", we may need multiple frames to read and respond 
+// to flipper input.  By distributing the emulation more evenly over a frame, it creates more opportunities
+// for the emulated machine to "see" the input and respond to it before the pinball simulator starts to draw its frame.
+
+void throttle_speed_part(int part, int totalparts)
 {
 	static double ticks_per_sleep_msec = 0;
 	cycles_t target, curr, cps;
@@ -716,23 +757,50 @@ static void throttle_speed(void)
 	// get the current time and the target time
 	curr = osd_cycles();
 	cps = osd_cycles_per_second();
+
 	target = this_frame_base + (int)((double)frameskip_counter * (double)cps / video_fps);
 
+	// If we are throttling to a fractional vsync, adjust target to the partial target.
+	if (totalparts!=1)
+	{
+		// Meh.  The points in the code where frameskip counter gets updated is different from where the frame base is
+		// reset.  Makes this delay computation complicated.
+		if (frameskip_counter == 0)
+			target += (int)((double)(FRAMESKIP_LEVELS) * (double)cps / video_fps);
+		// MAGIC: Experimentation with actual resuts show the most even distribution if I throttle to 1/7th increments at each 25% timestep.
+		target -= ((cycles_t)((double)cps / (video_fps * (totalparts+3)))) * (totalparts - part + 3);
+	}
+
+	// initialize the ticks per sleep
+	if (ticks_per_sleep_msec == 0)
+		ticks_per_sleep_msec = (double)cps / 1000.;
+
+	// Adjust target for sound catchup
+	if (g_iThrottleAdj)
+	{
+		target -= (cycles_t)(g_iThrottleAdj*ticks_per_sleep_msec);
+	}
 	// sync
 	if (curr - target < 0)
 	{
-		// initialize the ticks per sleep
-		if (ticks_per_sleep_msec == 0)
-			ticks_per_sleep_msec = (double)(cps / 1000);
+#ifdef DEBUG_THROTTLE
+		{
+			char tmp[91];
+			sprintf(tmp, "Throt: part %d of %d FS: %d Delta: %lld\n",part, totalparts, frameskip_counter, curr - target);
+			OutputDebugString(tmp);
+		}
+#endif
 
 		// loop until we reach the target time
 		while (curr - target < 0)
 		{
-#ifdef VPINMAME
-			//if((INT64)((target - curr)/(ticks_per_sleep_msec*1.1))-1 > 0) // pessimistic estimate of stuff below
+#if 1 // VPINMAME
+			//if((INT64)((target - curr)/(ticks_per_sleep_msec*1.1))-1 > 0) // pessimistic estimate of stuff below, but still stutters then
 			//	uSleep((UINT64)((target - curr)*1000/(ticks_per_sleep_msec*1.1))-1);
-			
-			uSleep((target-curr)*1000/ticks_per_sleep_msec);
+			if (totalparts > 1)
+				uUnderSleep((UINT64)((target - curr) * 1000 / ticks_per_sleep_msec)); // will sleep too short
+			else
+				uOverSleep((UINT64)((target - curr) * 1000 / ticks_per_sleep_msec)); // will sleep too long
 #else
 			// if we have enough time to sleep, do it
 			// ...but not if we're autoframeskipping and we're behind
@@ -755,7 +823,7 @@ static void throttle_speed(void)
 			}
 		}
 	}
-	else if (curr - target >= (int)(cps/video_fps))
+	else if (curr - target >= (int)(cps/video_fps) && totalparts == 1)
 	{
 		// We're behind schedule by a frame or more.  Something must
 		// have taken longer than it should have (e.g., a CPU emulator
@@ -792,7 +860,7 @@ static void throttle_speed(void)
 
 static void update_palette(struct mame_display *display)
 {
-	int i, j;
+	UINT32 i, j;
 
 	// loop over dirty colors in batches of 32
 	for (i = 0; i < display->game_palette_entries; i += 32)
@@ -891,7 +959,7 @@ void update_autoframeskip(void)
 		{
 			// if below 80% speed, be more aggressive
 			if (performance->game_speed_percent < 80)
-				frameskipadjust -= (90 - performance->game_speed_percent) / 5;
+				frameskipadjust -= (int)((90. - performance->game_speed_percent) / 5.);
 
 			// if we're close, only force it up to frameskip 8
 			else if (frameskip < 8)

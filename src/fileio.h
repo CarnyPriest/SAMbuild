@@ -30,6 +30,10 @@ enum
 	FILETYPE_IMAGE_DIFF,
 #ifdef PINMAME
 	FILETYPE_WAVE,
+#ifdef PROC_SUPPORT
+	FILETYPE_PROC,	/* for path */
+	FILETYPE_PROC_YAML,
+#endif /* PROC_SUPPORT */
 #endif /* PINMAME */
 	FILETYPE_SAMPLE,
 	FILETYPE_ARTWORK,
@@ -56,6 +60,25 @@ enum
 /* gamename holds the driver name, filename is only used for ROMs and    */
 /* samples. If 'write' is not 0, the file is opened for write. Otherwise */
 /* it is opened for read. */
+
+struct _mame_file
+{
+#ifdef MAME_DEBUG
+	UINT32 debug_cookie;
+#endif
+	osd_file *file;
+	UINT8 *data;
+	UINT64 offset;
+	UINT64 length;
+	UINT8 eof;
+	UINT8 type;
+	char hash[HASH_BUF_SIZE];
+};
+
+#define PLAIN_FILE				0
+#define RAM_FILE				1
+#define ZIPPED_FILE				2
+#define UNLOADED_ZIPPED_FILE	3
 
 typedef struct _mame_file mame_file;
 

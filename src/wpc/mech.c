@@ -4,7 +4,7 @@
 #include "mech.h"
 
 #ifndef M_PI
-#  define M_PI 3.1415927
+#  define M_PI 3.1415926535897932384626433832795
 #endif /* M_PI */
 #define MECH_STEP       60
 #define MECH_FASTPULSES  8
@@ -150,7 +150,7 @@ static void mech_update(int mechNo) {
       else if (anglePos < 0)                anglePos += md->length*MECH_STEP;
     }
     if (md->type & MECH_NONLINEAR)
-      currPos = md->length * MECH_STEP * (1-cos(anglePos*M_PI/md->length/MECH_STEP)) / 2;
+      currPos = (int)(md->length * MECH_STEP * (1.-cos(anglePos*M_PI/md->length/MECH_STEP)) / 2.);
     else /* MECH_LINEAR */
       currPos = (anglePos >= md->length*MECH_STEP) ? md->length*2*MECH_STEP-anglePos : anglePos;
     md->anglePos = anglePos;
@@ -175,6 +175,10 @@ void mech_nv(void *file, int write) {
     if (write)     mame_fwrite(file, &locals.mechData[ii].anglePos, sizeof(int)); /* Save */
     else if (file) mame_fread (file, &locals.mechData[ii].anglePos, sizeof(int)); /* Load */
     else locals.mechData[ii].anglePos = 0; /* First time */
+
+    if (write && file && ((mame_file*)file)->type == RAM_FILE) // if writing out nvram to ram file then do nothing to pos
+      continue;
+
     locals.mechData[ii].pos = -1;
   }
 }

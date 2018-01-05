@@ -597,7 +597,9 @@ void jit_emit_commit(struct jit_ctl *jit)
 	byte *nataddr;
 	byte *resp;
 	struct instr *i;
-	byte *p;
+	//byte *p;
+	struct jit_page *pg;
+
 
 	// if there's no code, there's nothing to do
 	if (stktop->ihead == 0)
@@ -650,7 +652,7 @@ void jit_emit_commit(struct jit_ctl *jit)
 	len += 1;
 
 	// Reserve the space
-	resp = jit_reserve_native(jit, reslen = len, 0);
+	resp = jit_reserve_native(jit, reslen = len, &pg);  
 
 	// Edit jumps that exceed +/- 127 bytes.  On each pass, we'll
 	// look for any two-byte jumps that are out of bounds.  For
@@ -718,7 +720,7 @@ void jit_emit_commit(struct jit_ctl *jit)
 				int use_proxy = 0;
 
 				// get the label address
-			    byte *lblnat = label_to_native(jit, i->lbl);
+				byte *lblnat = label_to_native(jit, i->lbl);
 				int lbldelta = lblnat - (i->nataddr + i->len);
 
 				// If it's one of the special emulator handlers, it will definitely be
@@ -963,14 +965,13 @@ void jit_emit_commit(struct jit_ctl *jit)
 		}
 		
 		// copy this instruction to the JIT executable code page
-		p = jit_store_native(jit, i->b, i->len);
-		ASSERT(p == i->nataddr);
+		jit_store_native_from_reserved(jit, i->b, i->len, pg, i->nataddr);
 
 		// if this is the first native instruction for this emulated opcode,
 		// set the address mapping
 		if (i->emuaddr != emuaddr) {
 			emuaddr = i->emuaddr;
-			JIT_NATIVE(jit, emuaddr) = p;
+			JIT_NATIVE(jit, emuaddr) = i->nataddr;
 		}
 	}
 
@@ -1306,9 +1307,13 @@ const static struct mnedef mnetab[] = {
 	{ imTEST, rm8,   r8,    none,  0x84,  0,    0,    0 },
 	{ imTEST, rm16,  r16,   none,  0x85,  0,    0,    E_16 },
 	{ imTEST, rm32,  r32,   none,  0x85,  0,    0,    0 },
-	{ imTEST, rAL,   r8,    none,  0xA8,  0,    0,    0 },
-	{ imTEST, rAX,   r16,   none,  0xA9,  0,    0,    E_16 | E_RExt },
-	{ imTEST, rEAX,  r32,   none,  0xA9,  0,    0,    E_RExt },
+// These were incorrectly set as A-to-register comparisons before,
+// and generated bad code.  They don't seem to be needed by current code.
+// Commenting out until they are needed and can be tested since I'm unsure
+// of the encodings. 
+//	{ imTEST, rAL,   imm8,    none,  0xA8,  0,    0,    0 },    
+///	{ imTEST, rAX,   imm16,   none,  0xA9,  0,    0,    E_16 | E_RExt },
+//	{ imTEST, rEAX,  imm32,   none,  0xA9,  0,    0,    E_RExt },  
 	{ imTEST, rm8,   imm8,  none,  0xF6,  0,    0,    E_Ext },
 	{ imTEST, rm16,  imm16, none,  0xF7,  0,    0,    E_16 | E_Ext },
 	{ imTEST, rm32,  imm32, none,  0xF7,  0,    0,    E_Ext },
@@ -1888,7 +1893,7 @@ void jit_emit(intelMneId mne, ...)
 	const struct mnedef *m, *mbest;
 	byte buf[32], *p;
 	struct instr *ins;
-	opdesctyp memType;
+	opdesctyp memType = opNone;
 
 	// initialize the opcode table if we haven't already
 	if (!mneIdxInit)

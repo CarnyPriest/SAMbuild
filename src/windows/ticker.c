@@ -340,7 +340,41 @@ static void wintimer_init(void)
 	QueryPerformanceCounter(&sTimerStart);
 }
 
+// tries(!) to be as exact as possible at the cost of potentially causing trouble with other threads/cores due to OS madness
+// needs timeBeginPeriod(1) before calling 1st time to make the Sleep(1) in here behave more or less accurately (and timeEndPeriod(1) after not needing that precision anymore)
+// but MAME code does this already
 void uSleep(const UINT64 u)
+{
+	LARGE_INTEGER TimerEnd;
+	LARGE_INTEGER TimerNow;
+	LONGLONG TwoMSTimerTicks;
+
+	if (sTimerInit == 0)
+		wintimer_init();
+
+	QueryPerformanceCounter(&TimerNow);
+	TimerEnd.QuadPart = TimerNow.QuadPart + ((u * TimerFreq.QuadPart) / 1000000ull);
+	TwoMSTimerTicks = (2000 * TimerFreq.QuadPart) / 1000000ull;
+
+	while (TimerNow.QuadPart < TimerEnd.QuadPart)
+	{
+		if ((TimerEnd.QuadPart - TimerNow.QuadPart) > TwoMSTimerTicks)
+			Sleep(1); // really pause thread for 1-2ms (depending on OS)
+		else
+#ifdef __MINGW32__
+			{__asm__ __volatile__("pause");}
+#else
+			YieldProcessor(); // was: "SwitchToThread() let other threads on same core run" //!! could also try Sleep(0) or directly use _mm_pause() instead of YieldProcessor() here
+#endif
+
+		QueryPerformanceCounter(&TimerNow);
+	}
+}
+
+// can sleep too long by 1000 to 2000 (=1 to 2ms)
+// needs timeBeginPeriod(1) before calling 1st time to make the Sleep(1) in here behave more or less accurately (and timeEndPeriod(1) after not needing that precision anymore)
+// but MAME code does this already
+void uOverSleep(const UINT64 u)
 {
 	LARGE_INTEGER TimerEnd;
 	LARGE_INTEGER TimerNow;
@@ -348,13 +382,36 @@ void uSleep(const UINT64 u)
 	if (sTimerInit == 0)
 		wintimer_init();
 
-	QueryPerformanceCounter(&TimerEnd);
-	TimerEnd.QuadPart += (u * TimerFreq.QuadPart) / 1000000ull - sTimerStart.QuadPart;
+	QueryPerformanceCounter(&TimerNow);
+	TimerEnd.QuadPart = TimerNow.QuadPart + ((u * TimerFreq.QuadPart) / 1000000ull);
 
-	do
+	while (TimerNow.QuadPart < TimerEnd.QuadPart)
 	{
-		SwitchToThread();
-
+		Sleep(1); // really pause thread for 1-2ms (depending on OS)
 		QueryPerformanceCounter(&TimerNow);
-	} while (TimerNow.QuadPart - sTimerStart.QuadPart < TimerEnd.QuadPart);
+	}
+}
+
+// skips sleeping completely if u < 4000 (=4ms), otherwise will undersleep by -3000 to -2000 (=-3 to -2ms)
+// needs timeBeginPeriod(1) before calling 1st time to make the Sleep(1) in here behave more or less accurately (and timeEndPeriod(1) after not needing that precision anymore)
+// but MAME code does this already
+void uUnderSleep(const UINT64 u)
+{
+	LARGE_INTEGER TimerEndSleep;
+	LARGE_INTEGER TimerNow;
+
+	if (sTimerInit == 0)
+		wintimer_init();
+
+	if (u < 4000) // Sleep < 4ms? -> exit
+		return;
+
+	QueryPerformanceCounter(&TimerNow);
+	TimerEndSleep.QuadPart = TimerNow.QuadPart + (((u - 4000ull) * TimerFreq.QuadPart) / 1000000ull);
+
+	while (TimerNow.QuadPart < TimerEndSleep.QuadPart)
+	{
+		Sleep(1); // really pause thread for 1-2ms (depending on OS)
+		QueryPerformanceCounter(&TimerNow);
+	}
 }

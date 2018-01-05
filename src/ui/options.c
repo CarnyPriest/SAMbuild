@@ -278,7 +278,7 @@ static REG_OPTION regGameOpts[] =
         // sound
         { "samplerate",             RO_INT,     &gOpts.samplerate,        0, 0},
         { "samples",                RO_BOOL,    &gOpts.use_samples,       0, 0},
-        { "resamplefilter",         RO_BOOL,    &gOpts.use_filter,        0, 0},
+        //{ "resamplefilter",         RO_BOOL,    &gOpts.use_filter,        0, 0},
         { "sound",                  RO_BOOL,    &gOpts.enable_sound,      0, 0},
         { "volume",                 RO_INT,     &gOpts.attenuation,       0, 0},
         { "audio_latency",          RO_INT,     &gOpts.audio_latency,     0, 0},
@@ -320,6 +320,7 @@ static REG_OPTION regGameOpts[] =
         { "dmd_green66",            RO_INT,     &gOpts.dmd_green66,       0, 0},
         { "dmd_blue66",             RO_INT,     &gOpts.dmd_blue66,        0, 0},
         { "dmd_opacity",            RO_INT,     &gOpts.dmd_opacity,       0, 0},
+        { "resampling_quality",     RO_INT,     &gOpts.resampling_quality,0, 0},
 #if defined(VPINMAME_ALTSOUND) || defined(VPINMAME_PINSOUND)
         { "sound_mode",             RO_INT,     &gOpts.sound_mode,        0, 0},
 #endif
@@ -337,6 +338,9 @@ static REG_OPTION global_game_options[] =
 
         {"rompath",            RO_STRING,  &settings.romdirs,          0, 0},
         {"samplepath",         RO_STRING,  &settings.sampledirs,       0, 0},
+#if defined(PINMAME) && defined(PROC_SUPPORT)
+	{"procpath",           RO_STRING,  &settings.procdirs,         0, 0},
+#endif /* PINMAME && PROC_SUPPORT */
         {"inipath",            RO_STRING,  &settings.inidir,           0, 0},
         {"cfg_directory",      RO_STRING,  &settings.cfgdir,           0, 0},
         {"nvram_directory",    RO_STRING,  &settings.nvramdir,         0, 0},
@@ -648,6 +652,9 @@ BOOL OptionsInit()
 
         settings.romdirs           = _strdup("roms");
         settings.sampledirs        = _strdup("samples");
+#if defined(PINMAME) && defined(PROC_SUPPORT)
+        settings.procdirs          = _strdup("proc");
+#endif /* PINMAME && PROC_SUPPORT */
         settings.inidir            = _strdup("ini");
         settings.cfgdir            = _strdup("cfg");
         settings.nvramdir          = _strdup("nvram");
@@ -758,9 +765,9 @@ BOOL OptionsInit()
         global.f_intensity               = 1.5;
 
         /* Sound */
-        global.samplerate        = 44100;
+        global.samplerate        = 48000;
         global.use_samples       = TRUE;
-        global.use_filter        = TRUE;
+        //global.use_filter        = TRUE;
         global.enable_sound      = TRUE;
         global.attenuation       = 0;
         global.audio_latency     = 1;
@@ -802,6 +809,7 @@ BOOL OptionsInit()
         global.dmd_green66       = 15;
         global.dmd_blue66        = 193;
         global.dmd_opacity       = 100;
+        global.resampling_quality= 0;
 #if defined(VPINMAME_ALTSOUND) || defined(VPINMAME_PINSOUND)
         global.sound_mode        = 0;
 #endif
@@ -840,6 +848,9 @@ BOOL OptionsInit()
         // this leaks a little, but the win32 file core writes to this string
         set_pathlist(FILETYPE_ROM,_strdup(settings.romdirs));
         set_pathlist(FILETYPE_SAMPLE,_strdup(settings.sampledirs));
+#if defined(PINMAME) && defined(PROC_SUPPORT)
+	set_pathlist(FILETYPE_PROC,_strdup(settings.procdirs));
+#endif /* PINMAME && PROC_SUPPORT */
 #ifdef MESS
         set_pathlist(FILETYPE_CRC,_strdup(settings.crcdir));
 #endif
@@ -864,6 +875,9 @@ void OptionsExit(void)
     FreeIfAllocated(&settings.language);
     FreeIfAllocated(&settings.romdirs);
     FreeIfAllocated(&settings.sampledirs);
+#if defined(PINMAME) && defined(PROC_SUPPORT)
+    FreeIfAllocated(&settings.procdirs);
+#endif /* PINMAME && PROC_SUPPORT */
     FreeIfAllocated(&settings.inidir);
     FreeIfAllocated(&settings.cfgdir);
     FreeIfAllocated(&settings.hidir);
@@ -1464,6 +1478,27 @@ void SetSampleDirs(const char* paths)
         }
 
 }
+
+#if defined(PINMAME) && defined(PROC_SUPPORT)
+const char* GetProcDirs(void)
+{
+	return settings.procdirs;
+}
+
+void SetProcDirs(const char* paths)
+{
+	FreeIfAllocated(&settings.procdirs);
+
+	if (paths != NULL)
+	{
+		settings.procdirs = _strdup(paths);
+
+		// have our mame core (file code) know about it
+		// this leaks a little, but the win32 file core writes to this string
+		set_pathlist(FILETYPE_PROC,_strdup(settings.procdirs));
+	}
+}
+#endif /* PINMAME && PROC_SUPPORT */
 
 const char * GetIniDir(void)
 {
@@ -2952,7 +2987,7 @@ void SaveGameOptions(int driver_index)
         {
                 if (DeleteFile(buffer) == 0)
                 {
-                        dprintf("error deleting %s; error %d\n",buffer, GetLastError());
+                        dprintf("error deleting %s; error %d",buffer, GetLastError());
                 }
         }
 }

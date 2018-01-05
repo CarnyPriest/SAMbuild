@@ -94,9 +94,15 @@ typedef struct {
   int dmd_red33, dmd_green33, dmd_blue33;
   int dmd_red0, dmd_green0, dmd_blue0;
   int dmd_opacity;
+  int resampling_quality;
 #if defined(VPINMAME_ALTSOUND) || defined(VPINMAME_PINSOUND)
   int sound_mode; // 0 = pinmame, 1 = altsound, 2 = pinsound, 3 = pinsound + recordings
 #endif
+#ifdef PROC_SUPPORT
+	char *p_roc;				/* YAML Machine description file */
+	int alpha_on_dmd;			/* Virtual alphanumeric displays on P-ROC DMD */
+	int virtual_dmd;			/* If we have no screen, then we can suppress the DMD */
+#endif /* PROC_SUPPORT */
 } tPMoptions;
 extern tPMoptions pmoptions;
 struct pinMachine {
@@ -624,16 +630,4 @@ const struct GameDriver driver_##NAME =         \
 extern const struct GameDriver *drivers[];
 extern const struct GameDriver *test_drivers[];
 
-#ifdef PINMAME
-//Include New Stern Game Support if not running VPM or if Test New Stern Game flag found
-#ifdef VPINMAME
-        #ifdef TEST_NEW_STERN
-                #define INCLUDE_NEW_STERN 1
-//              #define INCLUDE_STERN_SAM 1
-        #endif
-#else
-        #define INCLUDE_NEW_STERN 1
-//      #define INCLUDE_STERN_SAM 1
-#endif
-#endif
 #endif

@@ -24,7 +24,7 @@
 #endif // MAMEVER
 #if (MAMEVER >= 6800)
 #  ifndef PI
-#    define PI 3.14159265354
+#    define PI 3.1415926535897932384626433832795
 #  endif
 #else // MAMEVER < 6800
 #  define CRC(a) 0x##a
@@ -135,6 +135,7 @@
 #define HAS_Y8950      1
 #define HAS_ASTROCADE  1
 #define HAS_YMF262     1
+#define HAS_MEA8000    1
 #endif /* _MSC_VER */
 
 #ifdef _MSC_VER // Disable some VC++ warnings
@@ -147,13 +148,13 @@
 #endif
 
 #define INLINE static __inline
-#pragma warning(disable:4018)		// "signed/unsigned mismatch"
-#pragma warning(disable:4146)		// "unary minus operator applied to unsigned type"
-#pragma warning(disable:4244)		// "possible loss of data"
-#pragma warning(disable:4761)		// "integral size mismatch in argument"
-#pragma warning(disable:4550)		// "expression evaluates to a function which is missing an argument list"
+//#pragma warning(disable:4018)		// "signed/unsigned mismatch"
+//#pragma warning(disable:4146)		// "unary minus operator applied to unsigned type"
+//#pragma warning(disable:4244)		// "possible loss of data"
+//#pragma warning(disable:4761)		// "integral size mismatch in argument"
+//#pragma warning(disable:4550)		// "expression evaluates to a function which is missing an argument list"
 #pragma warning(disable:4090)		// "different 'const' qualifiers"
-#define M_PI 3.14159265358
+#define M_PI 3.1415926535897932384626433832795
 
 #ifndef DD_OK
 #define DD_OK DS_OK

@@ -74,7 +74,8 @@ Revision History:
 #include "driver.h"		/* use M.A.M.E. */
 #include "fmopl.h"
 
-
+// old code that had rate not necessarily meet clock/72
+//#define OPL_NOT_EXACT_RATE
 
 /* output final shift */
 #if (OPL_SAMPLE_BITS==16)
@@ -316,13 +317,15 @@ typedef struct fm_opl_f {
 
 	UINT32 clock;                   /* master clock  (Hz)           */
 	UINT32 rate;                    /* sampling rate (Hz)           */
+#ifdef OPL_NOT_EXACT_RATE
 	double freqbase;				/* frequency base				*/
-	double TimerBase;         /* Timer base time (==sampling time)*/
+#endif
+	double TimerBase;				/* Timer base time (==sampling time)*/
 
 	signed int phase_modulation;    /* phase modulation input (SLOT 2) */
 	signed int output[1];
 #if BUILD_Y8950
-	INT32 output_deltat[4];     /* for Y8950 DELTA-T, chip is mono, that 4 here is just for safety */
+	INT32 output_deltat[4];			/* for Y8950 DELTA-T, chip is mono, that 4 here is just for safety */
 #endif
 } FM_OPL;
 
@@ -898,9 +901,7 @@ INLINE signed int op_calc(UINT32 phase, unsigned int env, signed int pm, unsigne
 
 INLINE signed int op_calc1(UINT32 phase, unsigned int env, signed int pm, unsigned int wave_tab)
 {
-	UINT32 p;
-
-	p = (env<<4) + sin_tab[wave_tab + ((((signed int)((phase & ~FREQ_MASK) + pm      )) >> FREQ_SH ) & SIN_MASK) ];
+	UINT32 p = (env<<4) + sin_tab[wave_tab + ((((signed int)((phase & ~FREQ_MASK) + pm      )) >> FREQ_SH ) & SIN_MASK) ];
 
 	if (p >= TL_TAB_LEN)
 		return 0;
@@ -982,7 +983,6 @@ INLINE void OPL_CALC_RH( FM_OPL *OPL, OPL_CH *CH, unsigned int noise )
 	OPL_SLOT *SLOT;
 	signed int out;
 	unsigned int env;
-
 
 	/* Bass Drum (verified on real YM3812):
 	  - depends on the channel 6 'connect' register:
@@ -1148,11 +1148,9 @@ static int init_tables(void)
 	signed int n;
 	double o,m;
 
-
 	for (x=0; x<TL_RES_LEN; x++)
 	{
-		m = (1<<16) / pow(2, (x+1) * (ENV_STEP/4.0) / 8.0);
-		m = floor(m);
+		m = floor((1<<16) / pow(2, (x+1) * (ENV_STEP/4.0) / 8.0));
 
 		/* we never reach (1<<16) here due to the (x+1) */
 		/* result fits within 16 bits at maximum */
@@ -1190,12 +1188,9 @@ static int init_tables(void)
 
 		/* we never reach zero here due to ((i*2)+1) */
 
-		if (m>0.0)
-			o = 8*log(1.0/m)/log(2.0);  /* convert to 'decibels' */
-		else
-			o = 8*log(-1.0/m)/log(2.0); /* convert to 'decibels' */
+		o = 8.0*log(1.0/fabs(m))/log(2.0);  /* convert to 'decibels' */
 
-		o = o / (ENV_STEP/4);
+		o = o / (ENV_STEP/4.0);
 
 		n = (int)(2.0*o);
 		if (n&1)						/* round to nearest */
@@ -1261,11 +1256,12 @@ static void OPL_initalize(FM_OPL *OPL)
 {
 	int i;
 
+#ifdef OPL_NOT_EXACT_RATE
 	/* frequency base */
 	OPL->freqbase  = (OPL->rate) ? ((double)OPL->clock / 72.0) / OPL->rate  : 0;
-#if 0
-	OPL->rate = (double)OPL->clock / 72.0;
-	OPL->freqbase  = 1.0;
+#else
+	// force rate just to make sure
+	OPL->rate = OPL->clock / 72;
 #endif
 
 	/*logerror("freqbase=%f\n", OPL->freqbase);*/
@@ -1277,7 +1273,11 @@ static void OPL_initalize(FM_OPL *OPL)
 	for( i=0 ; i < 1024 ; i++ )
 	{
 		/* opn phase increment counter = 20bit */
-		OPL->fn_tab[i] = (UINT32)( (double)i * 64 * OPL->freqbase * (1<<(FREQ_SH-10)) ); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
+#ifdef OPL_NOT_EXACT_RATE
+		OPL->fn_tab[i] = (UINT32)((double)(i * 64 * (1 << (FREQ_SH - 10))) * OPL->freqbase); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
+#else
+		OPL->fn_tab[i] = i * 64 * (1 << (FREQ_SH - 10)); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
+#endif
 #if 0
 		logerror("FMOPL.C: fn_tab[%4i] = %08x (dec=%8i)\n",
 				 i, OPL->fn_tab[i]>>6, OPL->fn_tab[i]>>6 );
@@ -1304,6 +1304,7 @@ static void OPL_initalize(FM_OPL *OPL)
 
 
 	/* Amplitude modulation: 27 output levels (triangle waveform); 1 level takes one of: 192, 256 or 448 samples */
+#ifdef OPL_NOT_EXACT_RATE
 	/* One entry from LFO_AM_TABLE lasts for 64 samples */
 	OPL->lfo_am_inc = (1.0 / 64.0 ) * (1<<LFO_SH) * OPL->freqbase;
 
@@ -1316,9 +1317,23 @@ static void OPL_initalize(FM_OPL *OPL)
 	OPL->noise_f = (1.0 / 1.0) * (1<<FREQ_SH) * OPL->freqbase;
 
 	OPL->eg_timer_add  = (1<<EG_SH)  * OPL->freqbase;
+#else
+	/* One entry from LFO_AM_TABLE lasts for 64 samples */
+	OPL->lfo_am_inc = (1 << LFO_SH) / 64;
+
+	/* Vibrato: 8 output levels (triangle waveform); 1 level takes 1024 samples */
+	OPL->lfo_pm_inc = (1 << LFO_SH) / 1024;
+
+	/*logerror ("OPL->lfo_am_inc = %8x ; OPL->lfo_pm_inc = %8x\n", OPL->lfo_am_inc, OPL->lfo_pm_inc);*/
+
+	/* Noise generator: a step takes 1 sample */
+	OPL->noise_f = (1 << FREQ_SH) / 1;
+
+	OPL->eg_timer_add = (1 << EG_SH);
+#endif
+
 	OPL->eg_timer_overflow = ( 1 ) * (1<<EG_SH);
 	/*logerror("OPLinit eg_timer_add=%8x eg_timer_overflow=%8x\n", OPL->eg_timer_add, OPL->eg_timer_overflow);*/
-
 }
 
 INLINE void FM_KEYON(OPL_SLOT *SLOT, UINT32 key_set)
@@ -1450,7 +1465,6 @@ static void OPLWriteReg(FM_OPL *OPL, int r, int v)
 	int slot;
 	int block_fnum;
 
-
 	/* adjust bus to 8 bits */
 	r &= 0xff;
 	v &= 0xff;
@@ -1460,7 +1474,6 @@ static void OPLWriteReg(FM_OPL *OPL, int r, int v)
 		fputc( (unsigned char)r, cymfile );
 		fputc( (unsigned char)v, cymfile );
 	}
-
 
 	switch(r&0xe0)
 	{
@@ -1776,7 +1789,7 @@ static void OPLResetChip(FM_OPL *OPL)
 	OPL->eg_cnt   = 0;
 
 	OPL->noise_rng = 1;	/* noise shift register */
-	OPL->mode   = 0;	/* normal mode */
+	OPL->mode = 0;		/* normal mode */
 	OPL_STATUS_RESET(OPL,0x7f);
 
 	/* reset with register write */
@@ -1803,7 +1816,11 @@ static void OPLResetChip(FM_OPL *OPL)
 	{
 		YM_DELTAT *DELTAT = OPL->deltat;
 
+#ifdef OPL_NOT_EXACT_RATE
 		DELTAT->freqbase = OPL->freqbase;
+#else
+		DELTAT->freqbase = 1.0;
+#endif
 		DELTAT->output_pointer = &OPL->output_deltat[0];
 		DELTAT->portshift = 5;
 		DELTAT->output_range = 1<<23;
@@ -1814,7 +1831,7 @@ static void OPLResetChip(FM_OPL *OPL)
 
 /* Create one of virtual YM3812/YM3526/Y8950 */
 /* 'clock' is chip clock in Hz  */
-/* 'rate'  is sampling rate  */
+/* 'rate'  is sampling rate (=clock/72) */
 static FM_OPL *OPLCreate(int type, int clock, int rate)
 {
 	char *ptr;
@@ -2011,6 +2028,7 @@ static int OPLTimerOver(FM_OPL *OPL,int c)
 static FM_OPL *OPL_YM3812[MAX_OPL_CHIPS];	/* array of pointers to the YM3812's */
 static int YM3812NumChips = 0;				/* number of chips */
 
+// rate = clock/72
 int YM3812Init(int num, int clock, int rate)
 {
 	int i;
@@ -2154,6 +2172,7 @@ void YM3812UpdateOne(int which, INT16 *buffer, int length)
 static FM_OPL *OPL_YM3526[MAX_OPL_CHIPS];	/* array of pointers to the YM3526's */
 static int YM3526NumChips = 0;				/* number of chips */
 
+// rate = clock/72
 int YM3526Init(int num, int clock, int rate)
 {
 	int i;
@@ -2307,6 +2326,7 @@ static void Y8950_deltat_status_reset(UINT8 which, UINT8 changebits)
 	OPL_STATUS_RESET(OPL_Y8950[which], changebits);
 }
 
+// rate = clock/72
 int Y8950Init(int num, int clock, int rate)
 {
 	int i;
@@ -2475,4 +2495,3 @@ void Y8950SetKeyboardHandler(int which,OPL_PORTHANDLER_W KeyboardHandler_w,OPL_P
 }
 
 #endif
-
