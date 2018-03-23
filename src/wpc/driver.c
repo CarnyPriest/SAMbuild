@@ -108,7 +108,8 @@ DRIVERNV(boomrang)      //          11/75 Boomerang (Engineering prototype)
 DRIVERNV(boomranb)      //          04/17 Boomerang (Bootleg with code fixes)
 
 //MPU-17
-DRIVERNV(bowarrow)      //          08/76 Bow & Arrow (Prototype)
+DRIVERNV(bowarrow)      //          08/76 Bow & Arrow (Prototype, rev. 23)
+DRIVERNV(bowarroa)      //          08/76 Bow & Arrow (Prototype, rev. 22)
 DRIVERNV(freedom )      //BY17-720: 08/76 Freedom
 DRIVERNV(nightr20)      //BY17-721: 01/76 Night Rider (rev. 20, EM release date)
 DRIVERNV(nightrdr)      //BY17-721: 01/76 Night Rider (rev. 21)
@@ -426,7 +427,8 @@ DRIVER(hook,401p)       //Data East MPU: 11/91 Hook (4.01 with Prototype Sound)
 DRIVER(hook,401)        //Data East MPU: 01/92 Hook (4.01)
 DRIVER(hook,404)        //Data East MPU: 01/92 Hook (4.04)
 DRIVER(hook,408)        //Data East MPU: 01/92 Hook (4.08)
-DRIVER(hook,500)        //Data East MPU: 12/16 Hook (5.00)
+DRIVER(hook,500)        //Data East MPU: 12/16 Hook (5.00 unofficial MOD)
+DRIVER(hook,501)        //Data East MPU: 03/18 Hook (5.01 unofficial MOD)
 //DMD 128 x 32
 DRIVER(lw3,200)         //Data East MPU: 06/92 Lethal Weapon (2.00)
 DRIVER(lw3,203)         //Data East MPU: 07/92 Lethal Weapon (2.03)
@@ -956,7 +958,7 @@ DRIVERNV(rotation)      //Rotation VIII (v. 1.17, 1978?)
 // MIRCO GAMES
 // ----------------
 DRIVERNV(spirit76)      //Spirit of 76 (1975)
-DRIVERNV(lckydraw)      //Lucky Draw (1979)
+DRIVERNV(lckydraw)      //Lucky Draw (1978)
 
 // ----------------
 // MONROE BOWLING CO.
@@ -1879,6 +1881,7 @@ DRIVER(tf,160)          //S.A.M.: 01/12 Transformers - V1.6
 DRIVER(tf,170)          //S.A.M.: 03/12 Transformers - V1.7
 DRIVER(tf,180)          //S.A.M.: 03/13 Transformers - V1.8
 DRIVER(tf,180h)         //S.A.M.: 03/13 Transformers - V1.8 Limited Edition
+// Note that AC/DC vault edition has no special ROM like the previous VEs
 DRIVER(acd,121)         //S.A.M.: 02/12 AC/DC - V1.21
 //DRIVER(acd,121h)        //S.A.M.: 02/12 AC/DC - V1.21 Limited Edition
 DRIVER(acd,125)         //S.A.M.: 0?/12 AC/DC - V1.25
