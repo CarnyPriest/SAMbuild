@@ -2730,6 +2730,8 @@ SAM1_ROM128MB(st_162h, "st_162h.bin", CRC(2b42c5bb) SHA1(6190583b889f258afbdc0f9
 #ifdef SAM_INCLUDE_COLORED
 SAM1_ROM128MB(st_161c, "st_161c.bin", CRC(74ad8a31) SHA1(18c940d021441ba87854f5eb6edb84aeffabdaae), 0x037FFFF0)
 SAM1_ROM128MB(st_161hc,"st_161hc.bin",CRC(74ad8a31) SHA1(18c940d021441ba87854f5eb6edb84aeffabdaae), 0x037FFFF0)
+SAM1_ROM128MB(st_162c, "st_162c.bin", CRC(74ad8a31) SHA1(18c940d021441ba87854f5eb6edb84aeffabdaae), 0x037FFFF0)
+SAM1_ROM128MB(st_162hc,"st_162hc.bin",CRC(74ad8a31) SHA1(18c940d021441ba87854f5eb6edb84aeffabdaae), 0x037FFFF0)
 #endif
 
 SAM_INPUT_PORTS_START(st, 1)
@@ -2751,6 +2753,8 @@ CORE_CLONEDEF(st, 162,  162h, "Star Trek (V1.62)", 2018, "Stern", sam2, 0)
 #ifdef SAM_INCLUDE_COLORED
 CORE_CLONEDEF(st, 161c, 162h, "Star Trek (V1.61) (Colored)", 2015, "Stern", sam2, 0)
 CORE_CLONEDEF(st, 161hc,162h, "Star Trek Limited Edition (V1.61) (Colored)", 2015, "Stern", sam2, 0)
+CORE_CLONEDEF(st, 162c, 162h, "Star Trek (V1.62) (Colored)", 2018, "Stern", sam2, 0)
+CORE_CLONEDEF(st, 162hc,162h, "Star Trek Limited Edition (V1.62) (Colored)", 2018, "Stern", sam2, 0)
 #endif
 
 /*-------------------------------------------------------------------

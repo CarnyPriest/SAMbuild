@@ -1,4 +1,5 @@
 official rev r4519
+Added slots for Star Trek V1.62 Pro and LE colored DMD mod 
  ----------------------
 official rev r4515
  ----------------------
