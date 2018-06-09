@@ -74,10 +74,21 @@
 #define SAM_GAME_ACDC_FLAMES  0x200 // AC/DC LE uses a special aux board for flame lights
 #define SAM_GAME_IJ4_SOL3     0x400
 
-#define SAM_0COL 0x00
-#define SAM_2COL 0x02
-#define SAM_3COL 0x03
-#define SAM_8COL 0x08
+#define SAM_2COL   2
+#define SAM_3COL   3
+#define SAM_5COL   5
+#define SAM_8COL   8
+#ifdef MAME_DEBUG
+#define SAM_9COL   9
+#define SAM_12COL 12
+#define SAM_20COL 20
+#define SAM_33COL 33
+#else
+#define SAM_9COL   2
+#define SAM_12COL  2
+#define SAM_20COL  2
+#define SAM_33COL  2
+#endif
 
 #define WOF_MINIDMD_MAX 175
 
@@ -781,9 +792,9 @@ static WRITE32_HANDLER(sambank_w)
 			case 0x02400020:
 				if (++samlocals.dataWrites[0] == 1)
 				{
+					int ii;
 					coreGlobals.pulsedSolState &= ~(0xFF << 8);
 					coreGlobals.pulsedSolState |= data << 8;
-					int ii;
 					for (ii = 0; ii <= 7; ii++)
 					{
 						core_update_modulated_light(&samlocals.solenoidbits[ii + 8], data & (1u << ii));
@@ -842,10 +853,10 @@ static WRITE32_HANDLER(sambank_w)
 			case 0x02400022:
 				if (++samlocals.dataWrites[2] == 1)
 				{
+					int ii;
 					coreGlobals.pulsedSolState &= ~(0xFF << 16);
 					coreGlobals.pulsedSolState |= data << 16;
 
-					int ii;
 					for (ii = 0; ii <= 7; ii++)
 					{
 						core_update_modulated_light(&samlocals.solenoidbits[ii + 16], data & (1u << ii));
@@ -855,9 +866,9 @@ static WRITE32_HANDLER(sambank_w)
 			case 0x02400023:
 				if (++samlocals.dataWrites[3] == 1)
 				{
+					int ii;
 					coreGlobals.pulsedSolState &= ~(0xFF << 24);
 					coreGlobals.pulsedSolState |= data << 24;
-					int ii;
 					for (ii = 0; ii <= 7; ii++)
 					{
 						core_update_modulated_light(&samlocals.solenoidbits[ii + 24], data & (1u << ii));
@@ -1013,10 +1024,10 @@ static WRITE32_HANDLER(sambank_w)
 				if (core_gameData->hw.gameSpecific1 & SAM_GAME_TRON)
 				{
 					if ( ~data & 0x08 )
-						coreGlobals.lampMatrix[8] = coreGlobals.tmpLampMatrix[8] = core_revbyte(samlocals.auxdata);
+						coreGlobals.lampMatrix[12] = coreGlobals.tmpLampMatrix[12] = core_revbyte(samlocals.auxdata);
 					if ( ~data & 0x10 )
 					{
-						coreGlobals.lampMatrix[9] = coreGlobals.tmpLampMatrix[9] = core_revbyte(samlocals.auxdata);
+						coreGlobals.lampMatrix[11] = coreGlobals.tmpLampMatrix[11] = core_revbyte(samlocals.auxdata);
 						core_update_modulated_light(&samlocals.modulated_lights[0], samlocals.auxdata & (1u << 3));
 						core_update_modulated_light(&samlocals.modulated_lights[1], samlocals.auxdata & (1u << 4));
 						core_update_modulated_light(&samlocals.modulated_lights[2], samlocals.auxdata & (1u << 5));
@@ -1220,17 +1231,18 @@ static MACHINE_INIT(sam) {
 
 void sam_init()
 {
+	const char * const gn = Machine->gamedrv->name;
+
 	memset(&samlocals, 0, sizeof(samlocals));
 	samlocals.pass = 16;
 	samlocals.coindoor = 1;
 	samlocals.led_row = -1;
 
 	//!! timing hacks for CSI and IJ
-
-	const char * const gn = Machine->gamedrv->name;
-
 	if (_strnicmp(gn, "csi_", 4) == 0 || _strnicmp(gn, "ij4_", 4) == 0)
 		at91_block_timers = 1;
+	else
+		at91_block_timers = 0;
 
 	// Fast flips support.   My process for finding these is to load them in pinmame32 in VC debugger.  
 	// Load the balls in trough (E+SDFG), start the game.  
@@ -1446,6 +1458,7 @@ static void sam_transmit_serial(int usartno, data8_t *data, int size)
 /*  VBLANK Section  */
 /********************/
 static INTERRUPT_GEN(sam_vblank) {
+	int i;
 	/*-------------------------------
 	/  copy local data to interface
 	/--------------------------------*/
@@ -1464,7 +1477,6 @@ static INTERRUPT_GEN(sam_vblank) {
 	{
 	case SAM_GAME_TRON:
 	{
-		int i;
 		for(i=0;i<6;i++)
 		{
 			coreGlobals.RGBlamps[i+20] = core_calc_modulated_light(samlocals.modulated_lights[i], 15, &samlocals.modulated_lights_prev_levels[i]);
@@ -1473,17 +1485,25 @@ static INTERRUPT_GEN(sam_vblank) {
 	}
 	case SAM_GAME_WOF:
 	case SAM_GAME_FG:
+	case SAM_GAME_BDK:
+	case SAM_GAME_CSI:
 		break;
 
 	default:
 		memcpy(coreGlobals.RGBlamps, samlocals.ext_leds, SAM_LEDS_MAX * sizeof(data8_t));
-		break;
+#ifdef MAME_DEBUG
+		for (i = 0; i < core_gameData->hw.lampCol - 2; i++) {
+			coreGlobals.lampMatrix[10 + i] = (coreGlobals.RGBlamps[8 * i] ? 1 : 0) | (coreGlobals.RGBlamps[8 * i + 1] ? 2 : 0)
+			 | (coreGlobals.RGBlamps[8 * i + 2] ? 4 : 0) | (coreGlobals.RGBlamps[8 * i + 3] ? 8 : 0)
+			 | (coreGlobals.RGBlamps[8 * i + 4] ? 0x10 : 0) | (coreGlobals.RGBlamps[8 * i + 5] ? 0x20 : 0)
+			 | (coreGlobals.RGBlamps[8 * i + 6] ? 0x40 : 0) | (coreGlobals.RGBlamps[8 * i + 7] ? 0x80 : 0);
+		}
+#endif
 	}
 
 	/*-- solenoids --*/
 	{
 	UINT32 solenoidupdate = 0;
-	int i;
 	for(i=0;i<CORE_MODSOL_MAX;i++)
 	{
 		UINT8 value;
@@ -2139,7 +2159,7 @@ static int wof_getMech(int mechNo) {
 	return mech_getPos(mechNo);
 }
 static void wof_drawMech(BMTYPE **line) {
-	core_textOutf(30, 10, BLACK, "Wheel Pos   : %3d", wof_getMech(0));
+	core_textOutf(35, 10, BLACK, "Wheel Pos   : %3d", wof_getMech(0));
 }
 
 static core_tGameData wofGameData = { 
@@ -2333,7 +2353,7 @@ CORE_CLONEDEF(twenty4, 144, 150, "24 (V1.44)", 2009, "Stern", sam1, 0)
 /*-------------------------------------------------------------------
 / NBA
 /-------------------------------------------------------------------*/
-INITGAME(nba, GEN_SAM, sam_dmd128x32, SAM_0COL, SAM_NOMINI)
+INITGAME(nba, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_NOMINI)
 
 SAM1_ROM32MB(nba_500, "nba_500.bin", CRC(01b0c27a) SHA1(d7f4f6b24630b55559a48cde4475422905811106), 0x019112d0)
 SAM1_ROM32MB(nba_600, "nba_600.bin", CRC(af2fbcf4) SHA1(47df1992a1eb6c4cd5ec246912eab9f5636499a7), 0x019112d0)
@@ -2369,7 +2389,7 @@ CORE_CLONEDEF(bbh, 160, 170, "Big Buck Hunter Pro (V1.6)", 2010, "Stern", sam1, 
 /*-------------------------------------------------------------------
 / Iron Man
 /-------------------------------------------------------------------*/
-INITGAME(im, GEN_SAM, sam_dmd128x32, SAM_0COL, SAM_GAME_AUXSOL12)
+INITGAME(im, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12)
 
 SAM1_ROM32MB(im_100,  "im_100.bin",  CRC(b27d12bf) SHA1(dfb497f2edaf4321823b243cced9d9e2b7bac628), 0x01b8fe44)
 SAM1_ROM32MB(im_110,  "im_110.bin",  CRC(3140cb7c) SHA1(20b0e84b61069e09f189d79e6b4d5abf0369a893), 0x01b8fe44)
@@ -2396,7 +2416,7 @@ CORE_CLONEDEF(im, 183, 183ve, "Iron Man (V1.83)", 2014, "Stern", sam1, 0)
 /*-------------------------------------------------------------------
 / TRON: Legacy
 /-------------------------------------------------------------------*/
-INITGAME(trn, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_GAME_TRON)
+INITGAME(trn, GEN_SAM, sam_dmd128x32, SAM_5COL, SAM_GAME_TRON)
 
 SAM1_ROM32MB(trn_100h, "trn_100h.bin", CRC(4c2abebd) SHA1(8e22454932680351d58f863cf9644a9f3db24800), 0x01F19368)
 SAM1_ROM32MB(trn_110,  "trn_110.bin",  CRC(bdaf1803) SHA1(f32d5bfb87be85483b0486bbb6f2858efca6efe5), 0x01AB97D8)
@@ -2431,7 +2451,7 @@ CORE_CLONEDEF(trn, 17402,174h, "TRON: Legacy (V1.7402)", 2013, "Stern", sam1, 0)
 /*-------------------------------------------------------------------
 / Transformers
 /-------------------------------------------------------------------*/
-INITGAME(tf, GEN_SAM, sam_dmd128x32, SAM_3COL, SAM_GAME_AUXSOL12)
+INITGAME(tf, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12)
 
 SAM1_ROM32MB(tf_088h, "tf_088h.bin", CRC(a79ca893) SHA1(8f1228727422f5f99a20d60968eeca6c64f6c253), 0x01EB4CE8)
 SAM1_ROM32MB(tf_100h, "tf_100h.bin", CRC(3be6ffc2) SHA1(c57d00af7ea189ea37ceed28bf85cff1054a1b8c), 0x01F4CCF0)
@@ -2466,7 +2486,7 @@ CORE_CLONEDEF(tf, 180,  180h, "Transformers (V1.8)", 2013, "Stern", sam1, 0)
 /*-------------------------------------------------------------------
 / James Cameron's Avatar
 /-------------------------------------------------------------------*/
-INITGAME(avr, GEN_SAM, sam_dmd128x32, SAM_0COL, SAM_GAME_AUXSOL12)
+INITGAME(avr, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12)
 
 SAM1_ROM32MB(avr_101h, "avr_101h.bin", CRC(dbdcc7e5) SHA1(bf9a79209ecdae93efb2930091d2658259a3bd03), 0x01EE1CB8)
 SAM1_ROM32MB(avr_106,  "avr_106.bin",  CRC(695799e5) SHA1(3e216fd4273adb7417294b3e648befd69350ab25), 0x01ED31B4)
@@ -2486,7 +2506,7 @@ CORE_CLONEDEF(avr, 200,  120h, "Avatar (V2.0)", 2013, "Stern", sam1, 0)
 /*-------------------------------------------------------------------
 / The Rolling Stones
 /-------------------------------------------------------------------*/
-INITGAME(rsn, GEN_SAM, sam_dmd128x32, SAM_0COL, SAM_NOMINI)
+INITGAME(rsn, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_NOMINI)
 
 SAM1_ROM32MB(rsn_100h, "rsn_100h.bin", CRC(7cdb082a) SHA1(2f35057b80ffeec05cdbc62bc86da8a32f859425), 0x01EB50C8)
 SAM1_ROM32MB(rsn_103,  "rsn_103.bin",  CRC(2039ac97) SHA1(4cbcc758fc74dd32f5804b9548645fba3431bdce), 0x01D38788)
@@ -2505,7 +2525,7 @@ CORE_CLONEDEF(rsn, 110,  110h, "Rolling Stones, The (V1.1)", 2011, "Stern", sam1
 /*-------------------------------------------------------------------
 / AC/DC
 /-------------------------------------------------------------------*/
-INITGAME(acd, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12 | SAM_GAME_ACDC_FLAMES)
+INITGAME(acd, GEN_SAM, sam_dmd128x32, SAM_12COL, SAM_GAME_AUXSOL12 | SAM_GAME_ACDC_FLAMES)
  
 SAM1_ROM128MB(acd_121,   "acd_121.bin",  CRC(4f5f43e9) SHA1(19045e9cdb2522770013c24c6fed265009278dea), 0x03D8F40C)
 SAM1_ROM128MB(acd_125,   "acd_125.bin",  CRC(0307663f) SHA1(d40e3aaf94d1d314835fa59a177ce0c386399f4c), 0x03E53DEC)
@@ -2642,7 +2662,7 @@ CORE_CLONEDEF(avs, 170hc,170h, "Avengers, The Limited Edition (V1.7) (Colored)",
 /*-------------------------------------------------------------------
 / Metallica
 /-------------------------------------------------------------------*/
-INITGAME(mtl, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12 | SAM_GAME_METALLICA_MAGNET)
+INITGAME(mtl, GEN_SAM, sam_dmd128x32, SAM_9COL, SAM_GAME_AUXSOL12 | SAM_GAME_METALLICA_MAGNET)
 
 SAM1_ROM128MB(mtl_103,   "mtl_103.bin",  CRC(9b073858) SHA1(129872e38d21d9d6d20f81388825113f13645bab), 0x04D24D04)
 SAM1_ROM128MB(mtl_105,   "mtl_105.bin",  CRC(4699e2cf) SHA1(b56e85583362056b33f7b8eb6255d34d234ea5ea), 0x04DEDE5C)
@@ -2711,7 +2731,7 @@ CORE_CLONEDEF(mtl, 170hc,170h, "Metallica Limited Edition (V1.7) (Colored)", 201
 /*-------------------------------------------------------------------
 / Star Trek (Stern)
 /-------------------------------------------------------------------*/
-INITGAME(st, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_GAME_AUXSOL12)
+INITGAME(st, GEN_SAM, sam_dmd128x32, SAM_33COL, SAM_GAME_AUXSOL12)
 
 SAM1_ROM128MB(st_120,  "st_120.bin",  CRC(dde9db23) SHA1(09e67564bce0ff7c67f1d16c4f9d8595f8130372), 0x02B14CFC)													
 SAM1_ROM128MB(st_130,  "st_130.bin",  CRC(f501eb87) SHA1(6fa2f4e30cdd397d5443dfc690463495d22d9229), 0x02B71A98)													
@@ -2756,7 +2776,7 @@ CORE_CLONEDEF(st, 161hc,162h, "Star Trek Limited Edition (V1.61) (Colored)", 201
 /*-------------------------------------------------------------------
 / Mustang
 /-------------------------------------------------------------------*/
-INITGAME(mt, GEN_SAM, sam_dmd128x32, SAM_8COL,SAM_GAME_AUXSOL12)
+INITGAME(mt, GEN_SAM, sam_dmd128x32, SAM_12COL,SAM_GAME_AUXSOL12)
 
 SAM1_ROM128MB(mt_120,  "mt_120.bin",  CRC(be7437ac) SHA1(5db10d7f48091093c33d522a663f13f262c08c3e), 0x037DA5EC)													
 SAM1_ROM128MB(mt_130,  "mt_130.bin",  CRC(b6086db1) SHA1(0a50864b0de1b4eb9a764f36474b6fddea767c0d), 0x0323573C)													
@@ -2791,7 +2811,7 @@ CORE_CLONEDEF(mt, 145hc,145h, "Mustang Limited Edition (V1.45) (Colored)", 2016,
 /*-------------------------------------------------------------------
 / The Walking Dead
 /-------------------------------------------------------------------*/
-INITGAME(twd, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_GAME_AUXSOL12)
+INITGAME(twd, GEN_SAM, sam_dmd128x32, SAM_20COL, SAM_GAME_AUXSOL12)
 
 SAM1_ROM128MB(twd_105,  "twd_105.ebi",  CRC(59b4e4d6) SHA1(642e827d58c9877a9f3c29b75784660894f045ad), 0x04F4FBF8)													
 SAM1_ROM128MB(twd_111,  "twd_111.bin",  CRC(6b2faad0) SHA1(1f3dd34e5f7cd7ae539b39c0f3c87b966d2c2f45), 0x0512CF54)													
@@ -2850,7 +2870,7 @@ CORE_CLONEDEF(twd, 160hc,160h, "Walking Dead, The Limited Edition (V1.60.0) (Col
 /*-------------------------------------------------------------------
 / Spider-Man Vault Edition (Stern)
 /-------------------------------------------------------------------*/
-INITGAME(smanve, GEN_SAM, sam_dmd128x32, SAM_8COL, SAM_GAME_AUXSOL12)
+INITGAME(smanve, GEN_SAM, sam_dmd128x32, SAM_2COL, SAM_GAME_AUXSOL12)
 
 SAM1_ROM128MB(smanve_100, "smanve_100.bin",  CRC(f761fa19) SHA1(259bd6d42e742eaad1b7b50f9b5e4830c81084b0), 0x03F2CA8C)
 SAM1_ROM128MB(smanve_101, "smanve_101.bin",  CRC(b7a525e8) SHA1(43fd9520225b11ba8ba5f9e8055689a652237983), 0x03F2CA8C)
