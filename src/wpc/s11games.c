@@ -572,8 +572,8 @@ CORE_GAMEDEF(taxi , l4, "Taxi (Lola) (L-4)", 1988, "Williams", s11_mS11BS,0)
 CORE_CLONEDEF(taxi , l5c, l4, "Taxi (Lola) (L-5C Competition MOD)", 2016, "Williams", s11_mS11BS,0)
 CORE_CLONEDEF(taxi , l5cm, l4, "Taxi (Marilyn) (L-5C Competition MOD)", 2016, "Williams", s11_mS11BS,0)
 CORE_CLONEDEF(taxi , l3, l4, "Taxi (Marilyn) (L-3)", 1988, "Williams", s11_mS11BS,0)
-CORE_CLONEDEF(taxi , lu1, l4, "Taxi (Marilyn) (LU-1)", 1988, "Williams", s11_mS11BS,0)
-CORE_CLONEDEF(taxi , lg1, l4, "Taxi (Marilyn) (L-1 German)", 1988, "Williams", s11_mS11BS,0)
+CORE_CLONEDEF(taxi , lu1, l4, "Taxi (Marilyn) (LU-1 Europe)", 1988, "Williams", s11_mS11BS,0)
+CORE_CLONEDEF(taxi , lg1, l4, "Taxi (Marilyn) (LG-1 German)", 1988, "Williams", s11_mS11BS,0)
 CORE_CLONEDEF(taxi , p5, l4, "Taxi (P-5)", 1988, "Williams", s11_mS11BS,0)
 
 /*--------------------
@@ -705,7 +705,7 @@ S11XS_SOUNDROM88(       "bk2k_u21.l1", CRC(08be36ad) SHA1(0f4c448e003df54ed8ccf0
 S11CS_SOUNDROM88(       "bk2k_u4.l2",  CRC(1d87281b) SHA1(609288b017aac6ce6da8717a35fdf87013adeb3c),
                         "bk2k_u19.l1", CRC(58e162b2) SHA1(891f810ae18b46593f570d719f0290a1d08a1a10))
 S11_ROMEND
-CORE_CLONEDEF(bk2k,lg1,l4, "Black Knight 2000 (LG-1)", 1989, "Williams", s11_mS11BS,0)
+CORE_CLONEDEF(bk2k,lg1,l4, "Black Knight 2000 (LG-1 German)", 1989, "Williams", s11_mS11BS,0)
 
 S11_ROMSTART48(bk2k,lg3,"u26-lg3.rom", CRC(6f468c85) SHA1(b919b436559a29c43911bd2839c5ae7c03e9b06f),
                         "u27-lg3.rom", CRC(27707522) SHA1(37844e2f3c70430ee169e1c369aa8e9d47b2c8f2))
@@ -714,7 +714,7 @@ S11XS_SOUNDROM88(       "bk2k_u21.l1", CRC(08be36ad) SHA1(0f4c448e003df54ed8ccf0
 S11CS_SOUNDROM88(       "bk2k_u4.l2",  CRC(1d87281b) SHA1(609288b017aac6ce6da8717a35fdf87013adeb3c),
                         "bk2k_u19.l1", CRC(58e162b2) SHA1(891f810ae18b46593f570d719f0290a1d08a1a10))
 S11_ROMEND
-CORE_CLONEDEF(bk2k,lg3,l4,"Black Knight 2000 (LG-3)", 1989, "Williams", s11_mS11BS,0)
+CORE_CLONEDEF(bk2k,lg3,l4,"Black Knight 2000 (LG-3 German)", 1989, "Williams", s11_mS11BS,0)
 
 S11_ROMSTART48(bk2k,pu1,"u26-pu1.rom", CRC(2da07403) SHA1(4b48c5d7b0a03aa4593dc6053dc5e94df22d2a64),
                         "u27-pu1.rom", CRC(245efbae) SHA1(e6354a6f5029f21aab2343cd90daf6cbfb51e556))
@@ -723,7 +723,7 @@ S11XS_SOUNDROM88(       "bk2k_u21.l1", CRC(08be36ad) SHA1(0f4c448e003df54ed8ccf0
 S11CS_SOUNDROM88(       "bk2k_u4.l2",  CRC(1d87281b) SHA1(609288b017aac6ce6da8717a35fdf87013adeb3c),
                         "bk2k_u19.l1", CRC(58e162b2) SHA1(891f810ae18b46593f570d719f0290a1d08a1a10))
 S11_ROMEND
-CORE_CLONEDEF(bk2k,pu1,l4,"Black Knight 2000 (PU-1)", 1989, "Williams", s11_mS11BS,0)
+CORE_CLONEDEF(bk2k,pu1,l4,"Black Knight 2000 (PU-1 Prototype Europe)", 1989, "Williams", s11_mS11BS,0)
 
 S11_ROMSTART48(bk2k,la2,"u26-pu1.rom", CRC(2da07403) SHA1(4b48c5d7b0a03aa4593dc6053dc5e94df22d2a64),
                         "bk2k_u27.la2",CRC(531e7752) SHA1(e51a93d40bc316876488ae0a7691ff5fd514472d))
@@ -741,7 +741,7 @@ S11XS_SOUNDROM88(       "bk2k_u21.l1", CRC(08be36ad) SHA1(0f4c448e003df54ed8ccf0
 S11CS_SOUNDROM88(       "bk2k_u4.l2",  CRC(1d87281b) SHA1(609288b017aac6ce6da8717a35fdf87013adeb3c),
                         "bk2k_u19.l1", CRC(58e162b2) SHA1(891f810ae18b46593f570d719f0290a1d08a1a10))
 S11_ROMEND
-CORE_CLONEDEF(bk2k,pa7,l4, "Black Knight 2000 (PA-7)", 1989, "Williams", s11_mS11BS,0)
+CORE_CLONEDEF(bk2k,pa7,l4, "Black Knight 2000 (PA-7 Prototype)", 1989, "Williams", s11_mS11BS,0)
 
 S11_ROMSTART48(bk2k,pa5,"bk2k_u26.pa5",CRC(0012fe41) SHA1(06031684839268fdb73491626ec5bff6daacbf4c),
                         "bk2k_u27.pa5",CRC(2e40e173) SHA1(7d961bb0bd03e836ebfe705b8895dd2e9704e6e1))
@@ -750,7 +750,7 @@ S11XS_SOUNDROM88(       "bk2k_u21.l1", CRC(08be36ad) SHA1(0f4c448e003df54ed8ccf0
 S11CS_SOUNDROM88(       "bk2k_u4.l2",  CRC(1d87281b) SHA1(609288b017aac6ce6da8717a35fdf87013adeb3c),
                         "bk2k_u19.l1", CRC(58e162b2) SHA1(891f810ae18b46593f570d719f0290a1d08a1a10))
 S11_ROMEND
-CORE_CLONEDEF(bk2k,pa5,l4, "Black Knight 2000 (PA-5)", 1989, "Williams", s11_mS11BS,0)
+CORE_CLONEDEF(bk2k,pa5,l4, "Black Knight 2000 (PA-5 Prototype)", 1989, "Williams", s11_mS11BS,0)
 
 S11_ROMSTART48(bk2k,pf1,"bk2k_u26.pf7",CRC(79a77d26) SHA1(dfecd3f1fa80f0e7a84cafe7f45a96dd1c847090),
                         "bk2k_u27.pf1",CRC(2a84db98) SHA1(58438763ec702c1a1e73ab853c58352fe97c27e7)) // The 2 roms are u26 and u27 from the same cpu board from a working bk2k
@@ -759,7 +759,7 @@ S11XS_SOUNDROM88(       "bk2k_u21.l1", CRC(08be36ad) SHA1(0f4c448e003df54ed8ccf0
 S11CS_SOUNDROM88(       "bk2k_u4.l2",  CRC(1d87281b) SHA1(609288b017aac6ce6da8717a35fdf87013adeb3c),
                         "bk2k_u19.l1", CRC(58e162b2) SHA1(891f810ae18b46593f570d719f0290a1d08a1a10))
 S11_ROMEND
-CORE_CLONEDEF(bk2k,pf1,l4, "Black Knight 2000 (PF-1)", 1989, "Williams", s11_mS11BS,0)
+CORE_CLONEDEF(bk2k,pf1,l4, "Black Knight 2000 (PF-1 Prototype French)", 1989, "Williams", s11_mS11BS,0)
 
 /*-----------------------
 / Police Force 9/89
@@ -874,7 +874,7 @@ S11_ROMEND
 
 CORE_GAMEDEF(mousn,l4,"Mousin' Around (LA-4)", 1989, "Bally", s11a_one,0)
 CORE_CLONEDEF(mousn,l1,l4,"Mousin' Around (LA-1)", 1989, "Bally", s11a_one,0)
-CORE_CLONEDEF(mousn,lu,l4,"Mousin' Around (LU-1)", 1989, "Bally", s11a_one,0)
+CORE_CLONEDEF(mousn,lu,l4,"Mousin' Around (LU-1 Europe)", 1989, "Bally", s11a_one,0)
 
 /*-----------------------
 / Whirlwind 4/90
@@ -910,13 +910,13 @@ S11_ROMEND
 
 CORE_GAMEDEF(whirl,l3, "Whirlwind (L-3)", 1990, "Williams", s11_mS11BS,0)
 CORE_CLONEDEF(whirl,l2,l3,"Whirlwind (L-2)", 1990, "Williams", s11_mS11BS,0)
-CORE_CLONEDEF(whirl,g3,l3,"Whirlwind (LG-3)", 1990, "Williams", s11_mS11BS,0)
+CORE_CLONEDEF(whirl,g3,l3,"Whirlwind (LG-3 German)", 1990, "Williams", s11_mS11BS,0)
 
 /*--------------------
 / Game Show 4/90
 /--------------------*/
 INITGAME(gs   ,GEN_S11C,disp16oneline,12,FLIP_SWNO(58,57),S11_LOWALPHA|S11_DISPINV,S11_MUXSW2)
-S11_ROMSTART48(gs,l3,"gshw_u26.l3", CRC(3419bfb2) SHA1(7ce294a3118d20c7cdc3d5cd946e4c43090c5151),
+S11_ROMSTART48(gs,la3,"gshw_u26.l3", CRC(3419bfb2) SHA1(7ce294a3118d20c7cdc3d5cd946e4c43090c5151),
                         "gshw_u27.l3", CRC(4f3babb6) SHA1(87091a6786fc6817529cfed7f60396babe153d8d))
 S11CS_SOUNDROM000(      "gshw_u4.l2",  CRC(e89e0116) SHA1(e96bee143d1662d078f21531f405d838fdace693),
                         "gshw_u19.l1", CRC(8bae0813) SHA1(a2b1beca13796892d8ee1533e395cabdbbb11f88),
@@ -924,7 +924,7 @@ S11CS_SOUNDROM000(      "gshw_u4.l2",  CRC(e89e0116) SHA1(e96bee143d1662d078f215
 S11_ROMEND
 #define input_ports_gs input_ports_s11
 
-S11_ROMSTART48(gs,l4,"gshw_u26.l3", CRC(3419bfb2) SHA1(7ce294a3118d20c7cdc3d5cd946e4c43090c5151),
+S11_ROMSTART48(gs,lu4,"gshw_u26.l3", CRC(3419bfb2) SHA1(7ce294a3118d20c7cdc3d5cd946e4c43090c5151),
                         "u27-lu4.rom", CRC(ba265978) SHA1(66ac8e83e35cdfd72f1d3aa8ce6d92c2c833f304))
 S11CS_SOUNDROM000(      "gshw_u4.l2",  CRC(e89e0116) SHA1(e96bee143d1662d078f21531f405d838fdace693),
                         "gshw_u19.l1", CRC(8bae0813) SHA1(a2b1beca13796892d8ee1533e395cabdbbb11f88),
@@ -945,10 +945,10 @@ S11CS_SOUNDROM000(      "gshw_u4.l2",  CRC(e89e0116) SHA1(e96bee143d1662d078f215
                         "gshw_u20.l1", CRC(75ccbdf7) SHA1(7dce8ae427a621919caad8d8b08b06bb0adad850))
 S11_ROMEND
 
-CORE_GAMEDEF(gs,l4,"Game Show (L-4)", 1990, "Bally", s11c_one,0)
-CORE_CLONEDEF(gs,l3,l4,"Game Show (L-3)", 1990, "Bally", s11c_one,0)
-CORE_CLONEDEF(gs,lu3,l4,"Game Show (LU-3 Europe)", 1990, "Bally", s11c_one,0)
-CORE_CLONEDEF(gs,lg6,l4,"Game Show (LG-6 German)", 1990, "Bally", s11c_one,0)
+CORE_GAMEDEF(gs,lu4,"Game Show (LU-4 Europe)", 1990, "Bally", s11c_one,0)
+CORE_CLONEDEF(gs,la3,lu4,"Game Show (LA-3)", 1990, "Bally", s11c_one,0)
+CORE_CLONEDEF(gs,lu3,lu4,"Game Show (LU-3 Europe)", 1990, "Bally", s11c_one,0)
+CORE_CLONEDEF(gs,lg6,lu4,"Game Show (LG-6 German)", 1990, "Bally", s11c_one,0)
 
 /*--------------------
 / Rollergames 5/90
@@ -993,7 +993,7 @@ S11CS_SOUNDROM000(      "rolr_u4.pe1",  CRC(8c383b24) SHA1(5c738e5ec566f7fa5706c
                         "rolr_u19.pe1", CRC(c6880cff) SHA1(c8ce23d68297d36ef62e508855a478434ff9a592),
                         "rolr_u20.pe1", CRC(4220812b) SHA1(7071565f1087020d1e1738e801dafb509ea37622))
 S11_ROMEND
-CORE_CLONEDEF(rollr,e1,l2, "Rollergames (PU-1)", 1991, "Williams", s11_mS11CS,0)
+CORE_CLONEDEF(rollr,e1,l2, "Rollergames (PU-1 Prototype Europe)", 1991, "Williams", s11_mS11CS,0)
 
 S11_ROMSTART48(rollr,p2,"rolr_u26.pa2", CRC(11d96b1c) SHA1(e96991bdef8b14043285feeb4cacc182a6e9dcbd),
                         "rolr_u27.pa2", CRC(ee547bd5) SHA1(db45bf7a25321ac041f58404f7512bded9ebf11e))
@@ -1087,7 +1087,7 @@ S11CS_SOUNDROM000(      "pool_u4.l2",  CRC(04e95e10) SHA1(3873b3cd6c2961b3f2f28a
                         "pool_u19.l2", CRC(0f45d02b) SHA1(58bbfdb3b98c43b66e11808cec7cd65a7f2dce6d),
                         "pool_u20.l2", CRC(925f62d6) SHA1(21b8d6f9a8b98fce8a3cdf7f5f2d40200544a898))
 S11_ROMEND
-CORE_CLONEDEF(pool,p7,l7,"Pool Sharks (PA-7)", 1989, "Bally", s11c_one,0)
+CORE_CLONEDEF(pool,p7,l7,"Pool Sharks (PA-7 Prototype)", 1989, "Bally", s11c_one,0)
 
 S11_ROMSTART48(pool,l7c,"Pool Sharks U26 game ROM rev LA-7 patch E586.rom",CRC(b4f78b93) SHA1(bb27e4dde0ebf7f9a9d04d9cdb34d39d25ade69b),
                         "Pool Sharks U27 game ROM rev LA-7 patch E586.rom",CRC(5b228b8f) SHA1(18d612154cda00c8f735305b475baf6de153919d))
@@ -1132,8 +1132,8 @@ S11_ROMEND
 
 CORE_GAMEDEF(diner, l4, "Diner (LA-4)", 1990, "Williams", s11_mS11CS,0)
 CORE_CLONEDEF(diner,l3,l4, "Diner (LA-3)", 1990, "Williams", s11_mS11CS,0)
-CORE_CLONEDEF(diner,l2,l4, "Diner (LU-2)", 1990, "Williams", s11_mS11CS,0)
-CORE_CLONEDEF(diner,l1,l4, "Diner (LU-1)", 1990, "Williams", s11_mS11CS,0)
+CORE_CLONEDEF(diner,l2,l4, "Diner (LU-2 Europe)", 1990, "Williams", s11_mS11CS,0)
+CORE_CLONEDEF(diner,l1,l4, "Diner (LU-1 Europe)", 1990, "Williams", s11_mS11CS,0)
 
 /*--------------------
 / Radical 9/90
@@ -1203,7 +1203,7 @@ S11CS_SOUNDROM000(      "gamb_u4.l2",  CRC(c0cfa9be) SHA1(352df9a4dcbc131ae24941
                         "gamb_u19.l1", CRC(04a3a8c8) SHA1(e72ef767f13282d2335cda3288037610d9bfedf2),
                         "gamb_u20.l1", CRC(a60c734d) SHA1(76cfcf96276ca4f6b5eee0e0402fab5ee9685366))
 S11_ROMEND
-CORE_CLONEDEF(rvrbt, p7, l3, "Riverboat Gambler (PA-7)", 1990, "Williams", s11_mS11CS,0)
+CORE_CLONEDEF(rvrbt, p7, l3, "Riverboat Gambler (PA-7 Prototype)", 1990, "Williams", s11_mS11CS,0)
 
 /*--------------------
 / Bugs Bunny's Birthday Ball 11/90
