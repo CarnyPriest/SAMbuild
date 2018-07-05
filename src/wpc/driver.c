@@ -1138,8 +1138,9 @@ DRIVERNV(iomoon)        // Io Moon (1994)
 // ----------------
 // SONIC
 // ----------------
-                        // Night Fever (1979)
-                        // Storm (1979)
+DRIVERNV(thrdwrld)      // Third World (1978)
+DRIVERNV(ngtfever)      // Night Fever (1979)
+                        // Storm (1979) - Williams "Flash" clone
 DRIVERNV(odin_dlx)      // Odin De Luxe (1985)
 DRIVERNV(gamatros)      // Gamatron (1986)
 DRIVERNV(solarwar)      // Solar Wars (1986)
@@ -2007,6 +2008,8 @@ DRIVER(st,162h)         //S.A.M.: 06/18 Star Trek - V1.62 Limited Edition
 #ifdef SAM_INCLUDE_COLORED
 DRIVER(st,161c)         // pinball browser colorized using extend memory
 DRIVER(st,161hc)        // pinball browser colorized using extend memory
+DRIVER(st,162c)         // pinball browser colorized using extend memory
+DRIVER(st,162hc)        // pinball browser colorized using extend memory
 #endif
 //DRIVER(mt,100)          //S.A.M.: 03/14 Mustang - V1.0
 //DRIVER(mt,101)          //S.A.M.: 03/14 Mustang - V1.01
