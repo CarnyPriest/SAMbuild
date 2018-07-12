@@ -223,7 +223,8 @@ static MACHINE_INIT(se3) {
 	// You can see when the flippers are active when four sets of dots change
 	// on the bottom two blocks of dots.  When they are not active only 
 	// the switches (middle block) flicker
-	// Use CheatEngine to find memory locations that is 192 (so far all change to this)
+	// Use CheatEngine to find memory locations that is 192 (so far all change to this,
+	// except RollerCoaster Tycoon which was 240)
 	// Validation:
 	// Enter service menu.  Value should change back to 0.
 	// Force value to be 192, the flippers should activate in service menu. 
@@ -253,7 +254,7 @@ static MACHINE_INIT(se) {
   const char * const gn = Machine->gamedrv->name;
   if (_strnicmp(gn, "sprk_103", 8) == 0)
 	  selocals.fastflipaddr = 0x0 + 1;
-  else if (_strnicmp(gn, "austin", 8) == 0)
+  else if (_strnicmp(gn, "austin", 6) == 0)
 	  selocals.fastflipaddr = 0x0 + 1;
   else if (_strnicmp(gn, "monopoly", 8) == 0)
 	  selocals.fastflipaddr = 0xf0 + 1;
@@ -273,6 +274,9 @@ static MACHINE_INIT(se) {
 	  selocals.fastflipaddr = 0x04 + 1;
   else if (_strnicmp(gn, "rctycn", 6) == 0)
 	  selocals.fastflipaddr = 0x04 + 1;
+  else if (_strnicmp(gn, "apollo13", 8) == 0)
+	  selocals.fastflipaddr = 0x122 + 1;
+
 
   // Sharkeys got some extra ram
   if (core_gameData->gen & GEN_WS_1) {
