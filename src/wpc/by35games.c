@@ -685,13 +685,17 @@ BY35_ROMEND
 #define input_ports_hotdoggn input_ports_by35
 CORE_GAMEDEFNV(hotdoggn,"Hot Doggin",1980,"Bally",by35_mBY35_51S,0)
 
+// credit display is always on
+// dip switch 25 = on and dip switch 26 = on enables freegame
+// decrease credits not lower then 01
+// Reset lit letter SKI FUN HOTDOGGIN after each ball if dip 27 = off
 INITGAME(hotdogga,GEN_BY35,dispBy6,FLIP_SW(FLIP_L),0,SNDBRD_BY51,0)
 BY35_ROMSTARTx00(hotdogga,"hot2un.u2",   CRC(65699a74) SHA1(b9894d3ed1f78228139ca630b1a5fd07a2f94bcf),
                           "hot2un.u6",   CRC(5197c298) SHA1(8eb7409830add41e0daab187f4ac8d1c016c78a5))
 BY51_SOUNDROM8(           "809-07_4.716",CRC(43f28d7f) SHA1(01fca0ee0137a0715421eaa3582ff8d324340ecf))
 BY35_ROMEND
 #define input_ports_hotdogga input_ports_hotdoggn
-CORE_CLONEDEFNV(hotdogga,hotdoggn,"Hot Doggin (Free Play)",2002,"Bally / Oliver",by35_mBY35_51S,0)
+CORE_CLONEDEFNV(hotdogga,hotdoggn,"Hot Doggin (modified rules rev. 2 Free Play)",2002,"Bally / Oliver",by35_mBY35_51S,0)
 
 INITGAME(hotdoggb,GEN_BY35,dispBy7,FLIP_SW(FLIP_L),0,SNDBRD_BY51,0)
 BY35_ROMSTARTx00(hotdoggb,"hotd2732.u2", CRC(709305ee) SHA1(37d5e681a1a2b8b2782dae3007db3e5036003e00),
@@ -1239,9 +1243,20 @@ BY35_ROMEND
 #define input_ports_vectora input_ports_vector
 CORE_CLONEDEFNV(vectora,vector,"Vector (Free Play)",2004,"Bally / Oliver",by35_mBY35_61S,0) // rev. 1
 
+#define init_vector4 init_vector
+BY35_ROMSTARTx00(vector4,"vectoru2.732",CRC(1b1740d5) SHA1(0e4e932bcdf37ac033fa1f9fe5ead4073a6280f0),
+                         "vectoru6.732",CRC(42d7f176) SHA1(93460c46b3cf033ff23d063e8160cc2c18d00458))
+BY61_SOUNDROM0000(       "858-01_2.532",CRC(bd2edef9) SHA1(8f129016440bad5e78d4b073268e76e542b61684),
+                         "858-02_3.532",CRC(c592fb35) SHA1(5201824f129812c907e7d8a4600de23d95fd1eb0),
+                         "858-03_4.532",CRC(8661d312) SHA1(36d04d875382ff5387991d660d031c662b414698),
+                         "858-06_5.532",CRC(3050edf6) SHA1(e028192d9a8c17123b07566c6d73302cec07b440))
+BY35_ROMEND
+#define input_ports_vector4 input_ports_vector
+CORE_CLONEDEFNV(vector4,vector,"Vector (modified rules rev. 4)",2004,"Bally / Oliver",by35_mBY35_61S,0)
+
 #define init_vectorb init_vector
-BY35_ROMSTARTx00(vectorb,"vectoru2.732",CRC(6b2cbd42) SHA1(f778d19f8ff7a6228ccd3b49af9d60bc9eeffe7b),
-                         "vectoru6.732",CRC(fe504d05) SHA1(27c72358ea53fd051e64c0179019116356f543d5))
+BY35_ROMSTARTx00(vectorb,"vec2uN.U2",   CRC(6b2cbd42) SHA1(f778d19f8ff7a6228ccd3b49af9d60bc9eeffe7b),
+                         "vec2uN.U6",   CRC(fe504d05) SHA1(27c72358ea53fd051e64c0179019116356f543d5))
 BY61_SOUNDROM0000(       "858-01_2.532",CRC(bd2edef9) SHA1(8f129016440bad5e78d4b073268e76e542b61684),
                          "858-02_3.532",CRC(c592fb35) SHA1(5201824f129812c907e7d8a4600de23d95fd1eb0),
                          "858-03_4.532",CRC(8661d312) SHA1(36d04d875382ff5387991d660d031c662b414698),
@@ -1249,6 +1264,19 @@ BY61_SOUNDROM0000(       "858-01_2.532",CRC(bd2edef9) SHA1(8f129016440bad5e78d4b
 BY35_ROMEND
 #define input_ports_vectorb input_ports_vector
 CORE_CLONEDEFNV(vectorb,vector,"Vector (modified rules rev. 5)",2004,"Bally / Oliver",by35_mBY35_61S,0)
+
+#define init_vectorc init_vector
+ROM_START(vectorc)
+  NORMALREGION(0x10000, BY35_CPUREGION)
+    ROM_LOAD("vewo.256", 0x0000, 0x8000,CRC(7b07b152) SHA1(5fc90a90f788710b955999a82a34cf1883f54321))
+    ROM_RELOAD(0x8000, 0x8000)
+BY61_SOUNDROM0000(       "858-01_2.532",CRC(bd2edef9) SHA1(8f129016440bad5e78d4b073268e76e542b61684),
+                         "858-02_3.532",CRC(c592fb35) SHA1(5201824f129812c907e7d8a4600de23d95fd1eb0),
+                         "858-03_4.532",CRC(8661d312) SHA1(36d04d875382ff5387991d660d031c662b414698),
+                         "858-06_5.532",CRC(3050edf6) SHA1(e028192d9a8c17123b07566c6d73302cec07b440))
+BY35_ROMEND
+#define input_ports_vectorc input_ports_vector
+CORE_CLONEDEFNV(vectorc,vector,"Vector (modified rules rev. 10)",2008,"Bally / Oliver",by35_mBY35_61S,0)
 
 /*--------------------------------
 / Spectrum
