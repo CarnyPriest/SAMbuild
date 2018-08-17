@@ -15,6 +15,7 @@
 #include "cpu/m6800/m6800.h"
 #include "cpu/i8051/i8051.h"
 #include "machine/6821pia.h"
+#include "sound/tms5220.h"
 #include "core.h"
 #include "sim.h"
 #include "sndbrd.h"
@@ -48,8 +49,35 @@ MEMORY_END
 static struct {
   struct sndbrdData brdData;
   UINT8 sndCmd;
-  int bank, bank2, mute, mute2, enable, enable2;
+  UINT8 pia_a, pia_b;
+  int mute, mute2, enable, enable2;
 } locals;
+
+static READ_HANDLER(nuova_pia_a_r) { return locals.pia_a; }
+static WRITE_HANDLER(nuova_pia_a_w) { locals.pia_a = data; }
+static WRITE_HANDLER(nuova_pia_b_w) {
+  if (~data & 0x01) // read
+    locals.pia_a = tms5220_status_r(0);
+  else if (~data & 0x02) // write
+    tms5220_data_w(0, locals.pia_a);
+  pia_set_input_ca2(2, tms5220_ready_r());
+  locals.pia_b = data;
+}
+static READ_HANDLER(nuova_pia_cb1_r) {
+  return tms5220_int_r();
+}
+static READ_HANDLER(nuova_pia_ca2_r) {
+  return tms5220_ready_r();
+}
+static void nuova_irq(int state) {
+  cpu_set_irq_line(1, M6803_IRQ_LINE, state ? ASSERT_LINE : CLEAR_LINE);
+}
+
+static const struct pia6821_interface nuova_pia = {
+  /*i: A/B,CA/B1,CA/B2 */ nuova_pia_a_r, 0, PIA_UNUSED_VAL(1), nuova_pia_cb1_r, nuova_pia_ca2_r, PIA_UNUSED_VAL(0),
+  /*o: A/B,CA/B2       */ nuova_pia_a_w, nuova_pia_b_w, 0, 0,
+  /*irq: A/B           */ nuova_irq, nuova_irq
+};
 
 void tx_cb(int data);
 int rx_cb(void);
@@ -57,6 +85,13 @@ int rx_cb(void);
 static void nuova_init(struct sndbrdData *brdData) {
   memset(&locals, 0x00, sizeof(locals));
   locals.brdData = *brdData;
+
+  if (!_strnicmp(Machine->gamedrv->name, "skflight", 8)) {
+    memset(memory_region(REGION_CPU2), 0xff, 0x100);
+    pia_config(2, PIA_STANDARD_ORDERING, &nuova_pia);
+    tms5220_reset();
+    tms5220_set_variant(TMS5220_IS_5220C);
+  }
 
   if (!_strnicmp(Machine->gamedrv->name, "uboat65", 7)) {
     //Setup serial line callbacks, needs to be set before CPU reset by design!
@@ -81,20 +116,19 @@ static WRITE_HANDLER(nuova_ctrl_w) {
       cpu_set_irq_line(2, M6803_TIN_LINE, PULSE_LINE);
     }
   }
+  if (!_strnicmp(Machine->gamedrv->name, "skflight", 8)) {
+    coreGlobals.diagnosticLed = (coreGlobals.diagnosticLed & 0x01) | ((data & 1) << 1);
+  }
 }
 
 // The Nuova Bell sound board needs two nybbles sent in perfect sync with the main CPU!
 static WRITE_HANDLER(nuova_man_w) {
   int i;
-  cpu_boost_interleave(TIME_IN_USEC(4), TIME_IN_USEC(500));
-  cpu_set_irq_line(1, M6803_TIN_LINE, PULSE_LINE);
-  if (!_strnicmp(Machine->gamedrv->name, "f1gp", 4)) {
-    cpu_set_irq_line(2, M6803_TIN_LINE, PULSE_LINE);
-  }
-  locals.sndCmd = data >> 4;
+  nuova_ctrl_w(0, 1);
+  nuova_data_w(0, data >> 4);
   for (i = 0; i < 50; i++)
     run_one_timeslice();
-  locals.sndCmd = data & 0x0f;
+  nuova_data_w(0, data);
 }
 
 static WRITE_HANDLER(dac_w) {
@@ -108,13 +142,14 @@ static WRITE_HANDLER(enable_w) {
 
 static WRITE_HANDLER(bank_w) {
   static int lastBank;
+  int bank;
   if (locals.enable) {
-    locals.bank = core_BitColToNum((~data & 0x0f) ^ 0x01);
-    cpu_setbank(1, memory_region(REGION_SOUND1) + 0x8000 * locals.bank);
-    if (locals.bank) {
-      if (locals.bank != lastBank)
-        logerror("bank:%02x\n", locals.bank);
-      lastBank = locals.bank;
+    bank = core_BitColToNum((~data & 0x0f) ^ 0x01);
+    cpu_setbank(1, memory_region(REGION_SOUND1) + 0x8000 * bank);
+    if (bank) {
+      if (bank != lastBank)
+        logerror("bank:%d\n", bank);
+      lastBank = bank;
     }
     locals.mute = (data >> 6) & 1;
     coreGlobals.diagnosticLed = (coreGlobals.diagnosticLed & 0x05) | ((~data >> 7) << 1);
@@ -127,18 +162,14 @@ static READ_HANDLER(snd_cmd_r) {
 
 static MEMORY_READ_START(snd_readmem)
   { 0x0000, 0x001f, m6803_internal_registers_r },
-  { 0x0020, 0x007f, MRA_NOP },
   { 0x0080, 0x00ff, MRA_RAM },
-  { 0x0100, 0x7fff, MRA_NOP },
   { 0x8000, 0xffff, MRA_BANKNO(1) },
 MEMORY_END
 
 static MEMORY_WRITE_START(snd_writemem)
   { 0x0000, 0x001f, m6803_internal_registers_w },
   { 0x0080, 0x00ff, MWA_RAM },
-  { 0x8000, 0xbfff, MWA_NOP },
-  { 0xc000, 0xc000, bank_w },
-  { 0xc001, 0xffff, MWA_NOP },
+  { 0x8000, 0xffff, bank_w },
 MEMORY_END
 
 static PORT_READ_START(snd_readport)
@@ -366,19 +397,52 @@ CORE_GAMEDEFNV(darkshad,"Dark Shadow",1986,"Nuova Bell Games",by35_mBY35_45S,0)
 /*--------------------------------
 / Skill Flight
 /-------------------------------*/
-// uses non-inverted sound bits, same hardware otherwise (TMS speech chip not being used)
+// gv 08/08/18: non-inverted sound command, bank swapping using P24, enable not used, more RAM, extra speech board
+
 static READ_HANDLER(snd_cmd_r_skflight) {
-  return ((locals.sndCmd & 0x07) << 1) | ((locals.sndCmd & 0x08) >> 3);
+  return (locals.sndCmd & 0x0f) << 1;
 }
+
+static WRITE_HANDLER(bank_w_skflight) {
+  int bank = data & 0x10 ? 0 : 1;
+  logerror("bank:%d\n", bank);
+  cpu_setbank(1, memory_region(REGION_SOUND1) + 0x8000 * bank);
+}
+
+static MEMORY_READ_START(snd_readmem_skflight)
+  { 0x0000, 0x001f, m6803_internal_registers_r },
+  { 0x0000, 0x00ff, MRA_RAM },
+  { 0x4000, 0x4003, pia_r(2) },
+  { 0x8000, 0xffff, MRA_BANKNO(1) },
+MEMORY_END
+
+static MEMORY_WRITE_START(snd_writemem_skflight)
+  { 0x0000, 0x001f, m6803_internal_registers_w },
+  { 0x0000, 0x00ff, MWA_RAM },
+  { 0x4000, 0x4003, pia_w(2) },
+  { 0x8000, 0xffff, MWA_NOP },
+MEMORY_END
 
 static PORT_READ_START(snd_readport_skflight)
   { M6803_PORT2, M6803_PORT2, snd_cmd_r_skflight },
 PORT_END
 
+static PORT_WRITE_START(snd_writeport_skflight)
+  { M6803_PORT1, M6803_PORT1, dac_w },
+  { M6803_PORT2, M6803_PORT2, bank_w_skflight },
+PORT_END
+
+static void nuova_5220Irq(int state) { pia_set_input_cb1(2, state); }
+static void nuova_5220Rdy(int state) { pia_set_input_ca2(2, state); }
+static struct TMS5220interface skflight_tms5220Int = { 640000, 75, nuova_5220Irq, nuova_5220Rdy };
+
 MACHINE_DRIVER_START(skflight)
   MDRV_IMPORT_FROM(nuova)
   MDRV_CPU_MODIFY("scpu")
-  MDRV_CPU_PORTS(snd_readport_skflight, snd_writeport)
+  MDRV_CPU_MEMORY(snd_readmem_skflight, snd_writemem_skflight)
+  MDRV_CPU_PORTS(snd_readport_skflight, snd_writeport_skflight)
+
+  MDRV_SOUND_ADD(TMS5220, skflight_tms5220Int)
 MACHINE_DRIVER_END
 
 ROM_START(skflight)
@@ -389,13 +453,11 @@ ROM_START(skflight)
     ROM_COPY(REGION_CPU1, 0xe000, 0x1000,0x1000)
     ROM_COPY(REGION_CPU1, 0xf000, 0x5000,0x1000)
 
-  NORMALREGION(0x20000, REGION_SOUND1)
+  NORMALREGION(0x10000, REGION_SOUND1)
     ROM_LOAD("snd_u3.256", 0x0000, 0x8000, CRC(43424fb1) SHA1(428d2f7444cd71b6c49c04749b42263e3c185856))
-      ROM_RELOAD(0x10000, 0x8000)
     ROM_LOAD("snd_u4.256", 0x8000, 0x8000, CRC(10378feb) SHA1(5da2b9c530167c80b9d411da159e4b6e95b76647))
-      ROM_RELOAD(0x18000, 0x8000)
   NORMALREGION(0x10000, REGION_CPU2)
-  ROM_COPY(REGION_SOUND1, 0x0000, 0x8000,0x8000)
+  ROM_COPY(REGION_SOUND1, 0x8000, 0x8000,0x8000)
 ROM_END
 
 INITGAME(skflight,GEN_BY35,dispBy7,FLIP_SW(FLIP_L),8,SNDBRD_NUOVA,0)
@@ -479,13 +541,14 @@ CORE_GAMEDEFNV(futrquen, "Future Queen", 1987, "Nuova Bell Games", nuova, 0)
 
 static WRITE_HANDLER(bank_w_f1gp) {
   static int lastBank;
+  int bank;
   if (locals.enable2) {
-    locals.bank2 = core_BitColToNum((~data & 0x0f) ^ 0x01);
-    cpu_setbank(2, memory_region(REGION_SOUND2) + 0x8000 * locals.bank2);
-    if (locals.bank2) {
-      if (locals.bank2 != lastBank)
-        logerror("bank2:%02x\n", locals.bank2);
-      lastBank = locals.bank2;
+    bank = core_BitColToNum((~data & 0x0f) ^ 0x01);
+    cpu_setbank(2, memory_region(REGION_SOUND2) + 0x8000 * bank);
+    if (bank) {
+      if (bank != lastBank)
+        logerror("bank2:%d\n", bank);
+      lastBank = bank;
     }
     locals.mute2 = (data >> 6) & 1;
     coreGlobals.diagnosticLed = (coreGlobals.diagnosticLed & 0x03) | ((~data >> 7) << 2);
@@ -527,12 +590,12 @@ MACHINE_DRIVER_START(f1gp)
   MDRV_NVRAM_HANDLER(nuova)
   MDRV_DIAGNOSTIC_LEDH(3)
 
-  MDRV_CPU_ADD_TAG("scpu", M6803, 3579545/4)
+  MDRV_CPU_ADD_TAG("scpu", M6803, 1000000) // faster clock to match sound samples
   MDRV_CPU_FLAGS(CPU_AUDIO_CPU)
   MDRV_CPU_MEMORY(snd_readmem, snd_writemem)
   MDRV_CPU_PORTS(snd_readport, snd_writeport)
 
-  MDRV_CPU_ADD_TAG("scpu2", M6803, 3579545/4)
+  MDRV_CPU_ADD_TAG("scpu2", M6803, 1000000) // faster clock to match sound samples
   MDRV_CPU_FLAGS(CPU_AUDIO_CPU)
   MDRV_CPU_MEMORY(snd_readmem_f1gp, snd_writemem_f1gp)
   MDRV_CPU_PORTS(snd_readport, snd_writeport_f1gp)
@@ -574,6 +637,35 @@ CORE_GAMEDEFNV(f1gp, "F1 Grand Prix", 1987, "Nuova Bell Games", f1gp, 0)
 /*--------------------------------
 / Top Pin
 /-------------------------------*/
+// gv 08/09/18: different bank swapping, enable not used
+
+static WRITE_HANDLER(bank_w_toppin) {
+  static int swap[16] = { 0, 3, 5, 0, 7, 0, 0, 0, 0, 2, 4, 0, 6, 0, 0, 0 };
+  int bank = swap[(~data & 0x1e) >> 1];
+  logerror("bank:%d\n", bank);
+  cpu_setbank(1, memory_region(REGION_SOUND1) + 0x4000 * bank);
+  coreGlobals.diagnosticLed = (coreGlobals.diagnosticLed & 0x01) | ((data >> 7) << 1);
+}
+
+static MEMORY_READ_START(snd_readmem_toppin)
+  { 0x0000, 0x001f, m6803_internal_registers_r },
+  { 0x0080, 0x00ff, MRA_RAM },
+  { 0x8000, 0xbfff, MRA_BANKNO(1) },
+  { 0xc000, 0xffff, MRA_ROM },
+MEMORY_END
+
+static MEMORY_WRITE_START(snd_writemem_toppin)
+  { 0x0000, 0x001f, m6803_internal_registers_w },
+  { 0x0080, 0x00ff, MWA_RAM },
+  { 0x8000, 0xffff, bank_w_toppin },
+MEMORY_END
+
+MACHINE_DRIVER_START(toppin)
+  MDRV_IMPORT_FROM(nuova)
+  MDRV_CPU_REPLACE("scpu", M6803, 1000000) // faster clock to match sound samples
+  MDRV_CPU_MEMORY(snd_readmem_toppin, snd_writemem_toppin)
+MACHINE_DRIVER_END
+
 ROM_START(toppin)
   NORMALREGION(0x10000, REGION_CPU1)
     ROM_LOAD("cpu_256.bin", 0xc000, 0x4000, CRC(3aa32c96) SHA1(989fdc642efe6fa41319d7ccae6681ab4d76feb4))
@@ -597,7 +689,7 @@ ROM_END
 
 INITGAMENB(toppin,GEN_BY35,dispNB,FLIP_SW(FLIP_L),0,SNDBRD_NUOVA,BY35GD_NOSOUNDE)
 BY35_INPUT_PORTS_START(toppin, 3) BY35_INPUT_PORTS_END
-CORE_GAMEDEFNV(toppin, "Top Pin", 1988, "Nuova Bell Games", nuova, 0)
+CORE_GAMEDEFNV(toppin, "Top Pin", 1988, "Nuova Bell Games", toppin, 0)
 
 /*--------------------------------
 / U-Boat 65 - additional "CSC 387.1" music board with 8032 MCU
@@ -686,6 +778,7 @@ static INTERRUPT_GEN(odd) {
 
 MACHINE_DRIVER_START(uboat)
   MDRV_IMPORT_FROM(nuovaFast)
+  MDRV_CPU_REPLACE("scpu", M6803, 1000000) // faster clock to match sound samples
 
   MDRV_CPU_ADD_TAG("scpu2", I8752, 12000000) // I8032 actually (no internal ROM, 256 bytes internal RAM)
   MDRV_CPU_FLAGS(CPU_AUDIO_CPU)
