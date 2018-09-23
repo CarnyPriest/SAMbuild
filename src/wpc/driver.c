@@ -651,6 +651,7 @@ DRIVERNV(rock_enc)      //S80b-704: 04/86 Rock Encore
 DRIVERNV(rock_efp)      //                Rock Encore (Free Play)
 DRIVERNV(rock_eg)       //                Rock Encore (German)
 DRIVERNV(rockegfp)      //                Rock Encore (German Free Play)
+DRIVERNV(clash)         //                Clash, The (Rock Encore unofficial MOD)
 DRIVERNV(hlywoodh)      //S80b-703: 06/86 Hollywood Heat
 DRIVERNV(hlywdhfp)      //                Hollywood Heat (Free Play)
 DRIVERNV(hlywodhg)      //                Hollywood Heat (German)
@@ -2768,10 +2769,11 @@ DRIVER(nf,23x)          //          05/95 W No Fear: Dangerous Sports (2.3 Expor
 DRIVER(i500,11r)        //WPC-526:  06/95 B Indianapolis 500 (1.1)
 DRIVER(i500,11b)        //WPC-526:  06/95 B Indianapolis 500 (1.1 Belgian)
 DRIVER(i500,10r)        //WPC-526:  06/95 B Indianapolis 500 (1.0)
-DRIVER(jb,10r)          //WPC-551:  10/95 W Jack*Bot (1.0)
-DRIVER(jb,101r)         //                  Jack*Bot (1.0) LED Ghost Fix
-DRIVER(jb,10b)          //          10/95 W Jack*Bot (1.0) Belgish/Canadian
-DRIVER(jb,101b)         //                  Jack*Bot (1.0) Belgish/Canadian LED Ghost Fix
+DRIVER(jb,10r)          //WPC-551:  10/95 W Jack*Bot (1.0R)
+DRIVER(jb,101r)         //                  Jack*Bot (1.01R LED Ghost Fix)
+DRIVER(jb,10b)          //          10/95 W Jack*Bot (1.0B Belgish/Canadian)
+DRIVER(jb,101b)         //                  Jack*Bot (1.01B Belgish/Canadian LED Ghost Fix)
+DRIVER(jb,04a)          //                  Jack*Bot (0.4A Prototype)
 DRIVER(jm,05r)          //WPC-542:  09/95 W Johnny Mnemonic (0.5R)
 DRIVER(jm,12r)          //          10/95 W Johnny Mnemonic (1.2R)
 DRIVER(jm,12b)          //          10/95 W Johnny Mnemonic (1.2 Belgian)
@@ -2783,7 +2785,7 @@ DRIVER(wd,10f)          //          11/95 B Who dunnit (1.0 French)
 DRIVER(wd,11)           //         ?04/96 B Who dunnit (1.1)
 DRIVER(wd,12)           //         ?05/96 B Who dunnit (1.2)
 DRIVER(wd,12g)          //         ?05/96 B Who dunnit (1.2 German)
-DRIVER(congo,11s10)     //WPC-550:  11/95 W Congo (1.1, sound 1.0)
+DRIVER(congo,11s10)     //WPC-550:  11/95 W Congo (1.1, DCS-Sound 1.0)
 DRIVER(congo,11)        //          11/95 W Congo (1.1)
 DRIVER(congo,13)        //          11/95 W Congo (1.3)
 DRIVER(congo,20)        //          02/96 W Congo (2.0)
