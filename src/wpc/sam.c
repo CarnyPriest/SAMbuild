@@ -2727,7 +2727,7 @@ SAM1_ROM128MB(mtl_180hc,  "mtl180hc.bin", CRC(e37bc6e2) SHA1(1f2d74a4c22a369717c
 
 SAM_INPUT_PORTS_START(mtl, 1)
 
-CORE_GAMEDEF(mtl, 180h, "Metallica Limited Edition (V1.8)", 2018, "Stern", sam2, 0)
+CORE_GAMEDEF(mtl, 180h, "Metallica Limited Edition (V1.80.0)", 2018, "Stern", sam2, 0)
 CORE_CLONEDEF(mtl, 103,  180h, "Metallica (V1.03)", 2013, "Stern", sam2, 0)
 CORE_CLONEDEF(mtl, 105,  180h, "Metallica (V1.05)", 2013, "Stern", sam2, 0)
 CORE_CLONEDEF(mtl, 106,  180h, "Metallica (V1.06)", 2013, "Stern", sam2, 0)
@@ -2753,13 +2753,13 @@ CORE_CLONEDEF(mtl, 164,  180h, "Metallica (V1.64)", 2015, "Stern", sam2, 0)
 CORE_CLONEDEF(mtl, 164h, 180h, "Metallica Limited Edition (V1.64)", 2015, "Stern", sam2, 0)
 CORE_CLONEDEF(mtl, 170,  180h, "Metallica (V1.7)", 2016, "Stern", sam2, 0)
 CORE_CLONEDEF(mtl, 170h,  180h, "Metallica Limited Edition (V1.7)", 2016, "Stern", sam2, 0)
-CORE_CLONEDEF(mtl, 180,  180h, "Metallica (V1.8)", 2018, "Stern", sam2, 0)
+CORE_CLONEDEF(mtl, 180,  180h, "Metallica (V1.80.0)", 2018, "Stern", sam2, 0)
 #ifdef SAM_INCLUDE_COLORED
 CORE_CLONEDEF(mtl, 164c, 180h, "Metallica (V1.64) (Colored)", 2015, "Stern", sam2, 0)
 CORE_CLONEDEF(mtl, 170c, 180h, "Metallica (V1.7) (Colored)", 2016, "Stern", sam2, 0)
 CORE_CLONEDEF(mtl, 170hc,180h, "Metallica Limited Edition (V1.7) (Colored)", 2016, "Stern", sam2, 0)
-CORE_CLONEDEF(mtl, 180c, 180h, "Metallica (V1.8) (Colored)", 2018, "Stern", sam2, 0)
-CORE_CLONEDEF(mtl, 180hc,180h, "Metallica Limited Edition (V1.8) (Colored)", 2018, "Stern", sam2, 0)
+CORE_CLONEDEF(mtl, 180c, 180h, "Metallica (V1.80.0) (Colored)", 2018, "Stern", sam2, 0)
+CORE_CLONEDEF(mtl, 180hc,180h, "Metallica Limited Edition (V1.80.0) (Colored)", 2018, "Stern", sam2, 0)
 #endif
 
 /*-------------------------------------------------------------------
