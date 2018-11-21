@@ -1,3 +1,6 @@
+official rev r4658
+Added Metallica 1.8 Pro and LE
+ ----------------------
 official rev r4656
  ----------------------
 official rev r4639
