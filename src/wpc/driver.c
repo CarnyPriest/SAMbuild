@@ -2012,6 +2012,8 @@ DRIVER(mtl,180h)        //S.A.M.: 11/18 Metallica - V1.80.0 Limited Edition
 DRIVER(mtl,164c)        // pinball browser colorized using extend memory
 DRIVER(mtl,170c)        // pinball browser colorized using extend memory
 DRIVER(mtl,170hc)       // pinball browser colorized using extend memory
+DRIVER(mtl,180c)        // pinball browser colorized using extend memory
+DRIVER(mtl,180hc)       // pinball browser colorized using extend memory
 #endif
 //DRIVER(st,100)          //S.A.M.: 09/13 Star Trek - V1.0
 //DRIVER(st,101)          //S.A.M.: 09/13 Star Trek - V1.01
