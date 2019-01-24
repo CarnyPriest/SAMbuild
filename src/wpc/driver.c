@@ -263,7 +263,7 @@ DRIVERNV(speakesa)      //BY35      10/04 Speakeasy (Free Play)
 DRIVERNV(speake4a)      //BY35      10/04 Speakeasy 4 (4 player Free Play)
 DRIVERNV(babypac )      //BY35-891: 10/82 Baby Pac-Man
 DRIVERNV(babypaca)      //BY35      07/83 Baby Pac-Man (Vidiot U9 ROM Update 891-16 per Service-Bulletin dated July 11 1983)
-DRIVERNV(babypacn)      //BY35      06/06 Baby Pac-Man (home roms)
+DRIVERNV(babypacn)      //BY35      06/06 Baby Pac-Man (Home Rom)
 DRIVERNV(bmx     )      //BY35-888: 01/83 BMX
 DRIVERNV(bmxa    )      //BY35      10/04 BMX (Free Play)
 DRIVERNV(granslam)      //BY35-1311:01/83 Grand Slam
@@ -1773,6 +1773,7 @@ DRIVER(wof,500f)        //S.A.M.: 12/07 Wheel of Fortune - V5.0 (French)
 DRIVER(wof,500g)        //S.A.M.: 12/07 Wheel of Fortune - V5.0 (German)
 DRIVER(wof,500i)        //S.A.M.: 12/07 Wheel of Fortune - V5.0 (Italian)
 DRIVER(wof,500l)        //S.A.M.: 12/07 Wheel of Fortune - V5.0 (Spanish)
+DRIVER(wof,602h)        //S.A.M.: 03/09 Wheel of Fortune - V6.02 (Home Rom)
 DRIVER(shr,130)         //S.A.M.: 03/08 Shrek - V1.3
 //DRIVER(shr,140)         //S.A.M.: 04/08 Shrek - V1.40
 DRIVER(shr,141)         //S.A.M.: 04/08 Shrek - V1.41
