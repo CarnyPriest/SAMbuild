@@ -60,9 +60,8 @@ static READ_HANDLER(gram_r) {
 }
 
 static WRITE_HANDLER(pal_w) {
-  logerror("PAL: %02x\n", data);
   // this is probably wrong but I didn't find any other output to control game enable
-  coreGlobals.solenoids = (coreGlobals.solenoids & 0x0ffff) | ((data & 1) << 16);
+  coreGlobals.solenoids = (coreGlobals.solenoids & 0x0ffff) | (data & 0x40 ? 0x10000 : 0);
 }
 
 static READ_HANDLER(firq_set) {
@@ -145,7 +144,7 @@ static WRITE_HANDLER(via0b_w) {
   static int colNum;
   switch (locals.via_a >> 4) {
     case 0:
-      sndbrd_manCmd(0, ~data);
+      sndbrd_0_data_w(0, ~data);
       break;
     case 1:
       if (!(locals.bitCount % 8)) {
@@ -157,7 +156,7 @@ static WRITE_HANDLER(via0b_w) {
       switch (~locals.via_a & 0x0f) {
         case 0:
           if (core_gameData->hw.lampCol) {
-          	// champion uses two solenoid outputs to control 12 extra lamps
+            // champion uses two solenoid outputs to control 12 extra lamps
             coreGlobals.solenoids = (coreGlobals.solenoids & 0x100ff) | ((~data & 0x9f) << 8);
             if (~data & 0x20) coreGlobals.lampMatrix[8] = lampRow;
             if (~data & 0x40) coreGlobals.lampMatrix[9] = lampRow;
@@ -171,7 +170,7 @@ static WRITE_HANDLER(via0b_w) {
         case 2:
           lampRow = ~data;
           if (countBits(lampRow) == 1) {
-          	colNum = core_BitColToNum(lampRow);
+            colNum = core_BitColToNum(lampRow);
             coreGlobals.lampMatrix[colNum] = lampData;
             // column 4 is additionally fed with all 0 on champion, so buffer the previous value a while
             if (core_gameData->hw.lampCol && colNum == 4) {
@@ -222,9 +221,9 @@ static const struct pia6821_interface pia[] = {{
 }};
 
 static struct via6522_interface via = {
-	/*i: A/B,CA1/B1,CA2/B2 */ 0, 0, 0, 0, 0, 0,
-	/*o: A/B,CA2/B2        */ via0a_w, via0b_w, via0ca2_w, via0cb2_w, 
-	/*irq:                 */ via_irq
+  /*i: A/B,CA1/B1,CA2/B2 */ 0, 0, 0, 0, 0, 0,
+  /*o: A/B,CA2/B2        */ via0a_w, via0b_w, via0ca2_w, via0cb2_w, 
+  /*irq:                 */ via_irq
 };
 
 static MEMORY_READ_START(barni_readmem1)
@@ -303,23 +302,17 @@ static void snd_init(struct sndbrdData *brdData) {
   pia_config(2, PIA_STANDARD_ORDERING, &snd_pia[0]);
   pia_config(3, PIA_STANDARD_ORDERING, &snd_pia[1]);
   tms5220_reset();
-  tms5220_set_variant(TMS5220_IS_5220); // schematics say TMS5200 but that sounds terrible!
+  tms5220_set_variant(TMS5220_IS_5220C); // schematics say TMS5200 but 5220C is used - verified with real game
 }
 static void snd_diag(int button) {
   cpu_set_nmi_line(2, button ? ASSERT_LINE : CLEAR_LINE);
 }
 static WRITE_HANDLER(snd_data_w) {
-  sndlocals.lastcmd = (sndlocals.lastcmd & 0x10) | (data & 0x0f);
-}
-static WRITE_HANDLER(snd_ctrl_w) {
-  sndlocals.lastcmd = (sndlocals.lastcmd & 0x0f) | ((data & 0x02) ? 0x10 : 0x00);
-  pia_set_input_cb1(2, ~data & 0x01);
-}
-static WRITE_HANDLER(snd_manCmd_w) {
-  sndlocals.lastcmd = data;  pia_set_input_cb1(2, 1); pia_set_input_cb1(2, 0);
+  sndlocals.lastcmd = data;
+  pia_set_input_cb1(2, 1); pia_set_input_cb1(2, 0);
 }
 const struct sndbrdIntf barniIntf = {
-  "BARNI", snd_init, NULL, snd_diag, snd_manCmd_w, snd_data_w, NULL, snd_ctrl_w, NULL, 0
+  "BARNI", snd_init, NULL, snd_diag, snd_data_w, snd_data_w, NULL, NULL, NULL, 0
 };
 static READ_HANDLER(snd_cmd_r) {
   return sndlocals.lastcmd;
