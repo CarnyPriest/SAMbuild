@@ -2683,6 +2683,7 @@ DRIVER(sttng,d1)        //                  Star Trek: The Next Generation (DX-1
 DRIVER(sttng,l2)        //          12/93 W Star Trek: The Next Generation (LX-2)
 DRIVER(sttng,d2)        //                  Star Trek: The Next Generation (DX-2) LED Ghost Fix
 DRIVER(sttng,l3)        //WPC-523:  12/93 W Star Trek: The Next Generation (LX-3)
+DRIVER(sttng,l5)        //WPC-523:  12/93 W Star Trek: The Next Generation (LX-5)
 DRIVER(sttng,l7)        //          02/94 W Star Trek: The Next Generation (LX-7)
 DRIVER(sttng,d7)        //                  Star Trek: The Next Generation (DX-7) LED Ghost Fix
 DRIVER(sttng,l7c)       //          08/17 W Star Trek: The Next Generation (LX-7C Competition MOD)
