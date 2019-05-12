@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+
 #include "driver.h"
 #include "filter.h"
 #include <math.h>
@@ -7,7 +9,7 @@
 
 #define SAMPLE_RATE (4*48000) // 4x oversampling of standard output rate
 
-#define SHIFTMASK 0x07 // = mc3417 // At least Xenon and Flash Gordon
+#define SHIFTMASK 0x07 // = mc3417 // at least Xenon and Flash Gordon
 //#define SHIFTMASK 0x0F // = mc3418 // features a more advanced syllabic filter (fancier lowpass filter for the step adaption) than the mc3417!
 
 #define	FILTER_MAX				1.0954 // 0 dbmo sine wave peak value volts from MC3417 datasheet
