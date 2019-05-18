@@ -465,11 +465,18 @@ static void add_sample_out(struct hc55516_data *chip, double sample, double outp
 	fIn = (float)sample;
 	sd.data_in = &fIn;
 	sd.input_frames = 1;
+	sd.input_frames_used = 0;
 	sd.data_out = fOut;
 	sd.output_frames = _countof(fOut);
+	sd.output_frames_gen = 0;
 	sd.end_of_input = 0;
 	sd.src_ratio = output_rate_ratio;
-	src_process(chip->resample_state, &sd);
+	if (src_process(chip->resample_state, &sd))
+	{
+		// error processing the sample - not much we can do, so just discard
+		// the sample
+		return;
+	}
 
 	// Add the resampled output(s) to the PCM sample buffer.  Note that the HC55516
 	// clock rates are in the 20kHz range (the exact rate varies by game and even
@@ -489,7 +496,7 @@ static void add_sample_out(struct hc55516_data *chip, double sample, double outp
 		/* if the write pointer bumped into the read pointer, drop the oldest sample */
 		if (chip->pcm_out.write == chip->pcm_out.read) {
 			if (++chip->pcm_out.read >= _countof(chip->pcm_out.pcm))
-				chip->pcm_out.write = 0;
+				chip->pcm_out.read = 0;
 		}
 	}
 }
@@ -670,6 +677,33 @@ void hc55516_update(int num, INT16 *buffer, int length)
 		// will fill the same time in the MAME stream.  Figure the resampling
 		// rate ratio.
 		ratio = stream_get_sample_rate(chip->channel) * (tprv - t) / n;
+
+		// In rare cases, the ratio can be zero or even negative.  This can happen
+		// when the game outputs a very small group of bits (1-3), which has been
+		// observed in at least one game (F-14 Tomcat).  The difference in clock 
+		// steps between the input and output streams can cause the output clock 
+		// to get ahead of the input clock in such cases.  The same clock leapfrog
+		// can happen in any group of bits, of course, but it doesn't cause trouble
+		// if we have a more typical block of hundreds of bits, since the combined
+		// time in the run will overwhelm the leapfrog effect, and the little bit
+		// of jitter will get subsumed organically into the rate conversion.
+		//
+		// So what to do when we encounter this oddball case?  A handful of bits
+		// in isolation will just sound like a click or tiny burst of noise, if
+		// it's audible at all, so we could probably get away with dropping the
+		// samples entirely without anyone missing them.  However, just in case
+		// the game really intended to output a little click or short burst of
+		// noise, we'll retain them.  We obviously can't output them in negative
+		// time, but we can at least pack them into a short time by converting
+		// them at the output stream sample rate.  Remember, this only happens
+		// when we have a handful of samples in the group, so we're only using
+		// a handful of slots in the output stream.  To do this, force the rate
+		// ratio to 1:1 by fiat.  This will make the little bit group sound sped
+		// up (by a factor of 2 or so for most games), but the loss of fidelity
+		// shouldn't be noticeable because a few bits in isolation just sounds
+		// like noise anyway.
+		if (ratio < 0.5)
+			ratio = 1.0;
 
 		// generate these samples
 		for (i = chip->bits_in.read; n > 0; --n)
@@ -898,8 +932,10 @@ int hc55516_sh_start(const struct MachineSound *msound)
 		for (j = 0; j < _countof(sd_in); sd_in[j++] = 0);
 		sd.data_in = sd_in;
 		sd.input_frames = _countof(sd_in);
+		sd.input_frames_used = 0;
 		sd.data_out = sd_out;
 		sd.output_frames = _countof(sd_out);
+		sd.output_frames_gen = 0;
 		sd.end_of_input = 0;
 		sd.src_ratio = stream_get_sample_rate(chip->channel) / 20000.0;
 		src_process(chip->resample_state, &sd);
