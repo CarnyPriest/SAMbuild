@@ -1,3 +1,6 @@
+official rev r4777
+Add slot for colored DMD patched game code - MTL LE 1.64
+ ----------------------
 official rev r4735
  ----------------------
 official rev r4732
