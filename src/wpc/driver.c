@@ -2029,6 +2029,7 @@ DRIVER(mtl,180)         //S.A.M.: 11/18 Metallica - V1.80.0
 DRIVER(mtl,180h)        //S.A.M.: 11/18 Metallica - V1.80.0 Limited Edition
 #ifdef SAM_INCLUDE_COLORED
 DRIVER(mtl,164c)        // pinball browser colorized using extend memory
+DRIVER(mtl,164hc)       // pinball browser colorized using extend memory
 DRIVER(mtl,170c)        // pinball browser colorized using extend memory
 DRIVER(mtl,170hc)       // pinball browser colorized using extend memory
 DRIVER(mtl,180c)        // pinball browser colorized using extend memory
@@ -2279,7 +2280,8 @@ DRIVER(bk,f4)           //          11/80 W Black Knight (L-4 French Speech)
 DRIVER(jngld,l1)        //S7-503:   02/81 W Jungle Lord (L-1)
 DRIVER(jngld,l2)        //          02/81 W Jungle Lord (L-2)
 DRIVER(jngld,nt)        //          09/13 W Jungle Lord New Tricks
-DRIVER(pharo,l2)        //S7-504:   05/81 W Pharaoh
+DRIVER(pharo,l2)        //S7-504:   05/81 W Pharaoh (L-2)
+DRIVER(pharo,l2b)       //          05/19 W Pharaoh (L-2 'tomb' sample sound fix MOD)
                         //S7-506:   06/81 W Black Knight Limited Edition
 DRIVER(solar,l2)        //S7-507:   07/81 W Solar Fire
 DRIVER(barra,l1)        //S7-510:   09/81 W Barracora
