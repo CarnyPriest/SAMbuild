@@ -205,9 +205,11 @@ DRIVERNV(xenonfa )      //BY35      10/08 Xenon (French Free Play)
 DRIVERNV(flashgdn)      //BY35-834: 02/81 Flash Gordon
 DRIVERNV(flashgdv)      //BY35      02/81 Flash Gordon (Vocalizer sound)
 DRIVERNV(flashgdf)      //BY35      02/81 Flash Gordon (French)
+DRIVERNV(flashgvf)      //BY35      02/81 Flash Gordon (French Vocalizer sound)
 DRIVERNV(flashgda)      //BY35      10/08 Flash Gordon (Free Play)
 DRIVERNV(flashgva)      //BY35      10/08 Flash Gordon (Vocalizer sound Free Play)
 DRIVERNV(flashgfa)      //BY35      10/08 Flash Gordon (French Free Play)
+DRIVERNV(flashgvffp)    //BY35      10/08 Flash Gordon (French Vocalizer sound Free Play)
 DRIVERNV(flashgdp)      //BY35      ??/8? Flash Gordon (68701 hardware prototype)
 DRIVERNV(flashgp2)      //BY35      ??/8? Flash Gordon (6801 hardware prototype)
 DRIVERNV(eballd14)      //BY35-838: 04/81 Eight Ball Deluxe (rev. 14)
@@ -419,6 +421,7 @@ DRIVER(play,a24)        //Data East MPU: 05/89 Playboy 35th Anniversary
 //2 x 16 A/N Display
 DRIVER(mnfb,c27)        //Data East MPU: 09/89 ABC Monday Night Football (2.7, 50cts)
 DRIVER(mnfb,c29)        //Data East MPU: 09/89 ABC Monday Night Football (2.9, 50cts)
+DRIVER(robo,a29)        //Data East MPU: 11/89 Robocop (2.9)
 DRIVER(robo,a30)        //Data East MPU: 11/89 Robocop (3.0)
 DRIVER(robo,a34)        //Data East MPU: 11/89 Robocop (3.4)
 DRIVER(poto,a32)        //Data East MPU: 01/90 Phantom of the Opera (3.2)
@@ -497,6 +500,7 @@ DRIVER(tomy,h30)        //Data East MPU: 02/94 Tommy (3.00 Dutch)
 DRIVER(tomy,400)        //Data East MPU: 02/94 Tommy (4.00)
 DRIVER(tomy,500)        //Data East MPU: 05/16 Tommy (5.00 unofficial MOD)
 DRIVER(wwfr,103)        //Data East MPU: 05/94 WWF Royal Rumble (1.03)
+DRIVER(wwfr,103f)       //Data East MPU: 05/94 WWF Royal Rumble (1.03 French)
 DRIVER(wwfr,106)        //Data East MPU: 08/94 WWF Royal Rumble (1.06)
 DRIVER(gnr,300)         //Data East MPU: 07/94 Guns N' Roses (3.00)
 DRIVER(gnr,300f)        //Data East MPU: 07/94 Guns N' Roses (3.00 French)
@@ -540,7 +544,8 @@ DRIVERNV(ladyshot)      //Lady Sharpshooter (May 1985)
 DRIVERNV(ldyshot2)      //Lady Sharpshooter (May 1985, alternate set)
 DRIVERNV(andromed)      //Andromeda (August 1985)
 DRIVERNV(andromea)      //Andromeda (alternate set)
-DRIVERNV(cyclopes)      //Cyclopes (November 1985)
+DRIVERNV(cyclope1)      //Cyclopes (November 1985)
+DRIVERNV(cyclopes)      //Cyclopes (December 1985)
                         //Loch Ness Monster (November 1985)
 
 // ------------------
@@ -2248,6 +2253,7 @@ DRIVER(tmwrp,t2)        //                  Time Warp (L-2) /10 Scoring Ted Este
 DRIVER(tmwrp,l3)        //                  Time Warp (L-3)
 DRIVER(grgar,l1)        //S6-496:   11/79 W Gorgar
 DRIVER(grgar,t1)        //                  Gorgar /10 Scoring Ted Estes
+DRIVER(grgar,c1)        //                  Gorgar (Lane Change Mod)
 DRIVER(lzbal,l2)        //S6-493:   12/79 W Laser Ball
 DRIVER(lzbal,t2)        //                  Laser Ball /10 Scoring Ted Estes
 DRIVER(frpwr,l2)        //S6-497:   02/80 W Firepower (L-2)
@@ -2399,6 +2405,7 @@ DRIVER(tsptr,l3)        //S11-2630: 07/89 B Transporter the Rescue
 DRIVER(polic,l2)        //S11-573:  08/89 W Police Force (LA-2)
 DRIVER(polic,l3)        //          09/89 W Police Force (LA-3)
 DRIVER(polic,l4)        //          10/89 W Police Force (LA-4)
+DRIVER(polic,g4)        //          10/89 W Police Force (LG-4)
 DRIVER(eatpm,p7)        //S11-782:  09/89 B Elvira and the Party Monsters (PA-7 Prototype)
 DRIVER(eatpm,l1)        //          09/89 B Elvira and the Party Monsters (LA-1)
 DRIVER(eatpm,f1)        //          09/89 B Elvira and the Party Monsters (LF-1 French)
@@ -2577,7 +2584,8 @@ DRIVER(br,l3)           //          01/93 B Black Rose (L-3)
 DRIVER(br,d3)           //                  Black Rose (D-3) LED Ghost Fix
 DRIVER(br,l4)           //          11/93 B Black Rose (L-4)
 DRIVER(br,d4)           //                  Black Rose (D-4) LED Ghost Fix
-DRIVER(ft,p4)           //WPC-505:  07/92 W Fish Tales (P-4)
+DRIVER(ft,p2)           //WPC-505:  06/92 W Fish Tales (P-2)
+DRIVER(ft,p4)           //          07/92 W Fish Tales (P-4)
 DRIVER(ft,p5)           //                  Fish Tales (P-5) LED Ghost Fix
 DRIVER(ft,l3)           //          09/92 W Fish Tales (L-3)
 DRIVER(ft,l4)           //          09/92 W Fish Tales (L-4)
