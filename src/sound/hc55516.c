@@ -413,7 +413,7 @@ static void init_output_filter(struct hc55516_data *chip)
 	switch (chip->output_filter.type)
 	{
 	case HC55516_FILTER_C8228:
-		// Williams Speech Board Type 2 (part number C-8228), used in System 9
+		// Williams Speech Board Type 2 (part number C-8228), used in System 3
 		// and optionally (otherwise C-8226 with MC3417) in System 6/7 games.
 		// This used a 2-stage multiple feedback
 		// filter.  Note that there's a third op-amp stage as well, but that's
@@ -452,9 +452,8 @@ static void init_output_filter(struct hc55516_data *chip)
 // ---------------------------------------------------------------------------
 //
 // Add a decoded output sample.  This takes a raw sample from the CVSD 
-// decoder, runs it through our low-pass filter to reduce quantization noise,
-// resamples it using the PCM sample rate of the MAME output stream, and adds
-// it to our output buffer to eventually pass to the MAME stream.
+// decoder, resamples it using the PCM sample rate of the MAME output stream,
+// and adds it to our output buffer to eventually pass to the MAME stream.
 //
 static void add_sample_out(struct hc55516_data *chip, const double sample, const double output_rate_ratio)
 {
@@ -804,10 +803,12 @@ void hc55516_clock_w(int num, int state)
 	}
 }
 
-// Set the gain
+// Set the gain, as a mutiple of the default gain.  The default gain
+// yields a 1:1 mapping from the full dynamic range of the HC55516 to
+// the full dynamic range of the MAME stream.
 void hc55516_set_gain(int num, double gain)
 {
-	hc55516[num].gain = gain;
+	hc55516[num].gain = gain * DEFAULT_GAIN;
 }
 
 // Set the data bit input.  This just latches the bit for later processing,
