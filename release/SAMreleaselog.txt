@@ -1,3 +1,6 @@
+SAMBuild version 3.2
+official rev r4846
+ ----------------------
 official rev r4845
  ----------------------
 official rev r4841
