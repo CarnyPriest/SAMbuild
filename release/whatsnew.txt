@@ -3,6 +3,20 @@ What's new in PinMAME:
 (see whatsnewVPM.txt for the Visual PinMAME exclusive changes!)
 
 
+Version 3.3 (X X, 2019) - ""
+------------------------------------------------------------------------------
+
+*** CORE/CPU ***
+Wico's Af-Tor fully working now
+Sped up Video Dens games, found more dip switches, switch test, saving NVRAM
+
+*** ROM SUPPORT *** Thanks to Soren, ipdb.org
+Clones:
+Flintstones, The LX-3
+Theatre of Magic 1.3XC (competition MOD) (updated)
+
+
+
 Version 3.2 (October 6th, 2019) - "Sounds good II"
 ------------------------------------------------------------------------------
 

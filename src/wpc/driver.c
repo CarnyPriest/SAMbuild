@@ -105,7 +105,7 @@ DRIVERNV(cntintl2)      //          10/80 Continental (Bingo, alternate version)
 
 //Boomerang prototype
 DRIVERNV(boomrang)      //          11/75 Boomerang (Engineering prototype)
-DRIVERNV(boomranb)      //          04/17 Boomerang (Bootleg with code fixes)
+DRIVERNV(boomranb)      //          04/17 Boomerang (MOD with code fixes)
 
 //MPU-17
 DRIVERNV(bowarrow)      //          08/76 Bow & Arrow (Prototype, rev. 23)
@@ -1309,16 +1309,16 @@ DRIVERNV(viper)         //MPU-200: 12/81 Viper
 DRIVERNV(viperfp)       //MPU-200: 12/81 Viper (Free Play)
 DRIVERNV(dragfist)      //MPU-200: 01/82 Dragonfist
 DRIVERNV(dragfifp)      //MPU-200: 01/82 Dragonfist (Free Play)
-DRIVERNV(dragfisb)      //MPU-200: 01/82 Dragonfist (Bootleg - modified to match instruction card/manual)
-DRIVERNV(dragfib2)      //MPU-200: 01/82 Dragonfist (Bootleg 2 - modified to match instruction card/manual)
+DRIVERNV(dragfisb)      //MPU-200: 01/82 Dragonfist (MOD - modified to match instruction card/manual)
+DRIVERNV(dragfib2)      //MPU-200: 01/82 Dragonfist (MOD 2 - modified to match instruction card/manual)
 DRIVERNV(orbitor1)      //MPU-200: 04/82 Orbitor 1
 DRIVERNV(orbitofp)      //MPU-200: 04/82 Orbitor 1 (Free Play)
-DRIVERNV(orbitora)      //MPU-200: 04/82 Orbitor 1 (Bootleg)
-DRIVERNV(orbitorb)      //MPU-200: 04/82 Orbitor 1 (Bootleg Free Play)
-DRIVERNV(orbitorc)      //MPU-200: 04/82 Orbitor 1 (Bootleg No Timed Game)
-DRIVERNV(cue)           //MPU-200: ??/82 Cue            (Proto - Never released)
+DRIVERNV(orbitora)      //MPU-200: 04/82 Orbitor 1 (MOD)
+DRIVERNV(orbitorb)      //MPU-200: 04/82 Orbitor 1 (MOD Free Play)
+DRIVERNV(orbitorc)      //MPU-200: 04/82 Orbitor 1 (MOD No Timed Game)
+DRIVERNV(cue)           //MPU-200: ??/82 Cue (Proto - Never released)
 DRIVERNV(blbeauty)      //MPU-200: 09/84 Black Beauty (Shuffle)
-DRIVERNV(lazrlord)      //MPU-200: 10/84 Lazer Lord     (Proto - Never released)
+DRIVERNV(lazrlord)      //MPU-200: 10/84 Lazer Lord (Proto - Never released)
 // Whitestar System
 DRIVERNV(strikext)      //Whitestar: 03/00 Striker Extreme (1.02)
 DRIVERNV(strxt_uk)      //Whitestar: 03/00 Striker Extreme (1.01 English)
@@ -2770,6 +2770,7 @@ DRIVER(fs,lx2)          //WPC-529:  07/94 W Flintstones, The (LX-2)
 DRIVER(fs,dx2)          //                  Flintstones, The (DX-2) LED Ghost Fix
 DRIVER(fs,sp2)          //          07/94 W Flintstones, The (SP-2)
 DRIVER(fs,sp2d)         //                  Flintstones, The (SP-2D) LED Ghost Fix
+DRIVER(fs,lx3)          //          08/94 W Flintstones, The (LX-3)
 DRIVER(fs,lx4)          //          09/94 W Flintstones, The (LX-4)
 DRIVER(fs,dx4)          //                  Flintstones, The (DX-4) LED Ghost Fix
 DRIVER(fs,lx5)          //          11/94 W Flintstones, The (LX-5)
@@ -2831,7 +2832,7 @@ DRIVER(tom,13f)         //          08/95 B Theatre of Magic (1.3 French)
 DRIVER(tom,14h)         //          10/96 B Theatre of Magic (1.4 Home version)
 DRIVER(tom,14hb)        //                  Theatre of Magic (1.4 Home version Coin Play)
 //DRIVER(tom,15c)       //          06/16 B Theatre of Magic (1.5C Competition MOD)  //outdated patch
-DRIVER(tom,13c)         //          06/19 B Theatre of Magic (1.3XC Competition MOD) //patch 34ee
+DRIVER(tom,13c)         //          10/19 B Theatre of Magic (1.3XC Competition MOD) //patch f0f8
 DRIVER(nf,10)           //WPC-525:  05/95 W No Fear: Dangerous Sports (1.0)
 DRIVER(nf,101)          //                  No Fear: Dangerous Sports (1.01) LED Ghost Fix
 DRIVER(nf,11x)          //WPC-525:  05/95 W No Fear: Dangerous Sports (1.1 Export)
