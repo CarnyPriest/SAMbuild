@@ -235,8 +235,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,2,0,0
- PRODUCTVERSION 3,2,0,0
+ FILEVERSION 3,3,0,0
+ PRODUCTVERSION 3,3,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -255,12 +255,12 @@ BEGIN
             VALUE "Comments", "Based on MAME32 by Christopher Kirmse and Michael Soderstrom"
             VALUE "CompanyName", "PinMAME Team"
             VALUE "FileDescription", "Multiple Pinball Machine Emulator for Win32"
-            VALUE "FileVersion", "3, 2, 0, 0"
+            VALUE "FileVersion", "3, 3, 0, 0"
             VALUE "InternalName", "PinMAME32"
             VALUE "LegalCopyright", "Copyright 2001-2019 by the PinMAME team"
             VALUE "OriginalFilename", "PinMAME32.exe"
             VALUE "ProductName", "PinMAME32"
-            VALUE "ProductVersion", "3.2"
+            VALUE "ProductVersion", "3.3"
         END
     END
     BLOCK "VarFileInfo"
@@ -310,7 +310,7 @@ IDI_HEADER_DOWN         ICON                    "res\\header_down.ico"
 // Dialog
 //
 
-IDD_ABOUT DIALOG  0, 0, 296, 129
+IDD_ABOUT DIALOG  0, 0, 296, 138
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About PinMAME32"
 FONT 8, "MS Sans Serif"
