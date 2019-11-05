@@ -12,7 +12,7 @@
 
 // Controller.cpp : Implementation of Controller and DLL registration.
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "VPinMAME_h.h"
 #include "VPinMAMEAboutDlg.h"
 #include "VPinMAMEConfig.h"
@@ -44,6 +44,7 @@ extern UINT32 g_needs_DMD_update;
 extern int g_cpu_affinity_mask;
 
 extern char g_fShowWinDMD;
+extern char g_szGameName[256];
 
 // from ticker.c
 extern void uSleep(const UINT64 u);
@@ -52,7 +53,7 @@ extern void uSleep(const UINT64 u);
  extern void alt_sound_pause(BOOL pause);
 #endif
 }
-#include "alias.h"
+#include "Alias.h"
 
 extern int fAllowWriteAccess;
 extern int synclevel;
@@ -172,7 +173,8 @@ CController::CController() {
 		m_pGames->AddRef();
 
 	// get a pointer to the settings object for the "default" game
-	m_pGames->get_Item(&CComVariant(m_szROM), &m_pGame);
+	CComVariant szROM(m_szROM);
+	m_pGames->get_Item(&szROM, &m_pGame);
 	m_pGame->get_Settings((IGameSettings**) &m_pGameSettings);
 
 	// these value are not stored to the registry
@@ -419,10 +421,12 @@ STDMETHODIMP CController::get_Solenoid(int nSolenoid, VARIANT_BOOL *pVal)
  ************************************************************************/
 STDMETHODIMP CController::get_Switch(int nSwitchNo, VARIANT_BOOL *pVal) {
   if (pVal)
+  {
     if (WaitForSingleObject(m_hEmuIsRunning, 0) == WAIT_TIMEOUT)
       *pVal = false;
     else 
       *pVal = vp_getSwitch(nSwitchNo)?VARIANT_TRUE:VARIANT_FALSE;
+  }
   return S_OK;
 }
 
@@ -1121,7 +1125,7 @@ STDMETHODIMP CController::put_Switches(VARIANT newVal)
  ******************************************************/
 STDMETHODIMP CController::get_GameName(BSTR *pVal)
 {
-	CComBSTR Val(m_szROM);
+	CComBSTR Val(g_szGameName);
 	*pVal = Val.Detach();
 	return S_OK;
 }
@@ -1133,9 +1137,8 @@ STDMETHODIMP CController::put_GameName(BSTR newVal)
 			return Error(TEXT("Setting the game name is not allowed for a running game!"));
 	}
 
-	char szTemp[256];
-	WideCharToMultiByte(CP_ACP, 0, newVal, -1, szTemp, sizeof szTemp, NULL, NULL);
-    const char* gameName = checkGameAlias(szTemp);
+	WideCharToMultiByte(CP_ACP, 0, newVal, -1, g_szGameName, sizeof g_szGameName, NULL, NULL);
+	const char* gameName = checkGameAlias(g_szGameName);
 	// don't let the game name set to an invalid value
 	int nGameNo = -1;
 	if ( gameName[0] && ((nGameNo=GetGameNumFromString(const_cast<char*>(gameName)))<0) )
@@ -1156,7 +1159,8 @@ STDMETHODIMP CController::put_GameName(BSTR newVal)
 	m_nGameNo = nGameNo;
 
 	// get a pointer to the settings object
-	m_pGames->get_Item(&CComVariant(m_szROM), &m_pGame);
+	CComVariant szROM(m_szROM);
+	m_pGames->get_Item(&szROM, &m_pGame);
 	m_pGame->get_Settings((IGameSettings**) &m_pGameSettings);
 
 	return S_OK;
@@ -2089,7 +2093,7 @@ STDMETHODIMP CController::get_UseSamples(VARIANT_BOOL *pVal)
 	HRESULT hr = m_pGameSettings->get_Value(CComBSTR("samples"), &vValue);
 	*pVal = vValue.boolVal;
 
-	return S_OK;
+	return hr;
 }
 
 STDMETHODIMP CController::put_UseSamples(VARIANT_BOOL newVal)
